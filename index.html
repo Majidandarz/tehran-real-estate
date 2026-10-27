@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>املاک تهران</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#f4f6f8;color:#202733}header{background:#123b35;color:white;padding:24px 16px;text-align:center}header h1{margin:0 0 8px;font-size:25px}main{max-width:900px;margin:20px auto;padding:0 14px}.panel,.property{background:white;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 3px 12px #0000000a}.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}label{display:block;font-size:13px;margin-bottom:6px}select,input{width:100%;padding:11px;border:1px solid #d4dbe0;border-radius:8px;background:white;font:inherit}button{border:0;border-radius:8px;padding:12px 16px;background:#176c59;color:white;font:inherit;cursor:pointer;margin:10px 0 0 6px}.secondary{background:#e8eeec;color:#203b35}.property h3{margin:0 0 8px}.meta{color:#68737e;font-size:13px}.price{font-weight:bold;color:#176c59;margin-top:10px}.tag{display:inline-block;background:#edf5f1;color:#176c59;padding:5px 8px;border-radius:6px;font-size:12px;margin-left:5px}.empty{display:none;text-align:center;padding:20px;color:#68737e}
+</style></head>
+<body><header><h1>املاک تهران</h1><div>جست‌وجو و بررسی فایل‌های ملکی</div></header>
+<main><section class="panel"><h2>جست‌وجوی ملک</h2><div class="filters">
+<div><label for="deal">نوع معامله</label><select id="deal"><option value="all">همه</option><option value="buy">خرید</option><option value="rent">اجاره</option><option value="invest">سرمایه‌گذاری</option></select></div>
+<div><label for="kind">نوع ملک</label><select id="kind"><option value="all">همه</option><option value="apartment">آپارتمان</option><option value="villa">ویلا</option><option value="land">زمین</option><option value="commercial">تجاری</option></select></div>
+<div><label for="area">محدوده</label><select id="area"><option value="all">همه</option><option value="north">شمال تهران</option><option value="central">مرکز تهران</option><option value="west">غرب تهران</option><option value="east">شرق تهران</option></select></div>
+<div><label for="budget">حداکثر بودجه (میلیارد تومان)</label><input id="budget" type="number" min="0" placeholder="مثلاً ۲۰"></div></div>
+<button id="search">جست‌وجو</button><button id="reset" class="secondary">پاک‌کردن فیلترها</button></section>
+<section id="list">
+<article class="property" data-deal="buy" data-kind="apartment" data-area="west" data-price="12"><span class="tag">نمونه آزمایشی</span><h3>آپارتمان دوخوابه</h3><div class="meta">غرب تهران · ۹۵ متر · دو خواب</div><div class="price">۱۲ میلیارد تومان</div></article>
+<article class="property" data-deal="rent" data-kind="villa" data-area="north" data-price="25"><span class="tag">نمونه آزمایشی</span><h3>ویلای مستقل</h3><div class="meta">شمال تهران · ۳۰۰ متر زمین · حیاط‌دار</div><div class="price">رهن و اجاره توافقی</div></article>
+<article class="property" data-deal="invest" data-kind="land" data-area="east" data-price="8"><span class="tag">نمونه آزمایشی</span><h3>زمین مناسب سرمایه‌گذاری</h3><div class="meta">شرق تهران · ۲۵۰ متر</div><div class="price">۸ میلیارد تومان</div></article>
+</section><div id="empty" class="panel empty">موردی مطابق فیلترهای انتخاب‌شده پیدا نشد.</div><p class="meta">اطلاعات نمایش‌داده‌شده صرفاً نمونه آزمایشی است و آگهی واقعی نیست.</p></main>
+<script>
+const ids=['deal','kind','area','budget'];document.getElementById('search').onclick=()=>{let count=0;document.querySelectorAll('.property').forEach(p=>{let ok=(deal.value==='all'||p.dataset.deal===deal.value)&&(kind.value==='all'||p.dataset.kind===kind.value)&&(area.value==='all'||p.dataset.area===area.value)&&(!budget.value||Number(p.dataset.price)<=Number(budget.value));p.style.display=ok?'block':'none';if(ok)count++});document.getElementById('empty').style.display=count?'none':'block'};document.getElementById('reset').onclick=()=>{ids.forEach(id=>document.getElementById(id).value=id==='budget'?'':'all');document.querySelectorAll('.property').forEach(p=>p.style.display='block');document.getElementById('empty').style.display='none'};
+</script></body></html>
