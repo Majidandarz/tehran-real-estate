@@ -1,353 +1,467 @@
+import logging
 import os
-import json
-import time
 import sqlite3
 import threading
-import urllib.parse
-import urllib.request
+from datetime import datetime, timezone
+
 from flask import Flask, jsonify
-from telegram import (
-    Update, ReplyKeyboardMarkup, KeyboardButton,
-    ReplyKeyboardRemove
-)
+from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import (
-    Application, CommandHandler, MessageHandler,
-    ContextTypes, filters
+    Application,
+    CommandHandler,
+    ContextTypes,
+    MessageHandler,
+    filters,
 )
 
-TOKEN = os.getenv("BOT_TOKEN", "").strip()
-ADMIN_ID = 6245308636
-CHANNEL_ID = "@tehranrealstate"
+BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
+ADMIN_ID = int(os.getenv("ADMIN_ID", "6245308636"))
+CHANNEL_USERNAME = os.getenv("CHANNEL_USERNAME", "@tehranrealstate")
+DATABASE_PATH = os.getenv("DATABASE_PATH", "real_estate.db")
 PORT = int(os.getenv("PORT", "10000"))
-DB_PATH = os.getenv("DATABASE_PATH", "realestate.db")
 
-if not TOKEN:
-    raise RuntimeError("BOT_TOKEN در تنظیمات Render تنظیم نشده است.")
+logging.basicConfig(
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    level=logging.INFO,
+)
+logger = logging.getLogger("tehran_real_estate_bot")
 
-app = Flask(__name__)
-bot_app = None
-
-db = sqlite3.connect(DB_PATH, check_same_thread=False)
-db.row_factory = sqlite3.Row
-lock = threading.Lock()
-
-with lock:
-    db.execute("""
-        CREATE TABLE IF NOT EXISTS listings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            username TEXT,
-            data TEXT,
-            status TEXT DEFAULT 'pending',
-            created_at INTEGER
-        )
-    """)
-    db.commit()
+BACK = "بازگشت به منوی اصلی"
 
 MAIN_MENU = [
     ["متقاضی خرید یا اجاره"],
     ["فروشنده یا موجر"],
     ["سرمایه‌گذاری ملکی و مشارکت در ساخت"],
     ["مشاور املاک"],
-    ["پشتیبانی و ارتباط با مدیر"]
+    ["پشتیبانی و ارتباط با مدیر"],
 ]
 
 SUBMENUS = {
     "متقاضی خرید یا اجاره": [
-        ["ثبت درخواست خرید یا اجاره"],
-        ["جست‌وجوی ملک"],
-        ["درخواست بازدید"],
-        ["بازگشت به منوی اصلی"]
+        ["ثبت تقاضای خرید"],
+        ["ثبت تقاضای اجاره"],
+        [BACK],
     ],
     "فروشنده یا موجر": [
-        ["ثبت آگهی"],
-        ["راهنمای ثبت آگهی"],
-        ["پیگیری آگهی"],
-        ["بازگشت به منوی اصلی"]
+        ["ثبت آگهی فروش"],
+        ["ثبت آگهی اجاره"],
+        [BACK],
     ],
     "سرمایه‌گذاری ملکی و مشارکت در ساخت": [
-        ["فرصت‌های سرمایه‌گذاری"],
-        ["درخواست مشارکت در ساخت"],
-        ["بازگشت به منوی اصلی"]
+        ["درخواست پیش خرید"],
+        ["سازنده آماده مشارکت هستم"],
+        ["مالک ملک برای مشارکت در ساخت هستم"],
+        [BACK],
     ],
     "مشاور املاک": [
         ["ثبت آگهی ملک"],
         ["پیگیری مشتریان"],
-        ["همکاری با مشاوران"],
-        ["بازگشت به منوی اصلی"]
+        ["درخواست همکاری با مشاوران"],
+        [BACK],
     ],
     "پشتیبانی و ارتباط با مدیر": [
         ["ارسال پیام به مدیر"],
-        ["گزارش تخلف"],
-        ["بازگشت به منوی اصلی"]
-    ]
+        ["گزارش مشکل یا تخلف"],
+        [BACK],
+    ],
 }
 
-def keyboard(rows, resize=True):
+FORM_FIELDS = {
+    "ثبت تقاضای خرید": [
+        ("نوع ملک موردنظر را وارد کنید (مثلاً آپارتمان، زمین، ویلا):", "نوع ملک"),
+        ("شهر و محدوده موردنظر را وارد کنید:", "شهر و محدوده"),
+        ("بودجه یا بازه قیمت را وارد کنید:", "بودجه"),
+        ("توضیحات تکمیلی را وارد کنید یا «ندارم» بنویسید:", "توضیحات"),
+        ("شماره تماس برای پیگیری را وارد کنید:", "شماره تماس"),
+    ],
+    "ثبت تقاضای اجاره": [
+        ("نوع ملک موردنظر را وارد کنید:", "نوع ملک"),
+        ("شهر و محدوده موردنظر را وارد کنید:", "شهر و محدوده"),
+        ("بودجه اجاره و ودیعه را وارد کنید:", "بودجه و ودیعه"),
+        ("توضیحات تکمیلی را وارد کنید یا «ندارم» بنویسید:", "توضیحات"),
+        ("شماره تماس برای پیگیری را وارد کنید:", "شماره تماس"),
+    ],
+    "ثبت آگهی فروش": [
+        ("نوع ملک را وارد کنید:", "نوع ملک"),
+        ("شهر و محدوده ملک را وارد کنید:", "شهر و محدوده"),
+        ("متراژ ملک را وارد کنید:", "متراژ"),
+        ("قیمت پیشنهادی را وارد کنید:", "قیمت"),
+        ("توضیحات ملک را وارد کنید:", "توضیحات"),
+        ("شماره تماس را وارد کنید:", "شماره تماس"),
+    ],
+    "ثبت آگهی اجاره": [
+        ("نوع ملک را وارد کنید:", "نوع ملک"),
+        ("شهر و محدوده ملک را وارد کنید:", "شهر و محدوده"),
+        ("متراژ ملک را وارد کنید:", "متراژ"),
+        ("مبلغ ودیعه را وارد کنید:", "ودیعه"),
+        ("مبلغ اجاره ماهانه را وارد کنید:", "اجاره ماهانه"),
+        ("توضیحات ملک را وارد کنید:", "توضیحات"),
+        ("شماره تماس را وارد کنید:", "شماره تماس"),
+    ],
+    "درخواست پیش خرید": [
+        ("نوع پروژه یا ملک موردنظر را وارد کنید:", "نوع پروژه"),
+        ("شهر و محدوده موردنظر را وارد کنید:", "شهر و محدوده"),
+        ("بودجه تقریبی را وارد کنید:", "بودجه"),
+        ("زمان تحویل یا شرایط مدنظر را بنویسید:", "شرایط"),
+        ("شماره تماس را وارد کنید:", "شماره تماس"),
+    ],
+    "سازنده آماده مشارکت هستم": [
+        ("نام یا عنوان سازنده/شرکت را وارد کنید:", "نام سازنده"),
+        ("شهر و محدوده فعالیت را وارد کنید:", "محدوده فعالیت"),
+        ("نوع پروژه و توان اجرایی را توضیح دهید:", "توان اجرایی"),
+        ("شرایط مشارکت مدنظر را بنویسید:", "شرایط مشارکت"),
+        ("شماره تماس را وارد کنید:", "شماره تماس"),
+    ],
+    "مالک ملک برای مشارکت در ساخت هستم": [
+        ("نوع ملک و مشخصات کلی آن را وارد کنید:", "مشخصات ملک"),
+        ("شهر و محدوده ملک را وارد کنید:", "شهر و محدوده"),
+        ("مساحت زمین و مشخصات سند را وارد کنید:", "مساحت و سند"),
+        ("شرایط اولیه مشارکت را بنویسید:", "شرایط مشارکت"),
+        ("شماره تماس را وارد کنید:", "شماره تماس"),
+    ],
+    "ثبت آگهی ملک": [
+        ("نوع معامله و ملک را وارد کنید:", "نوع معامله و ملک"),
+        ("شهر و محدوده را وارد کنید:", "شهر و محدوده"),
+        ("قیمت یا شرایط مالی را وارد کنید:", "قیمت/شرایط"),
+        ("توضیحات و مشخصات ملک را وارد کنید:", "توضیحات"),
+        ("شماره تماس را وارد کنید:", "شماره تماس"),
+    ],
+    "پیگیری مشتریان": [
+        ("نام مشتری یا کد پیگیری را وارد کنید:", "مشتری/کد پیگیری"),
+        ("توضیح درخواست پیگیری را بنویسید:", "شرح پیگیری"),
+        ("شماره تماس خود را وارد کنید:", "شماره تماس"),
+    ],
+    "درخواست همکاری با مشاوران": [
+        ("نام مشاور یا آژانس را وارد کنید:", "نام مشاور/آژانس"),
+        ("شهر و محدوده فعالیت را وارد کنید:", "محدوده فعالیت"),
+        ("نوع همکاری مدنظر را توضیح دهید:", "نوع همکاری"),
+        ("شماره تماس را وارد کنید:", "شماره تماس"),
+    ],
+    "ارسال پیام به مدیر": [
+        ("پیام خود را برای مدیر بنویسید:", "پیام"),
+        ("شماره تماس (در صورت تمایل) را وارد کنید یا «ندارم» بنویسید:", "شماره تماس"),
+    ],
+    "گزارش مشکل یا تخلف": [
+        ("موضوع گزارش را بنویسید:", "موضوع"),
+        ("شرح گزارش را بنویسید:", "شرح"),
+        ("شماره تماس (در صورت تمایل) را وارد کنید یا «ندارم» بنویسید:", "شماره تماس"),
+    ],
+}
+
+web_app = Flask(__name__)
+runtime_state = {
+    "status": "starting",
+    "telegram_polling": False,
+    "last_update_time": None,
+}
+
+
+def init_db():
+    with sqlite3.connect(DATABASE_PATH) as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS submissions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                created_at TEXT NOT NULL,
+                user_id INTEGER NOT NULL,
+                username TEXT,
+                category TEXT NOT NULL,
+                data TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending'
+            )
+        """)
+        conn.commit()
+
+
+def keyboard_for(rows):
     return ReplyKeyboardMarkup(
         rows,
-        resize_keyboard=resize,
-        one_time_keyboard=False,
-        input_field_placeholder="یک گزینه را انتخاب کن"
+        resize_keyboard=True,
+        is_persistent=True,
+        input_field_placeholder="یکی از گزینه‌ها را انتخاب کنید",
     )
+
 
 def main_keyboard():
-    return keyboard(MAIN_MENU)
+    return keyboard_for(MAIN_MENU)
 
-def submenu_keyboard(section):
-    return keyboard(SUBMENUS[section])
 
-def api(method, data):
-    url = f"https://api.telegram.org/bot{TOKEN}/{method}"
-    request = urllib.request.Request(
-        url, data=urllib.parse.urlencode(data).encode()
-    )
-    with urllib.request.urlopen(request, timeout=20) as response:
-        return json.loads(response.read().decode())
+def menu_keyboard(menu_name):
+    rows = SUBMENUS.get(menu_name, [[BACK]])
+    if not any(BACK in row for row in rows):
+        rows.append([BACK])
+    return keyboard_for(rows)
 
-@app.get("/")
-def home():
-    return jsonify({"service": "Tehran Real Estate Bot", "status": "running"})
 
-@app.get("/health")
-def health():
-    return jsonify({"status": "ok", "telegram_polling": True})
+async def send_main_menu(update, text="منوی اصلی املاک تهران:"):
+    if update.message:
+        await update.message.reply_text(text, reply_markup=main_keyboard())
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
-    await update.message.reply_text(
-        "به سامانه املاک تهران خوش آمدی.\nبخش موردنظرت را انتخاب کن:",
-        reply_markup=main_keyboard()
+    await send_main_menu(
+        update,
+        "به سامانه املاک تهران خوش آمدید.\n"
+        "از منوی پایین یکی از گزینه‌ها را انتخاب کنید:",
     )
 
-async def show_listing_step(update, context):
-    step = context.user_data.get("listing_step", 0)
-    prompts = [
-        ("نوع معامله را انتخاب کن:", [
-            ["فروش", "خرید"], ["اجاره", "رهن کامل"],
-            ["سرمایه‌گذاری"], ["لغو عملیات"]
-        ]),
-        ("نوع ملک را انتخاب کن:", [
-            ["آپارتمان", "خانه و ویلا"], ["زمین", "مغازه و واحد تجاری"],
-            ["دفتر اداری", "باغ"], ["سایر"], ["لغو عملیات"]
-        ]),
-        ("شهر ملک را بنویس:", None),
-        ("محله یا محدوده ملک را بنویس:", None),
-        ("قیمت یا مبلغ موردنظر را بنویس:", None),
-        ("توضیحات ملک را بنویس:", None),
-        ("شماره تماس یا روش تماس را بنویس:", None),
-    ]
-    if step >= len(prompts):
-        return
-    prompt, choices = prompts[step]
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.clear()
+    await send_main_menu(update, "عملیات لغو شد. منوی اصلی:")
+
+
+def save_submission(user_id, username, category, answers):
+    data_text = "\n".join(
+        f"{key}: {value}" for key, value in answers.items()
+    )
+    with sqlite3.connect(DATABASE_PATH) as conn:
+        cursor = conn.execute(
+            """
+            INSERT INTO submissions
+            (created_at, user_id, username, category, data, status)
+            VALUES (?, ?, ?, ?, ?, 'pending')
+            """,
+            (
+                datetime.now(timezone.utc).isoformat(),
+                user_id,
+                username,
+                category,
+                data_text,
+            ),
+        )
+        conn.commit()
+        return cursor.lastrowid, data_text
+
+
+async def begin_form(update, context, form_name):
+    fields = FORM_FIELDS[form_name]
+    context.user_data["form"] = {
+        "name": form_name,
+        "fields": fields,
+        "index": 0,
+        "answers": {},
+    }
     await update.message.reply_text(
-        prompt,
-        reply_markup=keyboard(choices) if choices else keyboard([
-            ["قبلی"], ["لغو عملیات"]
-        ])
+        fields[0][0] + "\n\nبرای خروج، «بازگشت به منوی اصلی» را بزنید.",
+        reply_markup=keyboard_for([[BACK]]),
     )
 
-async def begin_listing(update, context):
-    context.user_data["listing_step"] = 0
-    context.user_data["listing"] = {}
-    await show_listing_step(update, context)
 
-async def finish_listing(update, context):
-    data = context.user_data["listing"]
-    required = [
-        "نوع معامله", "نوع ملک", "شهر", "محدوده",
-        "قیمت", "توضیحات", "تماس"
-    ]
-    if not all(data.get(k) for k in required):
-        await update.message.reply_text("اطلاعات آگهی کامل نیست.")
-        return
+async def notify_admin(context, submission_id, update, form_name, data_text):
+    user = update.effective_user
+    username = f"@{user.username}" if user and user.username else "بدون نام کاربری"
+    message = (
+        f"درخواست جدید #{submission_id}\n"
+        f"بخش: {form_name}\n"
+        f"کاربر: {user.full_name if user else 'نامشخص'}\n"
+        f"شناسه کاربر: {user.id if user else 'نامشخص'}\n"
+        f"نام کاربری: {username}\n\n"
+        f"{data_text}\n\n"
+        f"تأیید: /approve_{submission_id}\n"
+        f"رد: /reject_{submission_id}"
+    )
+    try:
+        await context.bot.send_message(chat_id=ADMIN_ID, text=message)
+    except Exception:
+        logger.exception("Could not notify admin for submission %s", submission_id)
+
+
+async def handle_form_answer(update, context):
+    form = context.user_data.get("form")
+    if not form:
+        return False
+
+    text = (update.message.text or "").strip()
+
+    if text == BACK:
+        context.user_data.clear()
+        await send_main_menu(update)
+        return True
+
+    key = form["fields"][form["index"]][1]
+    form["answers"][key] = text
+    form["index"] += 1
+
+    if form["index"] < len(form["fields"]):
+        prompt = form["fields"][form["index"]][0]
+        await update.message.reply_text(
+            prompt + "\n\nبرای خروج، «بازگشت به منوی اصلی» را بزنید.",
+            reply_markup=keyboard_for([[BACK]]),
+        )
+        return True
 
     user = update.effective_user
-    with lock:
-        cur = db.execute(
-            """INSERT INTO listings
-            (user_id, username, data, status, created_at)
-            VALUES (?, ?, ?, 'pending', ?)""",
-            (user.id, user.username or "",
-             json.dumps(data, ensure_ascii=False), int(time.time()))
-        )
-        db.commit()
-        listing_id = cur.lastrowid
-
-    report = (
-        f"آگهی شماره {listing_id}\n"
-        f"کاربر: {user.id}\n\n" +
-        "\n".join(f"{k}: {v}" for k, v in data.items()) +
-        "\n\nبرای بررسی مدیر:\n"
-        f"/approve_{listing_id}\n/reject_{listing_id}"
+    submission_id, data_text = save_submission(
+        user_id=user.id,
+        username=user.username,
+        category=form["name"],
+        answers=form["answers"],
     )
-
-    try:
-        await context.bot.send_message(chat_id=ADMIN_ID, text=report)
-        await update.message.reply_text(
-            f"آگهی شماره {listing_id} برای بررسی مدیر ارسال شد.",
-            reply_markup=main_keyboard()
-        )
-    except Exception:
-        await update.message.reply_text(
-            f"آگهی ذخیره شد، اما ارسال به مدیر ناموفق بود. شماره آگهی: {listing_id}",
-            reply_markup=main_keyboard()
-        )
-
+    form_name = form["name"]
     context.user_data.clear()
 
-async def review(update, context, approved):
-    if update.effective_user.id != ADMIN_ID:
-        await update.message.reply_text("این دستور فقط برای مدیر اصلی است.")
-        return
+    await notify_admin(context, submission_id, update, form_name, data_text)
+    await update.message.reply_text(
+        f"اطلاعات شما با کد پیگیری {submission_id} ثبت شد و برای بررسی به مدیر ارسال شد.",
+        reply_markup=main_keyboard(),
+    )
+    return True
 
-    try:
-        listing_id = int(update.message.text.split("_", 1)[1])
-    except (ValueError, IndexError):
-        await update.message.reply_text("شماره آگهی معتبر نیست.")
-        return
-
-    with lock:
-        row = db.execute(
-            "SELECT * FROM listings WHERE id = ?", (listing_id,)
-        ).fetchone()
-
-    if not row:
-        await update.message.reply_text("آگهی پیدا نشد.")
-        return
-    if row["status"] != "pending":
-        await update.message.reply_text("این آگهی قبلاً بررسی شده است.")
-        return
-
-    if approved:
-        data = json.loads(row["data"])
-        public_text = (
-            f"🏠 آگهی املاک شماره {listing_id}\n\n" +
-            "\n".join(
-                f"{k}: {v}" for k, v in data.items()
-                if k != "تماس"
-            )
-        )
-        try:
-            await context.bot.send_message(CHANNEL_ID, public_text)
-        except Exception as exc:
-            await update.message.reply_text(
-                f"انتشار ناموفق بود؛ دسترسی ربات به کانال را بررسی کن.\n{exc}"
-            )
-            return
-        status = "published"
-        answer = "آگهی تأیید و منتشر شد."
-    else:
-        status = "rejected"
-        answer = "آگهی رد شد."
-
-    with lock:
-        db.execute(
-            "UPDATE listings SET status=? WHERE id=?",
-            (status, listing_id)
-        )
-        db.commit()
-
-    await update.message.reply_text(answer)
-    try:
-        await context.bot.send_message(
-            row["user_id"],
-            f"وضعیت آگهی شماره {listing_id}: {answer}"
-        )
-    except Exception:
-        pass
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = (update.message.text or "").strip()
-    if not text:
+    if not update.message or not update.message.text:
         return
 
-    if text == "لغو عملیات":
+    text = update.message.text.strip()
+    runtime_state["last_update_time"] = int(
+        datetime.now(timezone.utc).timestamp()
+    )
+
+    if text == BACK:
         context.user_data.clear()
-        await update.message.reply_text(
-            "عملیات لغو شد.", reply_markup=main_keyboard()
-        )
+        await send_main_menu(update)
         return
 
-    if text == "بازگشت به منوی اصلی":
-        context.user_data.clear()
-        await update.message.reply_text(
-            "منوی اصلی:", reply_markup=main_keyboard()
-        )
+    # ادامه فرم ثبت اطلاعات
+    if await handle_form_answer(update, context):
         return
 
+    # نمایش زیرمنو
     if text in SUBMENUS:
         context.user_data.clear()
         await update.message.reply_text(
-            text, reply_markup=submenu_keyboard(text)
+            f"بخش «{text}» را انتخاب کردید:",
+            reply_markup=menu_keyboard(text),
         )
         return
 
-    if text in ("ثبت آگهی", "ثبت آگهی ملک"):
-        await begin_listing(update, context)
+    # شروع فرم
+    if text in FORM_FIELDS:
+        await begin_form(update, context, text)
         return
 
-    if text == "راهنمای ثبت آگهی":
-        await update.message.reply_text(
-            "گزینه ثبت آگهی را انتخاب کن و اطلاعات را مرحله‌به‌مرحله وارد کن.",
-            reply_markup=submenu_keyboard("فروشنده یا موجر")
-        )
-        return
-
-    if text.startswith("/approve_"):
-        await review(update, context, True)
-        return
-    if text.startswith("/reject_"):
-        await review(update, context, False)
-        return
-
-    if "listing_step" in context.user_data:
-        step = context.user_data["listing_step"]
-        keys = [
-            "نوع معامله", "نوع ملک", "شهر", "محدوده",
-            "قیمت", "توضیحات", "تماس"
-        ]
-        context.user_data["listing"][keys[step]] = text
-        step += 1
-        context.user_data["listing_step"] = step
-
-        if step >= len(keys):
-            await finish_listing(update, context)
-        else:
-            await show_listing_step(update, context)
-        return
-
-    messages = {
-        "ثبت درخواست خرید یا اجاره": "ثبت درخواست در مرحله بعد تکمیل می‌شود.",
-        "جست‌وجوی ملک": "جست‌وجوی ملک هنوز پیاده‌سازی نشده است.",
-        "درخواست بازدید": "ثبت درخواست بازدید هنوز پیاده‌سازی نشده است.",
-        "پیگیری آگهی": "برای پیگیری، شماره آگهی را برای پشتیبانی بفرست.",
-        "فرصت‌های سرمایه‌گذاری": "فهرست فرصت‌های سرمایه‌گذاری هنوز آماده نیست.",
-        "درخواست مشارکت در ساخت": "این بخش هنوز پیاده‌سازی نشده است.",
-        "پیگیری مشتریان": "این بخش هنوز پیاده‌سازی نشده است.",
-        "همکاری با مشاوران": "این بخش هنوز پیاده‌سازی نشده است.",
-        "ارسال پیام به مدیر": "برای ارتباط با مدیر به @AtlasPrime021 پیام بده.",
-        "گزارش تخلف": "برای گزارش تخلف به @AtlasPrime021 پیام بده."
-    }
     await update.message.reply_text(
-        messages.get(text, "از گزینه‌های منو استفاده کن."),
-        reply_markup=main_keyboard()
+        "لطفاً یکی از گزینه‌های منو را انتخاب کنید یا /start را بزنید.",
+        reply_markup=main_keyboard(),
     )
 
+
+async def admin_decision(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    if not user or user.id != ADMIN_ID:
+        await update.message.reply_text("این دستور فقط برای مدیر اصلی فعال است.")
+        return
+
+    command = update.message.text.strip()
+    is_approve = command.startswith("/approve_")
+    prefix = "/approve_" if is_approve else "/reject_"
+
+    try:
+        submission_id = int(command[len(prefix):].split("@")[0])
+    except ValueError:
+        await update.message.reply_text("کد پیگیری معتبر نیست.")
+        return
+
+    new_status = "approved" if is_approve else "rejected"
+
+    with sqlite3.connect(DATABASE_PATH) as conn:
+        row = conn.execute(
+            "SELECT category, data, user_id FROM submissions WHERE id = ?",
+            (submission_id,),
+        ).fetchone()
+
+        if not row:
+            await update.message.reply_text("درخواستی با این کد پیدا نشد.")
+            return
+
+        conn.execute(
+            "UPDATE submissions SET status = ? WHERE id = ?",
+            (new_status, submission_id),
+        )
+        conn.commit()
+
+    category, data_text, owner_id = row
+
+    if is_approve:
+        try:
+            await context.bot.send_message(
+                chat_id=owner_id,
+                text=f"درخواست شما با کد {submission_id} تأیید شد.",
+            )
+        except Exception:
+            logger.exception("Could not notify submitter")
+
+        await update.message.reply_text(f"درخواست #{submission_id} تأیید شد.")
+
+        if category in {"ثبت آگهی فروش", "ثبت آگهی اجاره", "ثبت آگهی ملک"}:
+            try:
+                await context.bot.send_message(
+                    chat_id=CHANNEL_USERNAME,
+                    text=f"آگهی تأییدشده | کد {submission_id}\n\n{data_text}",
+                )
+            except Exception:
+                logger.exception("Could not publish listing to channel")
+                await update.message.reply_text(
+                    "انتشار در کانال انجام نشد؛ دسترسی ربات به کانال را بررسی کنید."
+                )
+    else:
+        try:
+            await context.bot.send_message(
+                chat_id=owner_id,
+                text=f"درخواست شما با کد {submission_id} رد شد. برای پیگیری با مدیر تماس بگیرید.",
+            )
+        except Exception:
+            logger.exception("Could not notify submitter")
+
+        await update.message.reply_text(f"درخواست #{submission_id} رد شد.")
+
+
+@web_app.get("/")
+def home():
+    return jsonify({"service": "tehran-real-estate-bot", **runtime_state})
+
+
+@web_app.get("/health")
+def health():
+    return jsonify({"status": "ok", **runtime_state})
+
+
+def run_web_server():
+    web_app.run(host="0.0.0.0", port=PORT, use_reloader=False)
+
+
 def main():
-    global bot_app
-    bot_app = Application.builder().token(TOKEN).build()
-    bot_app.add_handler(CommandHandler("start", start))
-    bot_app.add_handler(CommandHandler("menu", start))
-    bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
-    bot_app.add_handler(MessageHandler(filters.COMMAND, handle_text))
+    if not BOT_TOKEN:
+        raise RuntimeError("متغیر BOT_TOKEN در تنظیمات Render وارد نشده است.")
 
-    threading.Thread(
-        target=lambda: app.run(host="0.0.0.0", port=PORT),
-        daemon=True
-    ).start()
+    init_db()
+    threading.Thread(target=run_web_server, daemon=True).start()
 
-    bot_app.run_polling(drop_pending_updates=False)
+    application = Application.builder().token(BOT_TOKEN).build()
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("cancel", cancel))
+    application.add_handler(
+        MessageHandler(
+            filters.Regex(r"^/approve_\d+(?:@\w+)?$"),
+            admin_decision,
+        )
+    )
+    application.add_handler(
+        MessageHandler(
+            filters.Regex(r"^/reject_\d+(?:@\w+)?$"),
+            admin_decision,
+        )
+    )
+    application.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text)
+    )
+
+    runtime_state["status"] = "running"
+    runtime_state["telegram_polling"] = True
+    logger.info("Starting Telegram polling.")
+    application.run_polling(drop_pending_updates=False)
+
 
 if __name__ == "__main__":
     main()
