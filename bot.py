@@ -1,925 +1,1151 @@
-import logging
 import os
+import json
 import sqlite3
-import threading
-from datetime import datetime, timezone
+import logging
+from datetime import datetime
 
-from flask import Flask, jsonify
-from telegram import ReplyKeyboardMarkup, Update
+from flask import Flask
+from threading import Thread
+
+from telegram import (
+    Update,
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
+)
 from telegram.ext import (
     Application,
     CommandHandler,
-    ContextTypes,
     MessageHandler,
+    ConversationHandler,
+    ContextTypes,
     filters,
 )
 
+# =========================================================
+# تنظیمات اصلی
+# =========================================================
+
 BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
+
 ADMIN_ID = int(os.getenv("ADMIN_ID", "6245308636"))
-CHANNEL_USERNAME = os.getenv("CHANNEL_USERNAME", "@tehranrealstate")
-DATABASE_PATH = os.getenv("DATABASE_PATH", "real_estate.db")
-PORT = int(os.getenv("PORT", "10000"))
+
+CHANNEL_ID = os.getenv("CHANNEL_ID", "@tehranrealstate")
+
+DB_PATH = os.getenv("DB_PATH", "realestate.db")
 
 logging.basicConfig(
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
 )
-logger = logging.getLogger("tehran_real_estate_bot")
+
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
+
+# =========================================================
+# زبان‌ها
+# =========================================================
 
 LANGUAGES = {
-    "fa": "فارسی",
-    "en": "English",
-    "az": "Azərbaycan dili",
-    "tr": "Türkçe",
-    "ar": "العربية",
+    "fa": "🇮🇷 فارسی",
+    "en": "🇬🇧 English",
+    "az": "🇦🇿 Azərbaycan dili",
+    "tr": "🇹🇷 Türkçe",
+    "ar": "🇸🇦 العربية",
 }
 
-BACK = {
-    "fa": "بازگشت به منوی اصلی",
-    "en": "Back to main menu",
-    "az": "Əsas menyuya qayıt",
-    "tr": "Ana menüye dön",
-    "ar": "العودة إلى القائمة الرئيسية",
+LANGUAGE_BUTTONS = {
+    "fa": "🇮🇷 فارسی",
+    "en": "🇬🇧 English",
+    "az": "🇦🇿 Azərbaycan dili",
+    "tr": "🇹🇷 Türkçe",
+    "ar": "🇸🇦 العربية",
 }
 
-CHANGE_LANGUAGE = {
-    "fa": "تغییر زبان",
-    "en": "Change language",
-    "az": "Dili dəyiş",
-    "tr": "Dili değiştir",
-    "ar": "تغيير اللغة",
+# =========================================================
+# پیام خوش‌آمدگویی پنج‌زبانه
+# =========================================================
+
+WELCOME = {
+    "fa": (
+        "🏡✨ به گروه بزرگ املاک تهران خوش آمدید! ✨🏡\n\n"
+        "🌟 مجموعه املاک تهران با بیش از ۲۰ سال سابقه فعالیت، "
+        "گسترده‌ترین شبکه اطلاعات ملکی در ایران و بیش از "
+        "۱۰۰۰ مشاور فعال در سراسر کشور، در کنار شماست.\n\n"
+        "🔑 خرید و فروش ملک | 🏢 اجاره | 💎 سرمایه‌گذاری ملکی\n\n"
+        "🤝 هدف پرسنل و مدیریت مجموعه، جلب رضایت شما مشتریان عزیز "
+        "و ارائه خدماتی شایسته، مطمئن و حرفه‌ای است.\n\n"
+        "🌹 امیدواریم تجربه‌ای رضایت‌بخش و همکاری ارزشمندی را "
+        "در کنار ما داشته باشید.\n\n"
+        "💠 املاک تهران؛ همراه شما در مسیر انتخابی مطمئن. 💠"
+    ),
+    "en": (
+        "🏡✨ Welcome to Tehran Real Estate! ✨🏡\n\n"
+        "🌟 With over 20 years of experience, an extensive "
+        "property information network across Iran, and more than "
+        "1,000 active real estate consultants nationwide, "
+        "Tehran Real Estate is here to assist you.\n\n"
+        "🔑 Buying & Selling | 🏢 Renting | 💎 Property Investment\n\n"
+        "🤝 Our team and management are committed to customer "
+        "satisfaction and providing professional, reliable services.\n\n"
+        "🌹 We look forward to providing you with a valuable "
+        "and satisfying experience.\n\n"
+        "💠 Tehran Real Estate — Your partner in making "
+        "confident property decisions. 💠"
+    ),
+    "az": (
+        "🏡✨ Tehran Əmlakın böyük ailəsinə xoş gəlmisiniz! ✨🏡\n\n"
+        "🌟 20 ildən artıq təcrübəsi, İran üzrə geniş əmlak "
+        "məlumat şəbəkəsi və ölkə üzrə 1.000-dən çox fəal "
+        "əmlak məsləhətçisi ilə Tehran Əmlak xidmətinizdədir.\n\n"
+        "🔑 Alış və Satış | 🏢 İcarə | 💎 Əmlak İnvestisiyası\n\n"
+        "🤝 Komandamız və rəhbərliyimiz müştəri məmnuniyyətini "
+        "və etibarlı, peşəkar xidmət göstərilməsini əsas məqsəd sayır.\n\n"
+        "🌹 Sizə məmnunedici və dəyərli təcrübə arzulayırıq.\n\n"
+        "💠 Tehran Əmlak — düzgün seçim yolunda sizin tərəfdaşınız. 💠"
+    ),
+    "tr": (
+        "🏡✨ Büyük Tehran Emlak ailesine hoş geldiniz! ✨🏡\n\n"
+        "🌟 20 yılı aşkın deneyimi, İran genelindeki geniş "
+        "gayrimenkul bilgi ağı ve ülke çapında 1.000'den fazla "
+        "aktif danışmanıyla Tehran Emlak yanınızda.\n\n"
+        "🔑 Alım Satım | 🏢 Kiralama | 💎 Gayrimenkul Yatırımı\n\n"
+        "🤝 Ekibimizin ve yönetimimizin temel hedefi, "
+        "müşteri memnuniyetini sağlamak ve güvenilir, profesyonel "
+        "hizmet sunmaktır.\n\n"
+        "🌹 Bizimle memnuniyet verici ve değerli bir deneyim "
+        "yaşamanızı dileriz.\n\n"
+        "💠 Tehran Emlak — Güvenli seçimlerinizde yanınızda. 💠"
+    ),
+    "ar": (
+        "🏡✨ أهلاً وسهلاً بكم في مجموعة طهران العقارية الكبرى! ✨🏡\n\n"
+        "🌟 بخبرة تزيد على 20 عاماً، وشبكة واسعة من المعلومات "
+        "العقارية في إيران، وأكثر من 1,000 مستشار عقاري نشط "
+        "في جميع أنحاء البلاد، نحن هنا لخدمتكم.\n\n"
+        "🔑 شراء وبيع العقارات | 🏢 الإيجار | 💎 الاستثمار العقاري\n\n"
+        "🤝 يسعى فريق العمل والإدارة إلى تحقيق رضا عملائنا الكرام "
+        "وتقديم خدمات احترافية وموثوقة.\n\n"
+        "🌹 نتمنى لكم تجربة مميزة ومرضية وتعاوناً مثمراً معنا.\n\n"
+        "💠 طهران العقارية — شريككم نحو اختيار عقاري موثوق. 💠"
+    ),
 }
 
-MAIN_MENU = {
-    "fa": [
-        "متقاضی خرید یا اجاره",
-        "فروشنده یا موجر",
-        "سرمایه‌گذاری ملکی و مشارکت در ساخت",
-        "مشاور املاک",
-        "پشتیبانی و ارتباط با مدیر",
-    ],
-    "en": [
-        "Buy or rent request",
-        "Seller or landlord",
-        "Property investment and construction partnership",
-        "Real estate agent",
-        "Support and contact admin",
-    ],
-    "az": [
-        "Alış və ya kirayə müraciəti",
-        "Satıcı və ya kirayə verən",
-        "Əmlak investisiyası və tikinti tərəfdaşlığı",
-        "Əmlak agenti",
-        "Dəstək və administratorla əlaqə",
-    ],
-    "tr": [
-        "Satın alma veya kiralama talebi",
-        "Satıcı veya kiraya veren",
-        "Gayrimenkul yatırımı ve kat karşılığı inşaat",
-        "Emlak danışmanı",
-        "Destek ve yöneticiyle iletişim",
-    ],
-    "ar": [
-        "طلب شراء أو استئجار",
-        "بائع أو مؤجّر",
-        "الاستثمار العقاري والشراكة في البناء",
-        "وسيط عقاري",
-        "الدعم والتواصل مع الإدارة",
-    ],
-}
+# =========================================================
+# متن منوها و پیام‌ها
+# =========================================================
 
-SUBMENUS = {
+TEXT = {
     "fa": {
-        "متقاضی خرید یا اجاره": [
-            "ثبت تقاضای خرید",
-            "ثبت تقاضای اجاره",
-        ],
-        "فروشنده یا موجر": [
-            "ثبت آگهی فروش",
-            "ثبت آگهی اجاره",
-        ],
-        "سرمایه‌گذاری ملکی و مشارکت در ساخت": [
-            "درخواست پیش خرید",
-            "سازنده آماده مشارکت هستم",
-            "مالک ملک برای مشارکت در ساخت هستم",
-        ],
-        "مشاور املاک": [
-            "ثبت آگهی ملک",
-            "پیگیری مشتریان",
-            "درخواست همکاری با مشاوران",
-        ],
-        "پشتیبانی و ارتباط با مدیر": [
-            "ارسال پیام به مدیر",
-            "گزارش مشکل یا تخلف",
-        ],
+        "choose_language": "🌐 لطفاً زبان موردنظر خود را انتخاب کنید:",
+        "language_saved": "✅ زبان شما ذخیره شد.",
+        "main_menu": "🏡 منوی اصلی املاک تهران\n\nلطفاً یکی از گزینه‌های زیر را انتخاب کنید:",
+        "buyer": "🔎 متقاضی خرید یا اجاره",
+        "seller": "🏠 فروشنده یا موجر",
+        "investment": "💎 سرمایه‌گذاری ملکی و مشارکت در ساخت",
+        "agent": "🤝 مشاور املاک",
+        "support": "📞 پشتیبانی و ارتباط با مدیر",
+        "back": "🔙 بازگشت به منوی اصلی",
+        "buy_request": "🔑 ثبت تقاضای خرید",
+        "rent_request": "🏢 ثبت تقاضای اجاره",
+        "sell_ad": "🏠 ثبت آگهی فروش",
+        "rent_ad": "🔑 ثبت آگهی اجاره",
+        "presale": "🏗 درخواست پیش‌خرید",
+        "builder": "🏗 سازنده آماده مشارکت هستم",
+        "owner_partner": "🏡 مالک ملک برای مشارکت در ساخت هستم",
+        "agent_ads": "📝 ثبت آگهی ملک",
+        "agent_customers": "👥 پیگیری مشتریان",
+        "agent_cooperation": "🤝 درخواست همکاری با مشاوران",
+        "contact_admin": "✉️ ارسال پیام به مدیر",
+        "report": "🚨 گزارش مشکل یا تخلف",
+        "types_title": "🏘 لطفاً نوع ملک را انتخاب کنید:",
+        "residential": "🏡 مسکونی",
+        "office": "🏢 اداری",
+        "commercial": "🏬 تجاری",
+        "agricultural": "🌾 زراعی",
+        "industrial": "🏭 صنعتی",
+        "ask_details": "📝 لطفاً اطلاعات ملک یا درخواست خود را در یک پیام ارسال کنید.\n\nبرای مثال: شهر، منطقه، متراژ، بودجه و توضیحات.",
+        "ask_message": "✍️ لطفاً پیام خود را برای مدیر بنویسید:",
+        "submitted": "✅ اطلاعات شما ثبت شد و برای بررسی ارسال گردید.",
+        "admin_new": "📩 درخواست جدید از املاک تهران\n\nشناسه کاربر: {user_id}\nنام: {name}\nنوع درخواست: {kind}\nنوع ملک: {property_type}\n\nاطلاعات:\n{details}",
+        "admin_message": "✉️ پیام جدید برای مدیر\n\nشناسه کاربر: {user_id}\nنام: {name}\n\n{details}",
+        "admin_approved": "✅ آگهی شما تأیید و منتشر شد.",
+        "admin_rejected": "❌ آگهی شما تأیید نشد. لطفاً برای بررسی بیشتر با پشتیبانی تماس بگیرید.",
+        "not_admin": "⛔ این دستور فقط برای مدیر ربات فعال است.",
+        "admin_commands": "دستورات مدیر:\n/requests - مشاهده درخواست‌های در انتظار\n",
+        "pending_empty": "درخواست در انتظار بررسی وجود ندارد.",
+        "unknown": "لطفاً از گزینه‌های منو استفاده کنید.",
+        "cancel": "❌ عملیات لغو شد.",
+        "admin_approve": "✅ تأیید",
+        "admin_reject": "❌ رد",
+        "approval_done": "عملیات انجام شد.",
+        "ad_caption": "🏡 آگهی جدید املاک تهران\n\n{details}\n\n📞 برای اطلاعات بیشتر از طریق ربات اقدام کنید.",
     },
     "en": {
-        "Buy or rent request": [
-            "Submit purchase request",
-            "Submit rental request",
-        ],
-        "Seller or landlord": [
-            "Post property for sale",
-            "Post property for rent",
-        ],
-        "Property investment and construction partnership": [
-            "Pre-purchase request",
-            "Builder seeking a partner",
-            "Property owner seeking a construction partner",
-        ],
-        "Real estate agent": [
-            "Post a property listing",
-            "Follow up with clients",
-            "Request cooperation with agents",
-        ],
-        "Support and contact admin": [
-            "Send a message to admin",
-            "Report a problem or violation",
-        ],
+        "choose_language": "🌐 Please select your language:",
+        "language_saved": "✅ Your language has been saved.",
+        "main_menu": "🏡 Tehran Real Estate Main Menu\n\nPlease choose an option:",
+        "buyer": "🔎 Buyer or Tenant",
+        "seller": "🏠 Seller or Landlord",
+        "investment": "💎 Property Investment & Development Partnership",
+        "agent": "🤝 Real Estate Agent",
+        "support": "📞 Support & Contact Management",
+        "back": "🔙 Back to Main Menu",
+        "buy_request": "🔑 Submit Purchase Request",
+        "rent_request": "🏢 Submit Rental Request",
+        "sell_ad": "🏠 Submit Property for Sale",
+        "rent_ad": "🔑 Submit Property for Rent",
+        "presale": "🏗 Pre-purchase Request",
+        "builder": "🏗 I Am a Developer Seeking a Partnership",
+        "owner_partner": "🏡 I Own Property for Development Partnership",
+        "agent_ads": "📝 Submit Property Listing",
+        "agent_customers": "👥 Manage Customer Leads",
+        "agent_cooperation": "🤝 Request Cooperation with Agents",
+        "contact_admin": "✉️ Message Management",
+        "report": "🚨 Report a Problem or Violation",
+        "types_title": "🏘 Please select the property type:",
+        "residential": "🏡 Residential",
+        "office": "🏢 Office",
+        "commercial": "🏬 Commercial",
+        "agricultural": "🌾 Agricultural",
+        "industrial": "🏭 Industrial",
+        "ask_details": "📝 Please send the property details or your request in one message.\n\nFor example: city, area, size, budget and description.",
+        "ask_message": "✍️ Please write your message to management:",
+        "submitted": "✅ Your information has been submitted for review.",
+        "admin_new": "📩 New Request\n\nUser ID: {user_id}\nName: {name}\nRequest: {kind}\nProperty Type: {property_type}\n\nDetails:\n{details}",
+        "admin_message": "✉️ New Message for Management\n\nUser ID: {user_id}\nName: {name}\n\n{details}",
+        "admin_approved": "✅ Your listing has been approved and published.",
+        "admin_rejected": "❌ Your listing was not approved. Please contact support.",
+        "not_admin": "⛔ This command is for the bot administrator only.",
+        "admin_commands": "Admin commands:\n/requests - View pending requests\n",
+        "pending_empty": "There are no pending requests.",
+        "unknown": "Please use the menu buttons.",
+        "cancel": "❌ Operation cancelled.",
+        "admin_approve": "✅ Approve",
+        "admin_reject": "❌ Reject",
+        "approval_done": "Action completed.",
+        "ad_caption": "🏡 New Tehran Real Estate Listing\n\n{details}\n\n📞 Contact us through the bot for more information.",
     },
     "az": {
-        "Alış və ya kirayə müraciəti": [
-            "Alış müraciəti yarat",
-            "Kirayə müraciəti yarat",
-        ],
-        "Satıcı və ya kirayə verən": [
-            "Satış elanı yerləşdir",
-            "Kirayə elanı yerləşdir",
-        ],
-        "Əmlak investisiyası və tikinti tərəfdaşlığı": [
-            "Öncədən alış müraciəti",
-            "Tikinti tərəfdaşı axtarıram",
-            "Tikinti üçün tərəfdaş axtaran əmlak sahibi",
-        ],
-        "Əmlak agenti": [
-            "Əmlak elanı yerləşdir",
-            "Müştəriləri izləyin",
-            "Agentlərlə əməkdaşlıq müraciəti",
-        ],
-        "Dəstək və administratorla əlaqə": [
-            "Administratora mesaj göndər",
-            "Problem və ya pozuntu barədə məlumat ver",
-        ],
+        "choose_language": "🌐 Zəhmət olmasa dilinizi seçin:",
+        "language_saved": "✅ Diliniz yadda saxlanıldı.",
+        "main_menu": "🏡 Tehran Əmlak — Əsas menyu\n\nZəhmət olmasa seçim edin:",
+        "buyer": "🔎 Alıcı və ya Kirayəçi",
+        "seller": "🏠 Satıcı və ya İcarəyə Verən",
+        "investment": "💎 Əmlak İnvestisiyası və Tikinti Əməkdaşlığı",
+        "agent": "🤝 Əmlak Məsləhətçisi",
+        "support": "📞 Dəstək və Rəhbərliklə Əlaqə",
+        "back": "🔙 Əsas menyuya qayıt",
+        "buy_request": "🔑 Alış tələbi yarat",
+        "rent_request": "🏢 İcarə tələbi yarat",
+        "sell_ad": "🏠 Satış elanı yerləşdir",
+        "rent_ad": "🔑 İcarə elanı yerləşdir",
+        "presale": "🏗 İlkin alış müraciəti",
+        "builder": "🏗 Əməkdaşlıq axtaran tikinti şirkətiyəm",
+        "owner_partner": "🏡 Tikinti əməkdaşlığı üçün əmlak sahibiyəm",
+        "agent_ads": "📝 Əmlak elanı yerləşdir",
+        "agent_customers": "👥 Müştəriləri izləmək",
+        "agent_cooperation": "🤝 Məsləhətçilərlə əməkdaşlıq",
+        "contact_admin": "✉️ Rəhbərliyə mesaj göndər",
+        "report": "🚨 Problem və ya pozuntu bildir",
+        "types_title": "🏘 Əmlak növünü seçin:",
+        "residential": "🏡 Yaşayış",
+        "office": "🏢 Ofis",
+        "commercial": "🏬 Kommersiya",
+        "agricultural": "🌾 Kənd təsərrüfatı",
+        "industrial": "🏭 Sənaye",
+        "ask_details": "📝 Əmlak və ya müraciət məlumatlarını bir mesajda göndərin.\n\nMəsələn: şəhər, ərazi, sahə, büdcə və açıqlama.",
+        "ask_message": "✍️ Rəhbərliyə mesajınızı yazın:",
+        "submitted": "✅ Məlumatınız yoxlanılması üçün göndərildi.",
+        "admin_new": "📩 Yeni müraciət\n\nİstifadəçi ID: {user_id}\nAd: {name}\nMüraciət: {kind}\nƏmlak növü: {property_type}\n\nMəlumat:\n{details}",
+        "admin_message": "✉️ Rəhbərlik üçün yeni mesaj\n\nİstifadəçi ID: {user_id}\nAd: {name}\n\n{details}",
+        "admin_approved": "✅ Elanınız təsdiqləndi və yayımlandı.",
+        "admin_rejected": "❌ Elanınız təsdiqlənmədi. Dəstək xidməti ilə əlaqə saxlayın.",
+        "not_admin": "⛔ Bu əmr yalnız bot rəhbəri üçündür.",
+        "admin_commands": "Rəhbər əmrləri:\n/requests - Gözləyən müraciətlər\n",
+        "pending_empty": "Yoxlanılmağı gözləyən müraciət yoxdur.",
+        "unknown": "Zəhmət olmasa menyu düymələrindən istifadə edin.",
+        "cancel": "❌ Əməliyyat ləğv edildi.",
+        "admin_approve": "✅ Təsdiq et",
+        "admin_reject": "❌ Rədd et",
+        "approval_done": "Əməliyyat tamamlandı.",
+        "ad_caption": "🏡 Yeni Tehran Əmlak elanı\n\n{details}\n\n📞 Ətraflı məlumat üçün botla əlaqə saxlayın.",
     },
     "tr": {
-        "Satın alma veya kiralama talebi": [
-            "Satın alma talebi oluştur",
-            "Kiralama talebi oluştur",
-        ],
-        "Satıcı veya kiraya veren": [
-            "Satılık ilanı ver",
-            "Kiralık ilanı ver",
-        ],
-        "Gayrimenkul yatırımı ve kat karşılığı inşaat": [
-            "Ön satın alma talebi",
-            "İnşaat için ortak arıyorum",
-            "İnşaat ortaklığı arayan mülk sahibi",
-        ],
-        "Emlak danışmanı": [
-            "Emlak ilanı ver",
-            "Müşteri takibi",
-            "Danışmanlarla iş birliği talebi",
-        ],
-        "Destek ve yöneticiyle iletişim": [
-            "Yöneticiye mesaj gönder",
-            "Sorun veya ihlal bildir",
-        ],
+        "choose_language": "🌐 Lütfen dilinizi seçin:",
+        "language_saved": "✅ Diliniz kaydedildi.",
+        "main_menu": "🏡 Tehran Emlak Ana Menü\n\nLütfen bir seçenek belirleyin:",
+        "buyer": "🔎 Alıcı veya Kiracı",
+        "seller": "🏠 Satıcı veya Kiraya Veren",
+        "investment": "💎 Gayrimenkul Yatırımı ve İnşaat Ortaklığı",
+        "agent": "🤝 Emlak Danışmanı",
+        "support": "📞 Destek ve Yönetimle İletişim",
+        "back": "🔙 Ana Menüye Dön",
+        "buy_request": "🔑 Satın Alma Talebi Oluştur",
+        "rent_request": "🏢 Kiralama Talebi Oluştur",
+        "sell_ad": "🏠 Satılık İlanı Ver",
+        "rent_ad": "🔑 Kiralık İlanı Ver",
+        "presale": "🏗 Ön Satın Alma Talebi",
+        "builder": "🏗 Ortaklık Arayan İnşaat Firmasıyım",
+        "owner_partner": "🏡 İnşaat Ortaklığı İçin Mülk Sahibiyim",
+        "agent_ads": "📝 Emlak İlanı Ver",
+        "agent_customers": "👥 Müşteri Takibi",
+        "agent_cooperation": "🤝 Danışmanlarla İş Birliği Talebi",
+        "contact_admin": "✉️ Yönetime Mesaj Gönder",
+        "report": "🚨 Sorun veya İhlal Bildir",
+        "types_title": "🏘 Lütfen mülk türünü seçin:",
+        "residential": "🏡 Konut",
+        "office": "🏢 Ofis",
+        "commercial": "🏬 Ticari",
+        "agricultural": "🌾 Tarımsal",
+        "industrial": "🏭 Endüstriyel",
+        "ask_details": "📝 Lütfen mülk bilgilerinizi veya talebinizi tek mesajla gönderin.\n\nÖrnek: şehir, bölge, metrekare, bütçe ve açıklama.",
+        "ask_message": "✍️ Lütfen yönetime mesajınızı yazın:",
+        "submitted": "✅ Bilgileriniz incelenmek üzere gönderildi.",
+        "admin_new": "📩 Yeni Talep\n\nKullanıcı ID: {user_id}\nAd: {name}\nTalep: {kind}\nMülk Türü: {property_type}\n\nBilgiler:\n{details}",
+        "admin_message": "✉️ Yönetime Yeni Mesaj\n\nKullanıcı ID: {user_id}\nAd: {name}\n\n{details}",
+        "admin_approved": "✅ İlanınız onaylandı ve yayımlandı.",
+        "admin_rejected": "❌ İlanınız onaylanmadı. Lütfen destekle iletişime geçin.",
+        "not_admin": "⛔ Bu komut yalnızca bot yöneticisi içindir.",
+        "admin_commands": "Yönetici komutları:\n/requests - Bekleyen talepler\n",
+        "pending_empty": "İncelenmeyi bekleyen talep yok.",
+        "unknown": "Lütfen menü düğmelerini kullanın.",
+        "cancel": "❌ İşlem iptal edildi.",
+        "admin_approve": "✅ Onayla",
+        "admin_reject": "❌ Reddet",
+        "approval_done": "İşlem tamamlandı.",
+        "ad_caption": "🏡 Yeni Tehran Emlak İlanı\n\n{details}\n\n📞 Ayrıntılar için bot üzerinden iletişime geçin.",
     },
     "ar": {
-        "طلب شراء أو استئجار": [
-            "تسجيل طلب شراء",
-            "تسجيل طلب استئجار",
-        ],
-        "بائع أو مؤجّر": [
-            "نشر إعلان للبيع",
-            "نشر إعلان للإيجار",
-        ],
-        "الاستثمار العقاري والشراكة في البناء": [
-            "طلب شراء مسبق",
-            "مقاول يبحث عن شريك",
-            "مالك عقار يبحث عن شريك للبناء",
-        ],
-        "وسيط عقاري": [
-            "نشر إعلان عقاري",
-            "متابعة العملاء",
-            "طلب التعاون مع الوسطاء",
-        ],
-        "الدعم والتواصل مع الإدارة": [
-            "إرسال رسالة إلى الإدارة",
-            "الإبلاغ عن مشكلة أو مخالفة",
-        ],
+        "choose_language": "🌐 يرجى اختيار لغتك:",
+        "language_saved": "✅ تم حفظ لغتك.",
+        "main_menu": "🏡 القائمة الرئيسية — طهران العقارية\n\nيرجى اختيار أحد الخيارات:",
+        "buyer": "🔎 مشتري أو مستأجر",
+        "seller": "🏠 بائع أو مؤجّر",
+        "investment": "💎 الاستثمار العقاري والشراكة في البناء",
+        "agent": "🤝 مستشار عقاري",
+        "support": "📞 الدعم والتواصل مع الإدارة",
+        "back": "🔙 العودة إلى القائمة الرئيسية",
+        "buy_request": "🔑 تسجيل طلب شراء",
+        "rent_request": "🏢 تسجيل طلب إيجار",
+        "sell_ad": "🏠 نشر إعلان بيع",
+        "rent_ad": "🔑 نشر إعلان إيجار",
+        "presale": "🏗 طلب شراء مسبق",
+        "builder": "🏗 أنا مطوّر عقاري وأبحث عن شراكة",
+        "owner_partner": "🏡 أملك عقاراً للشراكة في البناء",
+        "agent_ads": "📝 نشر إعلان عقاري",
+        "agent_customers": "👥 متابعة العملاء",
+        "agent_cooperation": "🤝 طلب التعاون مع المستشارين",
+        "contact_admin": "✉️ إرسال رسالة إلى الإدارة",
+        "report": "🚨 الإبلاغ عن مشكلة أو مخالفة",
+        "types_title": "🏘 يرجى اختيار نوع العقار:",
+        "residential": "🏡 سكني",
+        "office": "🏢 إداري",
+        "commercial": "🏬 تجاري",
+        "agricultural": "🌾 زراعي",
+        "industrial": "🏭 صناعي",
+        "ask_details": "📝 يرجى إرسال تفاصيل العقار أو طلبك في رسالة واحدة.\n\nمثال: المدينة، المنطقة، المساحة، الميزانية والتفاصيل.",
+        "ask_message": "✍️ يرجى كتابة رسالتك إلى الإدارة:",
+        "submitted": "✅ تم إرسال معلوماتك للمراجعة.",
+        "admin_new": "📩 طلب جديد\n\nمعرّف المستخدم: {user_id}\nالاسم: {name}\nنوع الطلب: {kind}\nنوع العقار: {property_type}\n\nالتفاصيل:\n{details}",
+        "admin_message": "✉️ رسالة جديدة للإدارة\n\nمعرّف المستخدم: {user_id}\nالاسم: {name}\n\n{details}",
+        "admin_approved": "✅ تمت الموافقة على إعلانك ونشره.",
+        "admin_rejected": "❌ لم تتم الموافقة على إعلانك. يرجى التواصل مع الدعم.",
+        "not_admin": "⛔ هذا الأمر مخصص لمدير الروبوت فقط.",
+        "admin_commands": "أوامر المدير:\n/requests - الطلبات قيد المراجعة\n",
+        "pending_empty": "لا توجد طلبات قيد المراجعة.",
+        "unknown": "يرجى استخدام أزرار القائمة.",
+        "cancel": "❌ تم إلغاء العملية.",
+        "admin_approve": "✅ موافقة",
+        "admin_reject": "❌ رفض",
+        "approval_done": "تم تنفيذ العملية.",
+        "ad_caption": "🏡 إعلان عقاري جديد من طهران العقارية\n\n{details}\n\n📞 تواصلوا معنا عبر الروبوت لمزيد من المعلومات.",
     },
 }
 
-PROPERTY_TYPES = {
-    "fa": ["مسکونی", "اداری", "تجاری", "زراعی", "صنعتی"],
-    "en": ["Residential", "Office", "Commercial", "Agricultural", "Industrial"],
-    "az": ["Yaşayış", "Ofis", "Kommersiya", "Kənd təsərrüfatı", "Sənaye"],
-    "tr": ["Konut", "Ofis", "Ticari", "Tarım", "Sanayi"],
-    "ar": ["سكني", "مكتبي", "تجاري", "زراعي", "صناعي"],
+# =========================================================
+# منوها
+# =========================================================
+
+MAIN_MENU_KEYS = [
+    "buyer",
+    "seller",
+    "investment",
+    "agent",
+    "support",
+]
+
+SUBMENU_KEYS = {
+    "buyer": ["buy_request", "rent_request"],
+    "seller": ["sell_ad", "rent_ad"],
+    "investment": ["presale", "builder", "owner_partner"],
+    "agent": ["agent_ads", "agent_customers", "agent_cooperation"],
+    "support": ["contact_admin", "report"],
 }
 
-MESSAGES = {
-    "fa": {
-        "welcome": "به سامانه املاک تهران خوش آمدید.\nلطفاً زبان خود را انتخاب کنید:",
-        "main": "منوی اصلی املاک تهران:",
-        "choose_type": "نوع ملک را انتخاب کنید:",
-        "city": "شهر و محدوده موردنظر را وارد کنید:",
-        "budget": "بودجه یا قیمت موردنظر را وارد کنید:",
-        "area": "متراژ ملک را وارد کنید:",
-        "deposit": "مبلغ ودیعه را وارد کنید:",
-        "rent": "مبلغ اجاره ماهانه را وارد کنید:",
-        "description": "توضیحات تکمیلی را وارد کنید:",
-        "contact": "شماره تماس را وارد کنید:",
-        "project": "نوع پروژه یا ملک موردنظر را توضیح دهید:",
-        "conditions": "شرایط موردنظر را بنویسید:",
-        "name": "نام یا عنوان خود را وارد کنید:",
-        "message": "پیام خود را بنویسید:",
-        "topic": "موضوع را وارد کنید:",
-        "details": "شرح موضوع را وارد کنید:",
-        "saved": "اطلاعات شما با کد پیگیری {id} ثبت شد و برای بررسی به مدیر ارسال شد.",
-        "admin": "درخواست جدید #{id}\nبخش: {category}\nکاربر: {user}\nشناسه: {uid}\n\n{data}\n\nتأیید: /approve_{id}\nرد: /reject_{id}",
-        "approved": "درخواست شما با کد {id} تأیید شد.",
-        "rejected": "درخواست شما با کد {id} رد شد.",
-        "admin_only": "این دستور فقط برای مدیر اصلی فعال است.",
-        "not_found": "درخواستی با این کد پیدا نشد.",
-        "cancelled": "عملیات لغو شد.",
-        "unknown": "لطفاً یکی از گزینه‌های منو را انتخاب کنید.",
-        "language_saved": "زبان انتخابی شما ذخیره شد.",
-        "help": "اطلاعات را مرحله‌به‌مرحله وارد کنید. برای بازگشت، دکمه منوی اصلی را بزنید.",
-    },
-    "en": {
-        "welcome": "Welcome to Tehran Real Estate.\nPlease choose your language:",
-        "main": "Tehran Real Estate main menu:",
-        "choose_type": "Choose the property type:",
-        "city": "Enter the city and preferred area:",
-        "budget": "Enter your budget or desired price:",
-        "area": "Enter the property area:",
-        "deposit": "Enter the deposit amount:",
-        "rent": "Enter the monthly rent:",
-        "description": "Enter additional details:",
-        "contact": "Enter your contact phone number:",
-        "project": "Describe the project or property you want:",
-        "conditions": "Enter your preferred conditions:",
-        "name": "Enter your name or business name:",
-        "message": "Write your message:",
-        "topic": "Enter the subject:",
-        "details": "Describe the issue:",
-        "saved": "Your information was registered under reference #{id} and sent to the administrator.",
-        "admin": "New submission #{id}\nSection: {category}\nUser: {user}\nID: {uid}\n\n{data}\n\nApprove: /approve_{id}\nReject: /reject_{id}",
-        "approved": "Your submission #{id} has been approved.",
-        "rejected": "Your submission #{id} has been rejected.",
-        "admin_only": "This command is for the main administrator only.",
-        "not_found": "No submission was found with this ID.",
-        "cancelled": "Operation cancelled.",
-        "unknown": "Please choose an option from the menu.",
-        "language_saved": "Your language preference has been saved.",
-        "help": "Enter the requested information step by step. Use the main menu button to return.",
-    },
-    "az": {
-        "welcome": "Tehran Daşınmaz Əmlak sisteminə xoş gəlmisiniz.\nDil seçin:",
-        "main": "Tehran Əmlak əsas menyusu:",
-        "choose_type": "Əmlak növünü seçin:",
-        "city": "Şəhər və ərazini daxil edin:",
-        "budget": "Büdcəni və ya istənilən qiyməti daxil edin:",
-        "area": "Əmlakın sahəsini daxil edin:",
-        "deposit": "Depozit məbləğini daxil edin:",
-        "rent": "Aylıq kirayə haqqını daxil edin:",
-        "description": "Əlavə məlumatları daxil edin:",
-        "contact": "Əlaqə nömrəsini daxil edin:",
-        "project": "İstədiyiniz layihəni və ya əmlakı təsvir edin:",
-        "conditions": "İstədiyiniz şərtləri yazın:",
-        "name": "Adınızı və ya şirkət adını daxil edin:",
-        "message": "Mesajınızı yazın:",
-        "topic": "Mövzunu daxil edin:",
-        "details": "Məsələni ətraflı təsvir edin:",
-        "saved": "Məlumatınız #{id} nömrəsi ilə qeydə alındı və administratora göndərildi.",
-        "admin": "Yeni müraciət #{id}\nBölmə: {category}\nİstifadəçi: {user}\nID: {uid}\n\n{data}\n\nTəsdiq: /approve_{id}\nRədd: /reject_{id}",
-        "approved": "#{id} nömrəli müraciətiniz təsdiqləndi.",
-        "rejected": "#{id} nömrəli müraciətiniz rədd edildi.",
-        "admin_only": "Bu əmr yalnız əsas administrator üçündür.",
-        "not_found": "Bu nömrə ilə müraciət tapılmadı.",
-        "cancelled": "Əməliyyat ləğv edildi.",
-        "unknown": "Zəhmət olmasa menyudan seçim edin.",
-        "language_saved": "Dil seçiminiz yadda saxlanıldı.",
-        "help": "Məlumatları addım-addım daxil edin. Geri qayıtmaq üçün əsas menyu düyməsini seçin.",
-    },
-    "tr": {
-        "welcome": "Tehran Gayrimenkul sistemine hoş geldiniz.\nLütfen dilinizi seçin:",
-        "main": "Tehran Gayrimenkul ana menüsü:",
-        "choose_type": "Gayrimenkul türünü seçin:",
-        "city": "Şehir ve tercih ettiğiniz bölgeyi girin:",
-        "budget": "Bütçenizi veya istediğiniz fiyatı girin:",
-        "area": "Gayrimenkulün alanını girin:",
-        "deposit": "Depozito tutarını girin:",
-        "rent": "Aylık kira tutarını girin:",
-        "description": "Ek açıklamaları girin:",
-        "contact": "Telefon numaranızı girin:",
-        "project": "İstediğiniz projeyi veya mülkü açıklayın:",
-        "conditions": "İstediğiniz koşulları yazın:",
-        "name": "Adınızı veya işletme adınızı girin:",
-        "message": "Mesajınızı yazın:",
-        "topic": "Konuyu girin:",
-        "details": "Konuyu ayrıntılı olarak açıklayın:",
-        "saved": "Bilgileriniz #{id} takip numarasıyla kaydedildi ve yöneticiye gönderildi.",
-        "admin": "Yeni başvuru #{id}\nBölüm: {category}\nKullanıcı: {user}\nID: {uid}\n\n{data}\n\nOnayla: /approve_{id}\nReddet: /reject_{id}",
-        "approved": "#{id} numaralı başvurunuz onaylandı.",
-        "rejected": "#{id} numaralı başvurunuz reddedildi.",
-        "admin_only": "Bu komut yalnızca ana yönetici tarafından kullanılabilir.",
-        "not_found": "Bu numarayla bir başvuru bulunamadı.",
-        "cancelled": "İşlem iptal edildi.",
-        "unknown": "Lütfen menüden bir seçenek seçin.",
-        "language_saved": "Dil tercihiniz kaydedildi.",
-        "help": "Bilgileri adım adım girin. Geri dönmek için ana menü düğmesini kullanın.",
-    },
-    "ar": {
-        "welcome": "مرحباً بكم في نظام عقارات طهران.\nيرجى اختيار اللغة:",
-        "main": "القائمة الرئيسية لعقارات طهران:",
-        "choose_type": "اختر نوع العقار:",
-        "city": "أدخل المدينة والمنطقة المطلوبة:",
-        "budget": "أدخل الميزانية أو السعر المطلوب:",
-        "area": "أدخل مساحة العقار:",
-        "deposit": "أدخل مبلغ التأمين:",
-        "rent": "أدخل الإيجار الشهري:",
-        "description": "أدخل تفاصيل إضافية:",
-        "contact": "أدخل رقم هاتف للتواصل:",
-        "project": "صف المشروع أو العقار المطلوب:",
-        "conditions": "اكتب الشروط المطلوبة:",
-        "name": "أدخل اسمك أو اسم الشركة:",
-        "message": "اكتب رسالتك:",
-        "topic": "أدخل الموضوع:",
-        "details": "اشرح التفاصيل:",
-        "saved": "تم تسجيل معلوماتك برقم متابعة {id} وإرسالها إلى الإدارة.",
-        "admin": "طلب جديد #{id}\nالقسم: {category}\nالمستخدم: {user}\nالمعرّف: {uid}\n\n{data}\n\nللموافقة: /approve_{id}\nللرفض: /reject_{id}",
-        "approved": "تمت الموافقة على طلبك رقم {id}.",
-        "rejected": "تم رفض طلبك رقم {id}.",
-        "admin_only": "هذا الأمر مخصص للمسؤول الرئيسي فقط.",
-        "not_found": "لم يتم العثور على طلب بهذا الرقم.",
-        "cancelled": "تم إلغاء العملية.",
-        "unknown": "يرجى اختيار أحد الخيارات من القائمة.",
-        "language_saved": "تم حفظ اللغة المفضلة.",
-        "help": "أدخل المعلومات خطوة بخطوة. للعودة، اضغط زر القائمة الرئيسية.",
-    },
-}
+PROPERTY_TYPES = [
+    "residential",
+    "office",
+    "commercial",
+    "agricultural",
+    "industrial",
+]
 
-# Forms are described by logical field keys, so prompts follow the selected language.
-FORM_SCHEMAS = {
-    "buy": ["type", "city", "budget", "description", "contact"],
-    "rent_request": ["type", "city", "budget", "description", "contact"],
-    "sale": ["type", "city", "area", "budget", "description", "contact"],
-    "rent_listing": ["type", "city", "area", "deposit", "rent", "description", "contact"],
-    "prebuy": ["project", "city", "budget", "conditions", "contact"],
-    "builder": ["name", "city", "project", "conditions", "contact"],
-    "owner_partner": ["project", "city", "area", "conditions", "contact"],
-    "agent_listing": ["type", "city", "budget", "description", "contact"],
-    "client_followup": ["name", "details", "contact"],
-    "agent_cooperation": ["name", "city", "conditions", "contact"],
-    "admin_message": ["message", "contact"],
-    "report": ["topic", "details", "contact"],
-}
+# وضعیت‌های گفت‌وگو
+LANGUAGE, PROPERTY_TYPE, DETAILS = range(3)
 
-FIELD_LABELS = {
-    "fa": {
-        "type": "نوع ملک", "city": "شهر و محدوده", "budget": "بودجه/قیمت",
-        "area": "متراژ", "deposit": "ودیعه", "rent": "اجاره ماهانه",
-        "description": "توضیحات", "contact": "شماره تماس", "project": "پروژه/ملک",
-        "conditions": "شرایط", "name": "نام", "message": "پیام",
-        "topic": "موضوع", "details": "شرح",
-    },
-    "en": {
-        "type": "Property type", "city": "City and area", "budget": "Budget/price",
-        "area": "Property area", "deposit": "Deposit", "rent": "Monthly rent",
-        "description": "Description", "contact": "Phone", "project": "Project/property",
-        "conditions": "Conditions", "name": "Name", "message": "Message",
-        "topic": "Subject", "details": "Details",
-    },
-    "az": {
-        "type": "Əmlak növü", "city": "Şəhər və ərazi", "budget": "Büdcə/qiymət",
-        "area": "Sahə", "deposit": "Depozit", "rent": "Aylıq kirayə",
-        "description": "Təsvir", "contact": "Telefon", "project": "Layihə/əmlak",
-        "conditions": "Şərtlər", "name": "Ad", "message": "Mesaj",
-        "topic": "Mövzu", "details": "Təfərrüatlar",
-    },
-    "tr": {
-        "type": "Gayrimenkul türü", "city": "Şehir ve bölge", "budget": "Bütçe/fiyat",
-        "area": "Alan", "deposit": "Depozito", "rent": "Aylık kira",
-        "description": "Açıklama", "contact": "Telefon", "project": "Proje/mülk",
-        "conditions": "Koşullar", "name": "Ad", "message": "Mesaj",
-        "topic": "Konu", "details": "Ayrıntılar",
-    },
-    "ar": {
-        "type": "نوع العقار", "city": "المدينة والمنطقة", "budget": "الميزانية/السعر",
-        "area": "المساحة", "deposit": "التأمين", "rent": "الإيجار الشهري",
-        "description": "الوصف", "contact": "الهاتف", "project": "المشروع/العقار",
-        "conditions": "الشروط", "name": "الاسم", "message": "الرسالة",
-        "topic": "الموضوع", "details": "التفاصيل",
-    },
-}
+# =========================================================
+# دیتابیس
+# =========================================================
 
-# Maps each translated button to a logical action.
-ACTIONS = {
-    "fa": {
-        "ثبت تقاضای خرید": "buy",
-        "ثبت تقاضای اجاره": "rent_request",
-        "ثبت آگهی فروش": "sale",
-        "ثبت آگهی اجاره": "rent_listing",
-        "درخواست پیش خرید": "prebuy",
-        "سازنده آماده مشارکت هستم": "builder",
-        "مالک ملک برای مشارکت در ساخت هستم": "owner_partner",
-        "ثبت آگهی ملک": "agent_listing",
-        "پیگیری مشتریان": "client_followup",
-        "درخواست همکاری با مشاوران": "agent_cooperation",
-        "ارسال پیام به مدیر": "admin_message",
-        "گزارش مشکل یا تخلف": "report",
-    },
-    "en": {
-        "Submit purchase request": "buy",
-        "Submit rental request": "rent_request",
-        "Post property for sale": "sale",
-        "Post property for rent": "rent_listing",
-        "Pre-purchase request": "prebuy",
-        "Builder seeking a partner": "builder",
-        "Property owner seeking a construction partner": "owner_partner",
-        "Post a property listing": "agent_listing",
-        "Follow up with clients": "client_followup",
-        "Request cooperation with agents": "agent_cooperation",
-        "Send a message to admin": "admin_message",
-        "Report a problem or violation": "report",
-    },
-    "az": {
-        "Alış müraciəti yarat": "buy",
-        "Kirayə müraciəti yarat": "rent_request",
-        "Satış elanı yerləşdir": "sale",
-        "Kirayə elanı yerləşdir": "rent_listing",
-        "Öncədən alış müraciəti": "prebuy",
-        "Tikinti tərəfdaşı axtarıram": "builder",
-        "Tikinti üçün tərəfdaş axtaran əmlak sahibi": "owner_partner",
-        "Əmlak elanı yerləşdir": "agent_listing",
-        "Müştəriləri izləyin": "client_followup",
-        "Agentlərlə əməkdaşlıq müraciəti": "agent_cooperation",
-        "Administratora mesaj göndər": "admin_message",
-        "Problem və ya pozuntu barədə məlumat ver": "report",
-    },
-    "tr": {
-        "Satın alma talebi oluştur": "buy",
-        "Kiralama talebi oluştur": "rent_request",
-        "Satılık ilanı ver": "sale",
-        "Kiralık ilanı ver": "rent_listing",
-        "Ön satın alma talebi": "prebuy",
-        "İnşaat için ortak arıyorum": "builder",
-        "İnşaat ortaklığı arayan mülk sahibi": "owner_partner",
-        "Emlak ilanı ver": "agent_listing",
-        "Müşteri takibi": "client_followup",
-        "Danışmanlarla iş birliği talebi": "agent_cooperation",
-        "Yöneticiye mesaj gönder": "admin_message",
-        "Sorun veya ihlal bildir": "report",
-    },
-    "ar": {
-        "تسجيل طلب شراء": "buy",
-        "تسجيل طلب استئجار": "rent_request",
-        "نشر إعلان للبيع": "sale",
-        "نشر إعلان للإيجار": "rent_listing",
-        "طلب شراء مسبق": "prebuy",
-        "مقاول يبحث عن شريك": "builder",
-        "مالك عقار يبحث عن شريك للبناء": "owner_partner",
-        "نشر إعلان عقاري": "agent_listing",
-        "متابعة العملاء": "client_followup",
-        "طلب التعاون مع الوسطاء": "agent_cooperation",
-        "إرسال رسالة إلى الإدارة": "admin_message",
-        "الإبلاغ عن مشكلة أو مخالفة": "report",
-    },
-}
-
-# Language-specific type selection maps to the same logical form.
-TYPE_TO_FORM = {}
-for lang, types in PROPERTY_TYPES.items():
-    for type_name in types:
-        TYPE_TO_FORM[(lang, type_name)] = type_name
-
-app = Flask(__name__)
-state = {"status": "starting", "telegram_polling": False, "last_update_time": None}
+def db_connect():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 
 def init_db():
-    with sqlite3.connect(DATABASE_PATH) as conn:
+    with db_connect() as conn:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 user_id INTEGER PRIMARY KEY,
-                language TEXT NOT NULL DEFAULT 'fa'
+                language TEXT NOT NULL DEFAULT 'fa',
+                created_at TEXT NOT NULL
             )
         """)
+
         conn.execute("""
-            CREATE TABLE IF NOT EXISTS submissions (
+            CREATE TABLE IF NOT EXISTS requests (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                created_at TEXT NOT NULL,
                 user_id INTEGER NOT NULL,
-                username TEXT,
+                name TEXT,
                 language TEXT NOT NULL,
-                category TEXT NOT NULL,
-                data TEXT NOT NULL,
-                status TEXT NOT NULL DEFAULT 'pending'
+                kind TEXT NOT NULL,
+                property_type TEXT,
+                details TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending',
+                created_at TEXT NOT NULL
             )
         """)
-        conn.commit()
 
 
-def get_language(user_id, context):
-    return context.user_data.get("language", "fa")
-
-
-def save_language(user_id, language, context):
-    context.user_data["language"] = language
-    with sqlite3.connect(DATABASE_PATH) as conn:
-        conn.execute(
-            "INSERT INTO users(user_id, language) VALUES (?, ?) "
-            "ON CONFLICT(user_id) DO UPDATE SET language=excluded.language",
-            (user_id, language),
-        )
-        conn.commit()
-
-
-def load_language(user_id):
-    with sqlite3.connect(DATABASE_PATH) as conn:
+def get_user_language(user_id):
+    with db_connect() as conn:
         row = conn.execute(
-            "SELECT language FROM users WHERE user_id=?", (user_id,)
+            "SELECT language FROM users WHERE user_id = ?",
+            (user_id,),
         ).fetchone()
-    return row[0] if row else None
+
+    return row["language"] if row else None
 
 
-def keyboard(rows):
+def save_user_language(user_id, language):
+    with db_connect() as conn:
+        conn.execute("""
+            INSERT INTO users (user_id, language, created_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id) DO UPDATE SET language = excluded.language
+        """, (user_id, language, datetime.utcnow().isoformat()))
+
+
+def save_request(user_id, name, language, kind, property_type, details):
+    with db_connect() as conn:
+        cursor = conn.execute("""
+            INSERT INTO requests
+            (user_id, name, language, kind, property_type, details, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (
+            user_id,
+            name,
+            language,
+            kind,
+            property_type,
+            details,
+            datetime.utcnow().isoformat(),
+        ))
+
+        return cursor.lastrowid
+
+
+def get_request(request_id):
+    with db_connect() as conn:
+        return conn.execute(
+            "SELECT * FROM requests WHERE id = ?",
+            (request_id,),
+        ).fetchone()
+
+
+def get_pending_requests():
+    with db_connect() as conn:
+        return conn.execute("""
+            SELECT * FROM requests
+            WHERE status = 'pending'
+            ORDER BY id ASC
+            LIMIT 20
+        """).fetchall()
+
+
+def set_request_status(request_id, status):
+    with db_connect() as conn:
+        conn.execute(
+            "UPDATE requests SET status = ? WHERE id = ?",
+            (status, request_id),
+        )
+
+
+# =========================================================
+# ابزارهای منو
+# =========================================================
+
+def tr(language, key):
+    language = language if language in TEXT else "fa"
+    return TEXT[language].get(key, TEXT["fa"].get(key, key))
+
+
+def make_keyboard(language, rows):
     return ReplyKeyboardMarkup(
         rows,
         resize_keyboard=True,
         is_persistent=True,
-        input_field_placeholder="...",
     )
 
 
+def main_keyboard(language):
+    t = TEXT[language]
+    return make_keyboard(language, [
+        [t["buyer"]],
+        [t["seller"]],
+        [t["investment"]],
+        [t["agent"]],
+        [t["support"]],
+    ])
+
+
+def back_keyboard(language):
+    return make_keyboard(language, [[TEXT[language]["back"]]])
+
+
 def language_keyboard():
-    return keyboard([[LANGUAGES["fa"], LANGUAGES["en"]],
-                     [LANGUAGES["az"], LANGUAGES["tr"]],
-                     [LANGUAGES["ar"]]])
+    return make_keyboard("fa", [
+        [LANGUAGE_BUTTONS["fa"], LANGUAGE_BUTTONS["en"]],
+        [LANGUAGE_BUTTONS["az"], LANGUAGE_BUTTONS["tr"]],
+        [LANGUAGE_BUTTONS["ar"]],
+    ])
 
 
-def language_code_from_button(text):
-    for code, name in LANGUAGES.items():
-        if text == name:
+def language_from_button(text):
+    for code, label in LANGUAGE_BUTTONS.items():
+        if text == label:
             return code
     return None
 
 
-def main_keyboard(lang):
-    rows = [[item] for item in MAIN_MENU[lang]]
-    rows += [[CHANGE_LANGUAGE[lang]]]
-    return keyboard(rows)
+def key_from_button(language, text, keys):
+    for key in keys:
+        if TEXT[language].get(key) == text:
+            return key
+    return None
 
 
-def submenu_keyboard(lang, main_item):
-    items = SUBMENUS[lang].get(main_item, [])
-    rows = [[item] for item in items]
-    rows += [[BACK[lang]], [CHANGE_LANGUAGE[lang]]]
-    return keyboard(rows)
+def main_menu_key(language, text):
+    return key_from_button(language, text, MAIN_MENU_KEYS)
 
 
-def property_keyboard(lang):
-    rows = [[item] for item in PROPERTY_TYPES[lang]]
-    rows += [[BACK[lang]], [CHANGE_LANGUAGE[lang]]]
-    return keyboard(rows)
+def submenu_key(language, section, text):
+    return key_from_button(language, text, SUBMENU_KEYS[section])
 
 
-async def show_language_menu(update, context, welcome=True):
-    if welcome:
-        await update.message.reply_text(
-            "Welcome / خوش آمدید / Xoş gəlmisiniz / Hoş geldiniz / مرحباً\n"
-            "Choose your language / زبان خود را انتخاب کنید:",
-            reply_markup=language_keyboard(),
-        )
-    else:
-        await update.message.reply_text(
-            "Choose your language / زبان خود را انتخاب کنید:",
-            reply_markup=language_keyboard(),
-        )
+def property_type_key(language, text):
+    return key_from_button(language, text, PROPERTY_TYPES)
 
 
-async def show_main(update, context, text=None):
-    lang = get_language(update.effective_user.id, context)
-    await update.message.reply_text(
-        text or MESSAGES[lang]["main"],
-        reply_markup=main_keyboard(lang),
-    )
+def submenu_keyboard(language, section):
+    t = TEXT[language]
+    rows = [[t[key]] for key in SUBMENU_KEYS[section]]
+    rows.append([t["back"]])
+    return make_keyboard(language, rows)
 
+
+def property_keyboard(language):
+    t = TEXT[language]
+    rows = [[t[key]] for key in PROPERTY_TYPES]
+    rows.append([t["back"]])
+    return make_keyboard(language, rows)
+
+
+# =========================================================
+# شروع و انتخاب زبان
+# =========================================================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    if not user or not update.message:
+        return ConversationHandler.END
+
     context.user_data.clear()
-    saved = load_language(update.effective_user.id)
-    if saved in LANGUAGES:
-        context.user_data["language"] = saved
-        await show_main(update, context, MESSAGES[saved]["main"])
-    else:
-        await show_language_menu(update, context, welcome=True)
 
+    language = get_user_language(user.id)
 
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data.pop("form", None)
-    await show_main(update, context, MESSAGES[get_language(update.effective_user.id, context)]["cancelled"])
-
-
-def save_submission(user, lang, category, answers):
-    labels = FIELD_LABELS[lang]
-    data = "\n".join(f"{labels.get(key, key)}: {value}" for key, value in answers.items())
-    with sqlite3.connect(DATABASE_PATH) as conn:
-        cur = conn.execute(
-            """INSERT INTO submissions
-            (created_at, user_id, username, language, category, data, status)
-            VALUES (?, ?, ?, ?, ?, ?, 'pending')""",
-            (
-                datetime.now(timezone.utc).isoformat(),
-                user.id,
-                user.username,
-                lang,
-                category,
-                data,
-            ),
-        )
-        conn.commit()
-        return cur.lastrowid, data
-
-
-def prompt_for(lang, key):
-    msg = MESSAGES[lang]
-    prompts = {
-        "type": msg["choose_type"],
-        "city": msg["city"],
-        "budget": msg["budget"],
-        "area": msg["area"],
-        "deposit": msg["deposit"],
-        "rent": msg["rent"],
-        "description": msg["description"],
-        "contact": msg["contact"],
-        "project": msg["project"],
-        "conditions": msg["conditions"],
-        "name": msg["name"],
-        "message": msg["message"],
-        "topic": msg["topic"],
-        "details": msg["details"],
-    }
-    return prompts[key]
-
-
-async def begin_form(update, context, action, category):
-    lang = get_language(update.effective_user.id, context)
-    context.user_data["form"] = {
-        "action": action,
-        "category": category,
-        "keys": FORM_SCHEMAS[action],
-        "index": 0,
-        "answers": {},
-    }
-    first_key = FORM_SCHEMAS[action][0]
-
-    if first_key == "type":
+    if language:
         await update.message.reply_text(
-            MESSAGES[lang]["choose_type"],
-            reply_markup=property_keyboard(lang),
+            TEXT[language]["main_menu"],
+            reply_markup=main_keyboard(language),
         )
-    else:
-        await update.message.reply_text(
-            prompt_for(lang, first_key) + "\n\n" + BACK[lang],
-            reply_markup=keyboard([[BACK[lang]], [CHANGE_LANGUAGE[lang]]]),
-        )
+        return ConversationHandler.END
 
-
-async def notify_admin(context, submission_id, update, lang, category, data):
-    user = update.effective_user
-    message = MESSAGES[lang]["admin"].format(
-        id=submission_id,
-        category=category,
-        user=user.full_name,
-        uid=user.id,
-        data=data,
-    )
-    try:
-        await context.bot.send_message(chat_id=ADMIN_ID, text=message)
-    except Exception:
-        logger.exception("Could not notify admin")
-
-
-async def finish_form(update, context, form):
-    lang = get_language(update.effective_user.id, context)
-    user = update.effective_user
-    submission_id, data = save_submission(
-        user, lang, form["category"], form["answers"]
-    )
-    await notify_admin(
-        context, submission_id, update, lang, form["category"], data
-    )
-    context.user_data.pop("form", None)
     await update.message.reply_text(
-        MESSAGES[lang]["saved"].format(id=submission_id),
-        reply_markup=main_keyboard(lang),
+        TEXT["fa"]["choose_language"],
+        reply_markup=language_keyboard(),
+    )
+    return LANGUAGE
+
+
+async def choose_language(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    if not update.message:
+        return LANGUAGE
+
+    language = language_from_button(update.message.text)
+
+    if not language:
+        await update.message.reply_text(
+            TEXT["fa"]["choose_language"],
+            reply_markup=language_keyboard(),
+        )
+        return LANGUAGE
+
+    user = update.effective_user
+    save_user_language(user.id, language)
+
+    await update.message.reply_text(
+        WELCOME[language],
+        reply_markup=ReplyKeyboardRemove(),
     )
 
+    await update.message.reply_text(
+        TEXT[language]["main_menu"],
+        reply_markup=main_keyboard(language),
+    )
 
-async def handle_form(update, context, text):
-    form = context.user_data.get("form")
-    if not form:
-        return False
-
-    lang = get_language(update.effective_user.id, context)
-    if text == BACK[lang]:
-        context.user_data.pop("form", None)
-        await show_main(update, context)
-        return True
-
-    key = form["keys"][form["index"]]
-
-    if key == "type" and text not in PROPERTY_TYPES[lang]:
-        await update.message.reply_text(
-            MESSAGES[lang]["choose_type"],
-            reply_markup=property_keyboard(lang),
-        )
-        return True
-
-    form["answers"][key] = text
-    form["index"] += 1
-
-    if form["index"] >= len(form["keys"]):
-        await finish_form(update, context, form)
-        return True
-
-    next_key = form["keys"][form["index"]]
-    if next_key == "type":
-        await update.message.reply_text(
-            MESSAGES[lang]["choose_type"],
-            reply_markup=property_keyboard(lang),
-        )
-    else:
-        await update.message.reply_text(
-            prompt_for(lang, next_key) + "\n\n" + BACK[lang],
-            reply_markup=keyboard([[BACK[lang]], [CHANGE_LANGUAGE[lang]]]),
-        )
-    return True
+    return ConversationHandler.END
 
 
-async def admin_decision(update, context):
+async def change_language(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    context.user_data.clear()
+
+    await update.message.reply_text(
+        TEXT["fa"]["choose_language"],
+        reply_markup=language_keyboard(),
+    )
+    return LANGUAGE
+
+
+# =========================================================
+# شروع فرم درخواست یا آگهی
+# =========================================================
+
+async def begin_request(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    kind: str,
+):
     user = update.effective_user
-    if not user or user.id != ADMIN_ID:
-        await update.message.reply_text("Admin only.")
-        return
+    language = get_user_language(user.id) or "fa"
 
-    command = update.message.text.strip()
-    approve = command.startswith("/approve_")
-    prefix = "/approve_" if approve else "/reject_"
+    context.user_data["kind"] = kind
+    context.user_data["language"] = language
+    context.user_data["property_type"] = None
 
-    try:
-        submission_id = int(command[len(prefix):].split("@")[0])
-    except ValueError:
-        await update.message.reply_text("Invalid reference number.")
-        return
+    await update.message.reply_text(
+        tr(language, "types_title"),
+        reply_markup=property_keyboard(language),
+    )
 
-    with sqlite3.connect(DATABASE_PATH) as conn:
-        row = conn.execute(
-            "SELECT category, data, user_id, language FROM submissions WHERE id=?",
-            (submission_id,),
-        ).fetchone()
+    return PROPERTY_TYPE
 
-        if not row:
-            await update.message.reply_text("Submission not found.")
-            return
 
-        category, data, owner_id, lang = row
-        status = "approved" if approve else "rejected"
-        conn.execute(
-            "UPDATE submissions SET status=? WHERE id=?",
-            (status, submission_id),
+async def select_property_type(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    user = update.effective_user
+    language = context.user_data.get(
+        "language",
+        get_user_language(user.id) or "fa",
+    )
+
+    if update.message.text == TEXT[language]["back"]:
+        await update.message.reply_text(
+            TEXT[language]["main_menu"],
+            reply_markup=main_keyboard(language),
         )
-        conn.commit()
+        context.user_data.clear()
+        return ConversationHandler.END
 
-    key = "approved" if approve else "rejected"
+    property_type = property_type_key(language, update.message.text)
+
+    if not property_type:
+        await update.message.reply_text(
+            TEXT[language]["types_title"],
+            reply_markup=property_keyboard(language),
+        )
+        return PROPERTY_TYPE
+
+    context.user_data["property_type"] = property_type
+
+    await update.message.reply_text(
+        TEXT[language]["ask_details"],
+        reply_markup=back_keyboard(language),
+    )
+
+    return DETAILS
+
+
+async def receive_details(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    user = update.effective_user
+    language = context.user_data.get(
+        "language",
+        get_user_language(user.id) or "fa",
+    )
+
+    if update.message.text == TEXT[language]["back"]:
+        await update.message.reply_text(
+            TEXT[language]["main_menu"],
+            reply_markup=main_keyboard(language),
+        )
+        context.user_data.clear()
+        return ConversationHandler.END
+
+    details = update.message.text or ""
+
+    if len(details.strip()) < 3:
+        await update.message.reply_text(TEXT[language]["ask_details"])
+        return DETAILS
+
+    kind = context.user_data.get("kind", "request")
+    property_type = context.user_data.get("property_type", "")
+    name = user.full_name or ""
+
+    request_id = save_request(
+        user_id=user.id,
+        name=name,
+        language=language,
+        kind=kind,
+        property_type=property_type,
+        details=details,
+    )
+
+    admin_text = TEXT["fa"]["admin_new"].format(
+        user_id=user.id,
+        name=name,
+        kind=kind,
+        property_type=TEXT["fa"].get(property_type, property_type),
+        details=details,
+    )
+
+    keyboard = [
+        [
+            # شناسه درخواست در callback ذخیره می‌شود
+            # و فقط مدیر می‌تواند تصمیم بگیرد.
+        ]
+    ]
+
+    from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+
+    admin_keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton(
+                TEXT["fa"]["admin_approve"],
+                callback_data=f"approve:{request_id}",
+            ),
+            InlineKeyboardButton(
+                TEXT["fa"]["admin_reject"],
+                callback_data=f"reject:{request_id}",
+            ),
+        ]
+    ])
+
     try:
         await context.bot.send_message(
-            chat_id=owner_id,
-            text=MESSAGES.get(lang, MESSAGES["fa"])[key].format(id=submission_id),
+            chat_id=ADMIN_ID,
+            text=admin_text,
+            reply_markup=admin_keyboard,
         )
     except Exception:
-        logger.exception("Could not notify submitter")
+        logger.exception("Could not notify administrator")
 
-    await update.message.reply_text(f"Submission #{submission_id}: {status}")
+    await update.message.reply_text(
+        TEXT[language]["submitted"],
+        reply_markup=main_keyboard(language),
+    )
 
-    if approve and category in {
-        "ثبت آگهی فروش", "ثبت آگهی اجاره", "ثبت آگهی ملک",
-        "Post property for sale", "Post property for rent",
-        "Post a property listing",
-        "Satış elanı yerləşdir", "Kirayə elanı yerləşdir",
-        "Əmlak elanı yerləşdir",
-        "Satılık ilanı ver", "Kiralık ilanı ver", "Emlak ilanı ver",
-        "نشر إعلان للبيع", "نشر إعلان للإيجار", "نشر إعلان عقاري",
-    }:
-        try:
-            await context.bot.send_message(
-                chat_id=CHANNEL_USERNAME,
-                text=f"Approved listing #{submission_id}\n\n{data}",
-            )
-        except Exception:
-            logger.exception("Could not publish listing")
+    context.user_data.clear()
+    return ConversationHandler.END
 
 
-async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# =========================================================
+# ارسال پیام به مدیر
+# =========================================================
+
+async def begin_admin_message(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    user = update.effective_user
+    language = get_user_language(user.id) or "fa"
+
+    context.user_data["kind"] = "admin_message"
+    context.user_data["language"] = language
+    context.user_data["property_type"] = ""
+
+    await update.message.reply_text(
+        TEXT[language]["ask_message"],
+        reply_markup=back_keyboard(language),
+    )
+
+    return DETAILS
+
+
+# =========================================================
+# مدیریت منوی اصلی
+# =========================================================
+
+async def handle_menu(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
     if not update.message or not update.message.text:
         return
 
-    text = update.message.text.strip()
-    state["last_update_time"] = int(datetime.now(timezone.utc).timestamp())
-    user_id = update.effective_user.id
+    user = update.effective_user
+    language = get_user_language(user.id) or "fa"
+    text = update.message.text
+    t = TEXT[language]
 
-    # Select a language when the user first enters, or changes language.
-    selected_lang = language_code_from_button(text)
-    if selected_lang:
-        save_language(user_id, selected_lang, context)
-        context.user_data.pop("form", None)
+    if text == t["back"]:
+        context.user_data.clear()
         await update.message.reply_text(
-            MESSAGES[selected_lang]["language_saved"],
-            reply_markup=main_keyboard(selected_lang),
-        )
-        await update.message.reply_text(MESSAGES[selected_lang]["main"])
-        return
-
-    lang = get_language(user_id, context)
-
-    if text == CHANGE_LANGUAGE[lang]:
-        context.user_data.pop("form", None)
-        await show_language_menu(update, context, welcome=False)
-        return
-
-    if text == BACK[lang]:
-        context.user_data.pop("form", None)
-        await show_main(update, context)
-        return
-
-    if await handle_form(update, context, text):
-        return
-
-    # Main menu selection
-    if text in MAIN_MENU[lang]:
-        context.user_data.pop("form", None)
-        await update.message.reply_text(
-            text,
-            reply_markup=submenu_keyboard(lang, text),
+            t["main_menu"],
+            reply_markup=main_keyboard(language),
         )
         return
 
-    # A property type is only selected after the form begins.
-    # Map submenu item to a logical form.
-    action = ACTIONS[lang].get(text)
-    if action:
-        await begin_form(update, context, action, text)
+    section = main_menu_key(language, text)
+
+    if section:
+        context.user_data["section"] = section
+
+        await update.message.reply_text(
+            t["main_menu"],
+            reply_markup=submenu_keyboard(language, section),
+        )
         return
 
-    # Keep the language selection accessible if the user sends an unknown message.
+    section = context.user_data.get("section")
+
+    if section:
+        action = submenu_key(language, section, text)
+
+        if action:
+            if action in ("buy_request", "rent_request"):
+                await begin_request(update, context, action)
+                return
+
+            if action in ("sell_ad", "rent_ad", "agent_ads"):
+                await begin_request(update, context, action)
+                return
+
+            if action in ("presale", "builder", "owner_partner"):
+                await begin_request(update, context, action)
+                return
+
+            if action == "contact_admin":
+                await begin_admin_message(update, context)
+                return
+
+            if action == "report":
+                await begin_request(update, context, "report")
+                return
+
+            if action in ("agent_customers", "agent_cooperation"):
+                await update.message.reply_text(
+                    t["ask_details"],
+                    reply_markup=back_keyboard(language),
+                )
+                context.user_data["kind"] = action
+                context.user_data["property_type"] = ""
+                return
+
     await update.message.reply_text(
-        MESSAGES[lang]["unknown"],
-        reply_markup=main_keyboard(lang),
+        t["unknown"],
+        reply_markup=main_keyboard(language),
     )
 
 
-@app.get("/")
+# =========================================================
+# تأیید یا رد توسط مدیر
+# =========================================================
+
+async def admin_decision(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    query = update.callback_query
+    if not query:
+        return
+
+    user = update.effective_user
+
+    if user.id != ADMIN_ID:
+        await query.answer("Not authorized", show_alert=True)
+        return
+
+    await query.answer()
+
+    try:
+        action, request_id_text = query.data.split(":", 1)
+        request_id = int(request_id_text)
+    except (ValueError, AttributeError):
+        await query.edit_message_text("Invalid request.")
+        return
+
+    row = get_request(request_id)
+
+    if not row or row["status"] != "pending":
+        await query.edit_message_text("This request has already been processed.")
+        return
+
+    language = row["language"]
+
+    if action == "approve":
+        set_request_status(request_id, "approved")
+
+        try:
+            await context.bot.send_message(
+                chat_id=row["user_id"],
+                text=TEXT[language]["admin_approved"],
+            )
+        except Exception:
+            logger.exception("Could not notify user")
+
+        # فقط آگهی‌ها در کانال منتشر می‌شوند؛ درخواست خرید/اجاره منتشر نمی‌شود.
+        publishable = row["kind"] in (
+            "sell_ad",
+            "rent_ad",
+            "agent_ads",
+        )
+
+        if publishable:
+            try:
+                caption = TEXT["fa"]["ad_caption"].format(
+                    details=row["details"]
+                )
+                await context.bot.send_message(
+                    chat_id=CHANNEL_ID,
+                    text=caption,
+                )
+            except Exception:
+                logger.exception("Could not publish listing")
+
+        await query.edit_message_text(
+            f"✅ درخواست شماره {request_id} تأیید شد."
+        )
+
+    elif action == "reject":
+        set_request_status(request_id, "rejected")
+
+        try:
+            await context.bot.send_message(
+                chat_id=row["user_id"],
+                text=TEXT[language]["admin_rejected"],
+            )
+        except Exception:
+            logger.exception("Could not notify user")
+
+        await query.edit_message_text(
+            f"❌ درخواست شماره {request_id} رد شد."
+        )
+
+
+# =========================================================
+# دستورات مدیر
+# =========================================================
+
+async def admin_requests(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    user = update.effective_user
+
+    if user.id != ADMIN_ID:
+        language = get_user_language(user.id) or "fa"
+        await update.message.reply_text(TEXT[language]["not_admin"])
+        return
+
+    rows = get_pending_requests()
+
+    if not rows:
+        await update.message.reply_text(TEXT["fa"]["pending_empty"])
+        return
+
+    from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+
+    for row in rows:
+        message = TEXT["fa"]["admin_new"].format(
+            user_id=row["user_id"],
+            name=row["name"] or "",
+            kind=row["kind"],
+            property_type=row["property_type"] or "",
+            details=row["details"],
+        )
+
+        keyboard = InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton(
+                    TEXT["fa"]["admin_approve"],
+                    callback_data=f"approve:{row['id']}",
+                ),
+                InlineKeyboardButton(
+                    TEXT["fa"]["admin_reject"],
+                    callback_data=f"reject:{row['id']}",
+                ),
+            ]
+        ])
+
+        await update.message.reply_text(
+            message,
+            reply_markup=keyboard,
+        )
+
+
+async def cancel(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    context.user_data.clear()
+
+    user = update.effective_user
+    language = get_user_language(user.id) or "fa"
+
+    await update.message.reply_text(
+        TEXT[language]["cancel"],
+        reply_markup=main_keyboard(language),
+    )
+
+    return ConversationHandler.END
+
+
+# =========================================================
+# وب‌سرور ساده برای Render
+# =========================================================
+
+web_app = Flask(__name__)
+
+
+@web_app.route("/")
 def home():
-    return jsonify({"service": "tehran-real-estate-bot", **state})
+    return "Tehran Real Estate Bot is running.", 200
 
 
-@app.get("/health")
+@web_app.route("/health")
 def health():
-    return jsonify({"status": "ok", **state})
+    return {"status": "ok"}, 200
 
 
 def run_web_server():
-    app.run(host="0.0.0.0", port=PORT, use_reloader=False)
+    port = int(os.getenv("PORT", "10000"))
+    web_app.run(
+        host="0.0.0.0",
+        port=port,
+        use_reloader=False,
+    )
 
+
+# =========================================================
+# اجرای ربات
+# =========================================================
 
 def main():
     if not BOT_TOKEN:
-        raise RuntimeError("BOT_TOKEN environment variable is missing.")
+        raise RuntimeError(
+            "BOT_TOKEN is missing. Set BOT_TOKEN in Render Environment."
+        )
 
     init_db()
-    threading.Thread(target=run_web_server, daemon=True).start()
+
+    Thread(
+        target=run_web_server,
+        daemon=True,
+    ).start()
 
     application = Application.builder().token(BOT_TOKEN).build()
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("cancel", cancel))
-    application.add_handler(
-        MessageHandler(filters.Regex(r"^/approve_\d+(?:@\w+)?$"), admin_decision)
-    )
-    application.add_handler(
-        MessageHandler(filters.Regex(r"^/reject_\d+(?:@\w+)?$"), admin_decision)
-    )
-    application.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text)
+
+    language_conversation = ConversationHandler(
+        entry_points=[
+            CommandHandler("start", start),
+            CommandHandler("language", change_language),
+        ],
+        states={
+            LANGUAGE: [
+                MessageHandler(
+                    filters.TEXT & ~filters.COMMAND,
+                    choose_language,
+                )
+            ],
+        },
+        fallbacks=[
+            CommandHandler("cancel", cancel),
+        ],
+        allow_reentry=True,
     )
 
-    state["status"] = "running"
-    state["telegram_polling"] = True
-    logger.info("Starting Telegram polling.")
-    application.run_polling(drop_pending_updates=False)
+    request_conversation = ConversationHandler(
+        entry_points=[],
+        states={
+            PROPERTY_TYPE: [
+                MessageHandler(
+                    filters.TEXT & ~filters.COMMAND,
+                    select_property_type,
+                )
+            ],
+            DETAILS: [
+                MessageHandler(
+                    filters.TEXT & ~filters.COMMAND,
+                    receive_details,
+                )
+            ],
+        },
+        fallbacks=[
+            CommandHandler("cancel", cancel),
+        ],
+        allow_reentry=True,
+    )
+
+    application.add_handler(language_conversation)
+    application.add_handler(request_conversation)
+
+    application.add_handler(CommandHandler("requests", admin_requests))
+    application.add_handler(CommandHandler("cancel", cancel))
+
+    from telegram.ext import CallbackQueryHandler
+    application.add_handler(
+        CallbackQueryHandler(admin_decision, pattern=r"^(approve|reject):\d+$")
+    )
+
+    application.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, handle_menu)
+    )
+
+    logger.info("Tehran Real Estate Bot started.")
+    application.run_polling(
+        allowed_updates=Update.ALL_TYPES,
+    )
 
 
 if __name__ == "__main__":
