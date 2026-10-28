@@ -145,14 +145,15 @@ MENU = {
 
 # Полный каталог категорий. Кнопки переводятся на язык пользователя при показе.
 SUBMENUS = {
-    "buy": ["🏢 آپارتمان مسکونی", "🏡 ویلا و خانه مستقل", "🌳 زمین و باغ", "🏚 ملک کلنگی", "🏬 مغازه و ملک تجاری", "🏢 دفتر کار و ملک اداری", "🏭 ملک صنعتی و کارخانه", "🏗 سوله و انبار", "🏢 شهرک صنعتی", "🏨 هتل و اقامتگاه", "🏥 درمانی و بیمارستان", "🏬 پاساژ و مجتمع تجاری", "🏗 پیش‌خرید و پروژه در حال ساخت", "💎 املاک لوکس و گران‌قیمت", "📈 ملک مناسب سرمایه‌گذاری", "📦 سایر انواع ملک"],
-    "rent": ["🏢 آپارتمان مسکونی", "🏡 ویلا و خانه مستقل", "🌳 زمین و باغ", "🏚 ملک کلنگی", "🏬 مغازه و ملک تجاری", "🏢 دفتر کار و ملک اداری", "🏭 ملک صنعتی و کارخانه", "🏗 سوله و انبار", "🏨 اجاره کوتاه‌مدت و روزانه", "💎 املاک لوکس", "📦 سایر انواع ملک"],
-    "buy_req": ["🏢 آپارتمان مسکونی", "🏡 ویلا و خانه مستقل", "🌳 زمین و باغ", "🏚 ملک کلنگی", "🏬 مغازه و ملک تجاری", "🏢 دفتر کار و ملک اداری", "🏭 ملک صنعتی و کارخانه", "🏗 سوله و انبار", "🏗 پیش‌خرید و پروژه در حال ساخت", "💎 املاک لوکس و گران‌قیمت", "📦 سایر انواع ملک"],
-    "rent_req": ["🏢 آپارتمان مسکونی", "🏡 ویلا و خانه مستقل", "🏬 مغازه و ملک تجاری", "🏢 دفتر کار و ملک اداری", "🏭 ملک صنعتی و کارخانه", "🏗 سوله و انبار", "🏨 اجاره کوتاه‌مدت و روزانه", "💎 املاک لوکس", "📦 سایر انواع ملک"],
-    "investment": ["🏠 خرید ملک برای اجاره‌دادن", "📈 خرید برای افزایش قیمت و فروش", "🏬 سرمایه‌گذاری تجاری", "💎 املاک لوکس و خاص", "🏗 پروژه‌های ساختمانی و در حال ساخت", "🏙 پروژه‌های بزرگ و چندواحدی", "🤝 جذب شریک یا سرمایه‌گذار", "🌳 سرمایه‌گذاری در زمین و باغ"],
-    "construction": ["🧑‍💼 مالک ملک و متقاضی سازنده", "🏗 سازنده و متقاضی زمین یا ملک", "💰 سرمایه‌گذار متقاضی پروژه مشارکتی", "🤝 یافتن شریک برای پروژه ساختمانی", "🏚 مشارکت روی ملک کلنگی", "🏬 مشارکت در ساخت تجاری و اداری", "🏭 مشارکت در ساخت صنعتی", "🏙 تجمیع پلاک و پروژه چندواحدی", "📋 معرفی پروژه‌های آماده مشارکت", "🧭 مشاوره و ارزیابی مشارکت"],
+    "buy": ["🏢 آپارتمان مسکونی", "🏡 ویلا و خانه مستقل", "🌳 زمین و باغ", "🏬 مغازه و ملک تجاری", "🏢 دفتر کار و ملک اداری", "🏭 ملک صنعتی، کارخانه و کارگاه", "🏗 سوله و انبار", "🏚 ملک کلنگی", "🏗 پیش‌خرید و پروژه در حال ساخت", "💎 املاک لوکس و گران‌قیمت", "📈 ملک مناسب سرمایه‌گذاری", "🏙 مستغلات و مجتمع تجاری", "📦 مشاهده همه آگهی‌های خرید"],
+    "rent": ["🏢 آپارتمان مسکونی", "🏡 ویلا و خانه مستقل", "🏬 مغازه و ملک تجاری", "🏢 دفتر کار و ملک اداری", "🏭 ملک صنعتی، کارخانه و کارگاه", "🏗 سوله و انبار", "💎 املاک لوکس"],
+    "buy_req": ["🏢 آپارتمان مسکونی", "🏡 ویلا و خانه مستقل", "🌳 زمین و باغ", "🏬 مغازه و ملک تجاری", "🏢 دفتر کار و ملک اداری", "🏭 ملک صنعتی، کارخانه و کارگاه", "🏗 سوله و انبار", "🏚 ملک کلنگی", "🏗 پیش‌خرید و پروژه در حال ساخت", "💎 ملک لوکس و گران‌قیمت"],
+    "rent_req": ["🏢 آپارتمان مسکونی", "🏡 ویلا و خانه مستقل", "🏬 مغازه و ملک تجاری", "🏢 دفتر کار و ملک اداری", "🏭 ملک صنعتی، کارخانه و کارگاه", "🏗 سوله و انبار", "💎 ملک لوکس"],
+    "investment": ["🏠 خرید ملک برای اجاره‌دادن", "📈 خرید برای افزایش قیمت و فروش", "🏬 سرمایه‌گذاری در املاک تجاری", "💎 املاک لوکس و خاص", "🏗 پروژه‌های ساختمانی و در حال ساخت", "🏙 پروژه‌ها و سرمایه‌گذاری‌های بزرگ", "🤝 جذب شریک یا سرمایه‌گذار برای پروژه", "🌳 سرمایه‌گذاری در زمین و باغ"],
+    "construction": ["🧑‍💼 مالک زمین/ملک دنبال سازنده", "🏗 سازنده دنبال زمین/ملک", "💰 سرمایه‌گذار دنبال پروژه مشارکتی", "🤝 دنبال شریک برای پروژه ساختمانی", "📋 معرفی پروژه‌های آماده مشارکت", "🧭 مشاوره و ارزیابی شرایط مشارکت", "🏙 پروژه‌های بزرگ و چندواحدی"],
     "favorites": ["⭐ مشاهده آگهی‌های ذخیره‌شده", "🔔 آگهی‌های جدید مشابه موارد ذخیره‌شده", "⚖️ مقایسه ملک‌های ذخیره‌شده", "🗑 حذف آگهی از ذخیره‌شده‌ها", "💲 پیگیری تغییر قیمت"],
 }
+
 MAIN_ACTIONS = {
     "🏠 خرید ملک":"buy", "🔑 اجاره ملک":"rent", "📝 درخواست خرید":"buy_req", "📨 درخواست اجاره":"rent_req",
     "💼 سرمایه‌گذاری ملکی":"investment", "🏗 مشارکت در ساخت":"construction", "⭐ علاقه‌مندی‌ها":"favorites",
@@ -334,11 +335,21 @@ async def localized(text, language):
 
 
 async def translate_submission_data(data, source, target):
+    # Keep original values in the database; translate only the rendered copy.
     result = dict(data)
-    for key in ("city", "property_type", "details", "rental_category", "document_type", "office_property_type", "elevator", "lobby"):
-        value = str(data.get(key, "")).strip()
+    if source == target:
+        return result
+    protected = {"contact", "contact_user_id", "telegram_user_id", "telegram_username", "exact_address", "images", "videos", "map_location", "source_language", "menu_mode"}
+    for key, raw in data.items():
+        if key in protected or raw is None or not isinstance(raw, str):
+            continue
+        value = raw.strip()
         if value:
-            result[key] = await translate(value, target, source)
+            try:
+                result[key] = await translate(value, target, source)
+            except Exception:
+                logger.exception("Translation failed for field %s", key)
+                result[key] = raw
     return result
 
 
@@ -491,6 +502,10 @@ async def choose_language(update, context, language):
                 await ask_apartment_step(update.message, context)
         else:
             await ask_office_step(update.message, context)
+        return
+    if active_form and active_form.get("mode") == "complete":
+        await update.message.reply_text(WELCOME[language], reply_markup=main_keyboard(language))
+        await ask_complete_form_step(update.message, context)
         return
     if active_form:
         await update.message.reply_text(WELCOME[language], reply_markup=main_keyboard(language))
@@ -1023,23 +1038,136 @@ async def finish_office_rent(update, context):
     await send_admin_review(context, submission_id)
 
 
-async def begin_form(update, context, kind, language):
+# Field catalog for category-aware forms. Field order is deliberate; every form ends with
+# a contact-sharing step and an explicit "finish and send to reviewer" action.
+COMMON_LISTING_FIELDS = [
+    ("title", "عنوان آگهی"), ("description", "توضیحات کامل ملک"),
+    ("province", "استان"), ("city", "شهر"), ("district", "منطقه"),
+    ("exact_address", "نشانی دقیق ملک (فقط برای مدیریت؛ در آگهی عمومی نمایش داده نمی‌شود)"),
+    ("map_location", "موقعیت ملک روی نقشه یا مختصات/لینک نقشه"),
+    ("total_price", "قیمت کل (تومان)"), ("price_per_meter", "قیمت هر متر (در صورت اطلاع)"),
+    ("negotiable", "قیمت قابل مذاکره است؟ (بله/خیر)"), ("payment_terms", "شرایط پرداخت"),
+    ("delivery_status", "وضعیت تخلیه و تحویل"), ("viewing_time", "زمان مناسب بازدید"),
+]
+ROOM_TYPES = {"🏢 آپارتمان مسکونی", "🏡 ویلا و خانه مستقل", "🏢 دفتر کار و ملک اداری"}
+BATHROOM_TYPES = {"🏡 ویلا و خانه مستقل", "🏭 ملک صنعتی، کارخانه و کارگاه", "🏬 مغازه و ملک تجاری"}
+PARKING_TYPES = {"🏢 آپارتمان مسکونی", "🏡 ویلا و خانه مستقل", "🏢 دفتر کار و ملک اداری", "🏬 مغازه و ملک تجاری", "🏭 ملک صنعتی، کارخانه و کارگاه", "🏚 ملک کلنگی"}
+TITLE_TYPES = {"🏢 آپارتمان مسکونی", "🏡 ویلا و خانه مستقل", "🏢 دفتر کار و ملک اداری", "🏬 مغازه و ملک تجاری", "🏭 ملک صنعتی، کارخانه و کارگاه", "🌳 زمین و باغ", "🏚 ملک کلنگی"}
+RESIDENTIAL_AMENITIES = ["آسانسور", "انباری", "بالکن یا تراس", "استخر", "سونا و جکوزی", "حیاط و فضای سبز", "سیستم گرمایش و سرمایش", "نگهبانی و دوربین مداربسته", "روف‌گاردن", "لابی و لابی‌من"]
+OFFICE_AMENITIES = ["برِ خیابان اصلی", "ویترین یا نمای تجاری", "تعداد طبقات", "تعداد واحدها", "تعداد اتاق و فضای تفکیک‌شده", "سرویس بهداشتی", "آشپزخانه یا آبدارخانه", "آسانسور", "پارکینگ", "انبار یا زیرزمین", "برق سه‌فاز", "سیستم تهویه مطبوع", "نوع فعالیت مناسب", "سند اداری یا تجاری", "امکان نصب تابلو", "سایر امکانات"]
+INDUSTRIAL_FIELDS = ["نوع فعالیت صنعتی مجاز", "برق سه‌فاز و ظرفیت برق", "ظرفیت گاز صنعتی", "آب و فاضلاب صنعتی", "ارتفاع سقف سوله", "دهانه و عرض سالن", "جرثقیل سقفی و ظرفیت آن", "تعداد دروازه‌های ورود و خروج", "دسترسی کامیون و تریلی", "بارانداز و محل بارگیری", "دفتر اداری داخل مجموعه", "انبار و سالن تولید", "سیستم تهویه و اگزاست", "سیستم اطفای حریق", "مجوزهای صنعتی و بهره‌برداری", "پروانه بهره‌برداری", "وضعیت سند و کاربری صنعتی", "امکانات دیگر"]
+LAND_FIELDS = ["نوع زمین: مسکونی، تجاری، صنعتی یا کشاورزی", "طول بر و عمق زمین", "عرض گذر و دسترسی خیابان", "تعداد برِ زمین", "وضعیت آب، برق، گاز و تلفن", "چاه آب و مجوز آن", "سهمیه یا حق‌آبه", "نوع درختان و تعداد آن‌ها", "سن درختان", "وضعیت سند و مالکیت", "کاربری و مجوز ساخت", "تراکم و سطح اشغال مجاز", "تعداد طبقات مجاز", "امکان تفکیک زمین", "شمالی یا جنوبی بودن زمین", "وضعیت دیوارکشی و محصور بودن", "دسترسی ماشین‌آلات و خودرو", "شیب زمین", "سایر مشخصات"]
+OLD_BUILDING_FIELDS = ["متراژ بنای موجود", "سن بنا", "تعداد طبقات فعلی", "تعداد واحدهای موجود", "تعداد برِ زمین", "عرض گذر", "وضعیت تخریب بنا", "تراکم و تعداد طبقات مجاز ساخت", "امکان ساخت‌وساز مجدد", "وجود مستأجر", "شرایط و مهلت تخلیه", "کاربری فعلی", "سطح اشغال مجاز", "وضعیت انشعابات آب و برق و گاز", "وضعیت تخلیه ملک", "قیمت هر متر زمین", "سایر مشخصات"]
+VILLA_FIELDS = ["نوع ویلا: مستقل، شهرکی یا باغ‌ویلا", "مساحت محوطه و حیاط", "مساحت زیربنای هر طبقه", "تعداد طبقات", "استخر سرپوشیده یا روباز", "سونا خشک و بخار و جکوزی", "حوضچه آب سرد", "آلاچیق و باربیکیو", "فضای سبز و محوطه‌سازی", "موتورخانه و تجهیزات تأسیسات", "سیستم تصفیه استخر", "پارکینگ مسقف یا روباز", "آب، برق، گاز و انشعابات", "چاه آب و مجوز", "نگهبانی و امنیت شهرک", "سند زمین و بنا", "سیستم هوشمندسازی ساختمان", "ژنراتور برق اضطراری", "سایر امکانات"]
+CONSTRUCTION_FIELDS = ["نقش ثبت‌کننده: مالک، سازنده یا سرمایه‌گذار", "نوع ملک یا زمین موضوع مشارکت", "مساحت زمین", "متراژ بنای موجود", "عرض گذر و تعداد برِ زمین", "وضعیت سند و مالکیت", "کاربری و تراکم مجاز", "تعداد طبقات مجاز ساخت", "درصد سهم پیشنهادی مالک", "درصد سهم پیشنهادی سازنده", "میزان بلاعوض درخواستی یا پیشنهادی", "سابقه و نمونه پروژه‌های سازنده", "مجوزها و وضعیت شهرداری", "وضعیت تخلیه ملک", "شرایط اختصاصی توافق"]
+INVESTMENT_FIELDS = ["نوع سرمایه‌گذاری: خرید، ساخت، مشارکت یا تکمیل پروژه", "نوع ملک و موقعیت پروژه", "ارزش کل پروژه", "مبلغ سرمایه موردنیاز", "حداقل مبلغ ورود سرمایه‌گذار", "میزان سرمایه تأمین‌شده تاکنون", "درصد سهم یا بازده پیشنهادی", "مدت سرمایه‌گذاری", "وضعیت مجوزها", "وضعیت سند و مالکیت", "روش خروج و تسویه سرمایه‌گذار", "تضمین‌ها و وثایق", "سابقه مجری یا سازنده", "ریسک‌ها و تعهدات سرمایه‌گذاری", "شرایط اختصاصی پروژه", "هزینه‌های باقی‌مانده پروژه", "گزارش کارشناسی و ارزیابی ملک", "تعداد شرکای موردنیاز"]
+BUY_REQUEST_FIELDS = ["هدف خرید: سکونت، کسب‌وکار یا سرمایه‌گذاری", "خرید نقدی یا اقساطی", "میزان پیش‌پرداخت و شرایط اقساط", "آمادگی برای خرید فوری", "درخواست خرید با مشارکت یا معاوضه", "حداکثر قیمت هر متر", "امکان خرید ملک نیازمند بازسازی"]
+RENT_REQUEST_FIELDS = ["حداکثر مبلغ اجاره ماهانه", "حداقل و حداکثر مبلغ ودیعه", "امکان تبدیل ودیعه به اجاره", "تاریخ شروع اجاره", "نوع قرارداد: بلندمدت", "نیاز به ملک مبله یا غیرمبله", "امکان تمدید قرارداد", "مناسب بودن برای خانواده یا مجرد", "مناسب بودن برای حیوان خانگی", "آمادگی برای پرداخت ودیعه بیشتر جهت اجاره کمتر"]
+
+
+def build_form_fields(kind, category, menu_mode):
+    # Each item is (stable key, Persian prompt). Existing languages/channels remain unchanged.
+    is_listing = menu_mode in {"buy", "rent", "investment", "construction"}
+    fields = []
+    if menu_mode in {"buy", "rent"}:
+        fields.extend(COMMON_LISTING_FIELDS)
+        fields.append(("property_usage", "نوع کاربری ملک"))
+        if category in ROOM_TYPES: fields.append(("rooms", "تعداد اتاق/خواب"))
+        if category in BATHROOM_TYPES: fields.append(("bathrooms", "تعداد سرویس‌های بهداشتی"))
+        if category in PARKING_TYPES: fields.append(("parking", "تعداد جای پارک یا ظرفیت پارکینگ"))
+        if category in {"🏚 ملک کلنگی", "🌳 زمین و باغ", "🏭 ملک صنعتی، کارخانه و کارگاه", "🏗 سوله و انبار", "🏙 مستغلات و مجتمع تجاری", "🏡 ویلا و خانه مستقل"}:
+            fields.extend([("land_area", "مساحت زمین"), ("building_area", "مساحت زیربنا")])
+        if menu_mode == "buy" and category in TITLE_TYPES:
+            fields.extend([("document_status", "وضعیت سند و مالکیت"), ("ownership_status", "وضعیت مالکیت")])
+        if category == "🏡 ویلا و خانه مستقل": fields.extend([(f"villa_{i}", x) for i, x in enumerate(VILLA_FIELDS)])
+        elif category == "🌳 زمین و باغ": fields.extend([(f"land_{i}", x) for i, x in enumerate(LAND_FIELDS)])
+        elif category == "🏚 ملک کلنگی": fields.extend([(f"old_{i}", x) for i, x in enumerate(OLD_BUILDING_FIELDS)])
+        elif category in {"🏭 ملک صنعتی، کارخانه و کارگاه", "🏗 سوله و انبار"}: fields.extend([(f"industrial_{i}", x) for i, x in enumerate(INDUSTRIAL_FIELDS)])
+        elif category in {"🏢 دفتر کار و ملک اداری", "🏬 مغازه و ملک تجاری", "🏙 مستغلات و مجتمع تجاری"}:
+            fields.extend([(f"office_{i}", x) for i, x in enumerate(OFFICE_AMENITIES)])
+        elif category == "🏢 آپارتمان مسکونی": fields.extend([(f"amenity_{i}", x) for i, x in enumerate(RESIDENTIAL_AMENITIES)])
+    elif menu_mode == "buy_req":
+        fields = [("property_type", "نوع ملک موردنیاز"), ("province", "استان"), ("city", "شهر"), ("district", "مناطق موردنظر"), ("budget_min", "حداقل بودجه"), ("budget_max", "حداکثر بودجه"), ("area_min", "حداقل متراژ"), ("area_max", "حداکثر متراژ"), ("essential_amenities", "امکانات ضروری ملک"), ("transaction_timing", "زمان موردنظر برای معامله"), ("specific_conditions", "توضیحات و شرایط اختصاصی"), ("urgency", "میزان فوریت درخواست"), ("payment_terms", "شرایط پرداخت"), ("nearby_areas", "امکان دریافت پیشنهاد از مناطق نزدیک؟ (بله/خیر)")] + [(f"buyreq_{i}", x) for i, x in enumerate(BUY_REQUEST_FIELDS)]
+    elif menu_mode == "rent_req":
+        fields = [("property_type", "نوع ملک موردنیاز"), ("province", "استان"), ("city", "شهر"), ("district", "مناطق موردنظر"), ("budget_min", "حداقل بودجه"), ("budget_max", "حداکثر بودجه"), ("area_min", "حداقل متراژ"), ("area_max", "حداکثر متراژ"), ("essential_amenities", "امکانات ضروری ملک"), ("transaction_timing", "زمان موردنظر برای معامله"), ("specific_conditions", "توضیحات و شرایط اختصاصی"), ("urgency", "میزان فوریت درخواست"), ("payment_terms", "شرایط پرداخت"), ("nearby_areas", "امکان دریافت پیشنهاد از مناطق نزدیک؟ (بله/خیر)")] + [(f"rentreq_{i}", x) for i, x in enumerate(RENT_REQUEST_FIELDS)]
+    elif menu_mode == "investment":
+        fields = [("title", "عنوان فرصت سرمایه‌گذاری"), ("province", "استان"), ("city", "شهر و موقعیت پروژه"), ("exact_address", "نشانی دقیق محرمانه برای مدیریت"), ("description", "شرح پروژه")] + [(f"investment_{i}", x) for i, x in enumerate(INVESTMENT_FIELDS)]
+    elif menu_mode == "construction":
+        fields = [("title", "عنوان پروژه مشارکت"), ("province", "استان"), ("city", "شهر و منطقه"), ("exact_address", "نشانی دقیق محرمانه برای مدیریت"), ("description", "شرح پروژه")] + [(f"construction_{i}", x) for i, x in enumerate(CONSTRUCTION_FIELDS)]
+    else:
+        fields = [("title", "عنوان"), ("description", "توضیحات"), ("province", "استان"), ("city", "شهر و منطقه")]
+    # Common request metadata and media are appended after category-specific fields.
+    if is_listing:
+        fields.extend([("images", "تصاویر ملک (حداکثر ۵ تصویر؛ هر تصویر را جداگانه ارسال کنید، سپس دکمه پایان تصاویر را بزنید)"), ("video_note", "ویدئو یا لینک ویدئوی ملک (در صورت نداشتن بنویسید: ندارد)")])
+    fields.extend([("registrant_type", "نوع حساب ثبت‌کننده: مالک، مشاور یا آژانس"), ("contact", "شماره تماس را با دکمه اشتراک‌گذاری شماره تلگرام ارسال کنید")])
+    return fields
+
+async def begin_form(update, context, kind, language, category=None, menu_mode=None):
     context.user_data["awaiting_support"] = False
     context.user_data.pop("rent_menu", None)
-    menu_category_flow = bool(context.user_data.pop("menu_form_category", False))
-    if kind == "rent_ad" and not menu_category_flow:
-        context.user_data.pop("form", None)
-        context.user_data["rent_menu"] = True
-        await update.message.reply_text(
-            RENT_CATEGORY_PROMPTS.get(language, RENT_CATEGORY_PROMPTS["fa"]),
-            reply_markup=submenu_keyboard(rent_category_options(language), language=language),
-        )
+    category = category or context.user_data.pop("selected_category", "")
+    menu_mode = menu_mode or context.user_data.pop("selected_menu_mode", "")
+    if not menu_mode:
+        menu_mode = {"sell_ad":"buy", "rent_ad":"rent", "buy_req":"buy_req", "rent_req":"rent_req", "builder":"investment"}.get(kind, "buy")
+    form_kind = {"buy":"sell_ad", "rent":"rent_ad", "buy_req":"buy_req", "rent_req":"rent_req", "investment":"builder", "construction":"builder"}.get(menu_mode, kind)
+    fields = build_form_fields(form_kind, category, menu_mode)
+    context.user_data["form"] = {"kind": form_kind, "language": language, "step": 0, "data": {"property_type": category, "menu_mode": menu_mode, "source_language": language}, "mode": "complete", "fields": fields, "field_index": 0, "images": [], "awaiting_images": False}
+    await ask_complete_form_step(update.message, context)
+
+async def ask_complete_form_step(message, context):
+    form = context.user_data.get("form")
+    if not form: return
+    fields = form["fields"]
+    idx = form["step"]
+    lang = form["language"]
+    if idx >= len(fields):
+        await message.reply_text(await localized("فرم تکمیل شده است. برای ارسال، دکمه «پایان و ارسال به ناظر» را بزنید.", lang), reply_markup=form_keyboard([["✅ پایان و ارسال به ناظر"], ["❌ لغو ثبت"]], lang))
         return
-    if kind == "rent_office_ad":
-        await begin_office_rent_form(update, context, language)
+    key, prompt = fields[idx]
+    if key == "images":
+        form["awaiting_images"] = True
+        rows = [["📷 پایان تصاویر"], ["❌ لغو ثبت"]]
+        await message.reply_text("📝 " + await localized(prompt, lang) + f"\nتعداد تصاویر ثبت‌شده: {len(form.get('images', []))}/5", reply_markup=form_keyboard(rows, lang))
         return
-    context.user_data["form"] = {"kind": kind, "language": language, "step": 0, "data": {}, "mode": "standard", "fields": ["city", "area", "rooms", "price", "details", "contact"]}
-    await update.message.reply_text(f"📝 {FIELD_LABELS[language]['city']}:", reply_markup=form_keyboard([[await localized("❌ لغو ثبت", language)]], language))
+    if key == "video_note":
+        form["awaiting_video"] = True
+        await message.reply_text("ویدئوی ملک را ارسال کنید؛ اگر ویدئویی ندارید، «ندارد» را بنویسید. پس از ارسال، «پایان ویدئوها» را بزنید.", reply_markup=form_keyboard([["🎬 پایان ویدئوها"], ["❌ لغو ثبت"]], lang))
+        return
+    if key == "contact":
+        contact_button = KeyboardButton(await localized("📱 اشتراک‌گذاری شماره تماس", lang), request_contact=True)
+        rows = [[contact_button], ["❌ لغو ثبت"]]
+        await message.reply_text("📝 " + await localized(prompt, lang), reply_markup=ReplyKeyboardMarkup(with_language_button(rows, lang), resize_keyboard=True, is_persistent=True))
+        return
+    rows = [["❌ لغو ثبت"]]
+    if idx == len(fields)-1: rows.insert(0, ["✅ پایان و ارسال به ناظر"])
+    await message.reply_text(f"📝 {idx+1}/{len(fields)} — " + await localized(prompt, lang), reply_markup=form_keyboard(rows, lang))
+
+async def submit_complete_form(update, context):
+    form = context.user_data.get("form")
+    if not form: return False
+    data = form["data"]
+    images = form.get("images", [])
+    if form.get("awaiting_images"):
+        if not images:
+            await update.message.reply_text("برای آگهی حداقل یک تصویر الزامی است.")
+            return True
+        data["images"] = images
+        form["awaiting_images"] = False
+    if "contact" in form.get("fields", [])[form["step"]:] and not data.get("contact_user_id"):
+        await update.message.reply_text("ابتدا شماره تماس را با دکمه اشتراک‌گذاری شماره تلگرام ارسال کنید.")
+        return True
+    if form.get("mode") != "complete": return False
+    submission_id = create_submission(update.effective_user.id, form["language"], form["kind"], data)
+    context.user_data.pop("form", None)
+    messages = {
+        "fa": f"✅ فرم شما با کد پیگیری {submission_id} برای بررسی و تأیید به ناظر ارسال شد. تا تأیید مدیریت، منتشر نمی‌شود.",
+        "en": f"✅ Form #{submission_id} was sent to the reviewer. It will not be published before admin approval.",
+        "az": f"✅ Forma #{submission_id} yoxlanış üçün göndərildi.", "tr": f"✅ Form #{submission_id} incelemeye gönderildi.",
+        "ar": f"✅ تم إرسال النموذج رقم {submission_id} للمراجعة.", "zh": f"✅ 表单 #{submission_id} 已提交审核。", "ru": f"✅ Форма #{submission_id} отправлена на проверку."
+    }
+    await update.message.reply_text(messages.get(form["language"], messages["fa"]), reply_markup=main_keyboard(form["language"]))
+    await send_admin_review(context, submission_id)
+    return True
 
 
 # ==================== ADMIN REVIEW ====================
@@ -1103,10 +1231,36 @@ async def render_submission(data, kind, language, source_language, admin_view=Fa
         for index, file_id in enumerate(data.get("images", []), start=1):
             lines.append(f"<b>شناسه تصویر {index}:</b> <code>{escape(file_id)}</code>")
     else:
-        for field in FIELDS:
-            value = str(translated.get(field, "")).strip()
-            if value:
-                lines.append(f"<b>{escape(FIELD_LABELS[language][field])}:</b> {escape(value)}")
+        prompt_by_key = {}
+        for menu_mode in ("buy", "rent", "buy_req", "rent_req", "investment", "construction"):
+            for category in ("", "🏢 آپارتمان مسکونی", "🏡 ویلا و خانه مستقل", "🌳 زمین و باغ", "🏬 مغازه و ملک تجاری", "🏢 دفتر کار و ملک اداری", "🏭 ملک صنعتی، کارخانه و کارگاه", "🏗 سوله و انبار", "🏚 ملک کلنگی", "🏙 مستغلات و مجتمع تجاری"):
+                try:
+                    prompt_by_key.update({k: label for k, label in build_form_fields(kind, category, menu_mode)})
+                except Exception:
+                    pass
+        private_keys = {"exact_address", "contact", "contact_user_id", "telegram_user_id", "telegram_username", "images", "videos", "map_location"}
+        metadata_keys = {"source_language", "menu_mode", "contact_user_id", "telegram_user_id", "telegram_username"}
+        for key, raw_value in translated.items():
+            if key in metadata_keys:
+                continue
+            if key in {"property_type", "menu_mode", "source_language", "registrant_type"} and not raw_value:
+                continue
+            if not admin_view and key in private_keys:
+                continue
+            if key in {"images", "videos"}:
+                continue
+            value = str(raw_value).strip()
+            if not value:
+                continue
+            label = prompt_by_key.get(key, key.replace("_", " "))
+            if key == "property_type": label = "نوع ملک"
+            if key == "menu_mode": label = "نوع فرایند"
+            if key == "contact" and admin_view: label = "شماره تماس (محرمانه)"
+            if key == "exact_address" and admin_view: label = "نشانی دقیق (محرمانه)"
+            lines.append(f"<b>{escape(str(label))}:</b> {escape(value)}")
+        lines.append(f"<b>تعداد تصاویر:</b> {len(data.get('images', []))} (حداکثر ۵)")
+        if data.get("videos"):
+            lines.append(f"<b>تعداد ویدئوها:</b> {len(data.get('videos', []))}")
     return "\n".join(lines)
 
 
@@ -1142,15 +1296,22 @@ async def send_admin_review(context, submission_id):
                 logger.exception("Could not report admin review failure")
 
     # ارسال تصاویر واقعی ملک برای مدیر، علاوه بر متن بررسی
-    if submission["kind"] in {"rent_office_ad", "rent_apartment_ad"}:
-        image_ids = data.get("images", [])
-        if image_ids:
-            try:
+    image_ids = data.get("images", [])
+    if image_ids:
+        try:
+            if len(image_ids) == 1:
+                await context.bot.send_photo(chat_id=ADMIN_ID, photo=image_ids[0], caption=f"تصویر پرونده #{submission_id}")
+            else:
                 from telegram import InputMediaPhoto
-                media = [InputMediaPhoto(media=file_id) for file_id in image_ids[:10]]
+                media = [InputMediaPhoto(media=file_id) for file_id in image_ids[:5]]
                 await context.bot.send_media_group(chat_id=ADMIN_ID, media=media)
-            except Exception:
-                logger.exception("Could not send office listing photos to admin")
+        except Exception:
+            logger.exception("Could not send submission photos to admin")
+    for video_id in data.get("videos", []):
+        try:
+            await context.bot.send_video(chat_id=ADMIN_ID, video=video_id, caption=f"ویدئوی پرونده #{submission_id}")
+        except Exception:
+            logger.exception("Could not send submission video to admin")
 
 
 # ==================== CHANNEL PUBLICATION ====================
@@ -1172,12 +1333,16 @@ async def publish_submission(context, submission, language):
     message = await context.bot.send_message(
         chat_id=channel, text=message_text, parse_mode="HTML", disable_web_page_preview=True,
     )
-    if submission["kind"] in {"rent_office_ad", "rent_apartment_ad"}:
-        image_ids = data.get("images", [])
-        if image_ids:
+    image_ids = data.get("images", [])
+    if image_ids:
+        if len(image_ids) == 1:
+            await context.bot.send_photo(chat_id=channel, photo=image_ids[0], caption="تصاویر آگهی")
+        else:
             from telegram import InputMediaPhoto
-            media = [InputMediaPhoto(media=file_id) for file_id in image_ids[:10]]
+            media = [InputMediaPhoto(media=file_id) for file_id in image_ids[:5]]
             await context.bot.send_media_group(chat_id=channel, media=media)
+    for video_id in data.get("videos", []):
+        await context.bot.send_video(chat_id=channel, video=video_id, caption=message_text[:900])
     record_publication(submission_id, language, channel, "success", message_id=message.message_id)
     return True, "منتشر شد."
 
@@ -1354,14 +1519,8 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if not update.message.text:
-        # Keep existing media/contact handling for the office-rent form.
-        if context.user_data.get("form", {}).get("mode") in {"office_rent", "apartment_rent"}:
-            if update.message.contact or update.message.photo:
-                if context.user_data.get("form", {}).get("mode") == "apartment_rent":
-                    if await process_apartment_rent(update, context):
-                        return
-                elif await process_office_rent(update, context):
-                    return
+        if context.user_data.get("form", {}).get("mode") == "complete":
+            if await process_standard_form(update, context): return
         return
 
     text = update.message.text.strip()
@@ -1379,19 +1538,17 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await choose_language(update, context, language)
         return
 
-    # Continue the existing office-rent flow for ordinary text messages.
-    if context.user_data.get("form", {}).get("mode") == "apartment_rent":
-        if await process_apartment_rent(update, context):
-            return
-    if context.user_data.get("form", {}).get("mode") == "office_rent":
-        if await process_office_rent(update, context):
-            return
+    # Complete unified forms are handled after language selection below.
 
     saved_user = get_user(user.id)
     if not saved_user:
         await update.message.reply_text(language_prompt(), reply_markup=language_keyboard())
         return
     user_language = saved_user["language"]
+
+    if context.user_data.get("form", {}).get("mode") == "complete":
+        if await process_standard_form(update, context):
+            return
 
     if text in BACK_BUTTONS:
         context.user_data.pop("form", None)
@@ -1523,22 +1680,11 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if menu_mode == "favorites":
                 await update.message.reply_text(await localized("امکانات ذخیره‌سازی هنوز در این نسخه فعال نیستند.", user_language), reply_markup=main_keyboard(user_language))
                 return
-            # Keep the established specialized apartment-rent workflow; all other
-            # categories use the common complete listing/request form.
-            if menu_mode == "rent" and "آپارتمان" in selected:
-                await begin_apartment_rent_form(update, context, user_language)
-                return
-            if menu_mode == "rent" and ("اداری" in selected or "دفتر کار" in selected):
-                await begin_office_rent_form(update, context, user_language)
+            if menu_mode == "favorites":
+                await update.message.reply_text(await localized("بخش علاقه‌مندی‌ها در حال آماده‌سازی است.", user_language), reply_markup=main_keyboard(user_language))
                 return
             kind = KIND_FOR_MENU.get(menu_mode, "builder")
-            if menu_mode == "rent":
-                context.user_data["menu_form_category"] = True
-            await begin_form(update, context, kind, user_language)
-            active = context.user_data.get("form")
-            if active:
-                active["data"]["property_type"] = selected
-                active["data"]["menu_category"] = menu_mode
+            await begin_form(update, context, kind, user_language, category=selected, menu_mode=menu_mode)
             return
         await update.message.reply_text(await localized("لطفاً یکی از گزینه‌های همین فهرست را انتخاب کنید یا به منوی اصلی برگردید.", user_language), reply_markup=submenu_keyboard([await localized(x, user_language) for x in options], language=user_language))
         return
@@ -1556,60 +1702,79 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def process_standard_form(update, context):
     form = context.user_data.get("form")
-    if not form or form.get("mode") == "office_rent":
+    if not form or form.get("mode") != "complete" or not update.message:
         return False
-    if not update.message or not update.message.text:
-        return False
-    text = update.message.text.strip()
     language = form["language"]
-
-    if text in LANGUAGE_CHANGE_BUTTONS or normalize_button_text(text.replace("🌐 ", "")) in {normalize_button_text(v.replace("🌐 ", "")) for v in LANGUAGE_BUTTONS.values()}:
-        await update.message.reply_text(language_prompt(), reply_markup=language_keyboard())
+    text = (update.message.text or "").strip()
+    if update.message.contact:
+        contact = update.message.contact
+        if not update.effective_user or not contact.user_id or contact.user_id != update.effective_user.id:
+            await update.message.reply_text("لطفاً شماره تماس متعلق به حساب تلگرام خودتان را با دکمه اشتراک‌گذاری ارسال کنید.")
+            return True
+        form["data"]["contact"] = contact.phone_number
+        form["data"]["contact_user_id"] = contact.user_id
+        form["step"] += 1
+        await update.message.reply_text("شماره تماس ثبت شد. برای ارسال نهایی، دکمه «پایان و ارسال به ناظر» را بزنید.", reply_markup=form_keyboard([["✅ پایان و ارسال به ناظر"], ["❌ لغو ثبت"]], language))
         return True
-    if text in MY_LISTINGS_BUTTONS or text in MY_REQUESTS_BUTTONS:
+    if update.message.photo and form.get("awaiting_images"):
+        if len(form["images"]) >= 5:
+            await update.message.reply_text("حداکثر ۵ تصویر قابل ثبت است. برای ادامه دکمه «📷 پایان تصاویر» را بزنید.")
+            return True
+        form["images"].append(update.message.photo[-1].file_id)
+        await update.message.reply_text(f"تصویر {len(form['images'])} از ۵ ثبت شد.", reply_markup=form_keyboard([["📷 پایان تصاویر"], ["❌ لغو ثبت"]], language))
+        return True
+    if update.message.video and form.get("awaiting_video"):
+        form.setdefault("videos", []).append(update.message.video.file_id)
+        form["data"]["videos"] = form["videos"]
+        await update.message.reply_text(f"ویدئو ثبت شد ({len(form['videos'])}). برای پایان، دکمه «🎬 پایان ویدئوها» را بزنید.", reply_markup=form_keyboard([["🎬 پایان ویدئوها"], ["❌ لغو ثبت"]], language))
+        return True
+    if not update.message.text:
         return False
-    if text in SUPPORT_BUTTONS:
-        context.user_data.pop("form", None)
-        context.user_data["awaiting_support"] = True
-        await update.message.reply_text(await localized("پیام خود را برای پشتیبانی ارسال کنید:", language), reply_markup=main_keyboard(language))
-        return True
-    new_kind = detect_kind(text)
-    if new_kind:
-        await begin_form(update, context, new_kind, language)
-        return True
-
     if normalize_button_text(text) in {normalize_button_text("❌ لغو ثبت"), normalize_button_text(await localized("❌ لغو ثبت", language))}:
         context.user_data.pop("form", None)
-        await update.message.reply_text(await localized("ثبت لغو شد.", language), reply_markup=main_keyboard(language))
+        await update.message.reply_text("ثبت لغو شد.", reply_markup=main_keyboard(language))
         return True
-
-    fields = form.get("fields", FIELDS)
-    index = form["step"]
-    if index < 0 or index >= len(fields):
-        context.user_data.pop("form", None)
-        await update.message.reply_text(await localized("فرم قبلی دچار اختلال شد. لطفاً دوباره شروع کنید.", language), reply_markup=main_keyboard(language))
+    if normalize_button_text(text) == normalize_button_text("📷 پایان تصاویر"):
+        if not form.get("images"):
+            await update.message.reply_text("برای آگهی حداقل یک تصویر الزامی است.")
+            return True
+        form["data"]["images"] = form["images"][:5]
+        form["awaiting_images"] = False
+        form["step"] += 1
+        await ask_complete_form_step(update.message, context)
         return True
-    field = fields[index]
-    form["data"][field] = text
+    if normalize_button_text(text) == normalize_button_text("🎬 پایان ویدئوها"):
+        form["data"]["videos"] = form.get("videos", [])
+        form["awaiting_video"] = False
+        form["step"] += 1
+        await ask_complete_form_step(update.message, context)
+        return True
+    if normalize_button_text(text) == normalize_button_text("✅ پایان و ارسال به ناظر"):
+        return await submit_complete_form(update, context)
+    fields = form["fields"]
+    idx = form["step"]
+    if idx >= len(fields):
+        await update.message.reply_text("برای ارسال نهایی دکمه «پایان و ارسال به ناظر» را بزنید.", reply_markup=form_keyboard([["✅ پایان و ارسال به ناظر"]], language))
+        return True
+    key, prompt = fields[idx]
+    if key == "images":
+        await update.message.reply_text("لطفاً تصاویر ملک را ارسال کنید؛ حداقل یک و حداکثر ۵ تصویر. سپس «📷 پایان تصاویر» را بزنید.")
+        return True
+    if key == "contact":
+        await update.message.reply_text("شماره تماس باید با دکمه اشتراک‌گذاری شماره تلگرام ارسال شود؛ واردکردن دستی پذیرفته نیست.")
+        return True
+    if key == "video_note":
+        if text.casefold() in {"ندارد", "no", "none", "нет", "لا يوجد", "没有"}:
+            form["data"]["videos"] = []
+        else:
+            form["data"]["video_link"] = text
+        form["awaiting_video"] = False
+        form["step"] += 1
+        await ask_complete_form_step(update.message, context)
+        return True
+    form["data"][key] = text
     form["step"] += 1
-    if form["step"] < len(fields):
-        next_field = fields[form["step"]]
-        await update.message.reply_text(f"➡️ {FIELD_LABELS[language][next_field]}:", reply_markup=main_keyboard(language))
-        return True
-
-    submission_id = create_submission(update.effective_user.id, language, form["kind"], form["data"])
-    context.user_data.pop("form", None)
-    confirmations = {
-        "fa": f"✅ اطلاعات شما با کد پیگیری {submission_id} ثبت شد و برای بررسی مدیر ارسال می‌شود.",
-        "en": f"✅ Your submission #{submission_id} has been received and sent for review.",
-        "az": f"✅ Məlumatınız #{submission_id} nömrəsi ilə qəbul edildi və yoxlanış üçün göndərildi.",
-        "tr": f"✅ Bilgileriniz #{submission_id} numarasıyla alındı ve inceleme için gönderildi.",
-        "ar": f"✅ تم استلام معلوماتك برقم {submission_id} وإرسالها للمراجعة.",
-        "zh": f"✅ 您的信息已登记，编号为 #{submission_id}，并已提交管理员审核。",
-        "ru": f"✅ Ваша заявка #{submission_id} зарегистрирована и отправлена администратору на проверку.",
-    }
-    await update.message.reply_text(confirmations[language], reply_markup=main_keyboard(language))
-    await send_admin_review(context, submission_id)
+    await ask_complete_form_step(update.message, context)
     return True
 
 
