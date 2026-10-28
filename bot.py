@@ -1316,6 +1316,38 @@ async def send_admin_review(context, submission_id):
 
 # ==================== CHANNEL PUBLICATION ====================
 
+def sanitize_publication_data(raw_data):
+    """Return a publication-safe copy: never expose contact identifiers or exact address."""
+    data = json.loads(json.dumps(raw_data, ensure_ascii=False))
+    private_keys = {
+        "contact", "phone", "phone_number", "mobile", "contact_user_id",
+        "telegram_user_id", "telegram_username", "username", "user_id",
+        "exact_address", "address", "alley", "building_number", "unit_number",
+        "plaque", "building_plaque", "private_address", "contact_info",
+    }
+    # Preserve only broad location fields (city/area and street-level partial location).
+    for key in list(data):
+        if key.lower() in private_keys:
+            data.pop(key, None)
+
+    # Strip phone numbers and Telegram handles that may have been typed into free text.
+    phone_pattern = re.compile(r"(?<!\w)(?:\+?\d[\d\s().-]{7,}\d)(?!\w)")
+    handle_pattern = re.compile(r"(?<!\w)@[A-Za-z0-9_]{4,}")
+    free_text_keys = {"title", "description", "details", "additional_details", "notes", "conditions", "special_conditions", "payment_terms", "usage_type"}
+    def clean(value, parent_key=""):
+        if isinstance(value, str):
+            if parent_key.lower() in free_text_keys:
+                value = phone_pattern.sub("[اطلاعات تماس حذف شد]", value)
+                value = handle_pattern.sub("[شناسه تماس حذف شد]", value)
+            return value
+        if isinstance(value, list):
+            return [clean(item, parent_key) for item in value]
+        if isinstance(value, dict):
+            return {key: clean(item, key) for key, item in value.items() if key.lower() not in private_keys}
+        return value
+    return clean(data)
+
+
 async def publish_submission(context, submission, language):
     submission_id = submission["id"]
     channel = CHANNELS[language]
@@ -1326,7 +1358,8 @@ async def publish_submission(context, submission, language):
         ).fetchone()
     if previous and previous["status"] == "success":
         return True, "قبلاً منتشر شده است."
-    data = json.loads(submission["data"])
+    # Public channels receive only sanitized data; the original submission remains unchanged in DB.
+    data = sanitize_publication_data(json.loads(submission["data"]))
     message_text = await render_submission(data, submission["kind"], language, submission["language"])
     if submission["kind"] == "rent_apartment_ad":
         message_text = message_text.replace("<b>شناسه آگهی:</b> ", f"<b>شناسه آگهی:</b> {submission_id} ")
@@ -1349,7 +1382,7 @@ async def publish_submission(context, submission, language):
 
 async def show_publication_languages(query, context, submission_id):
     selections = context.user_data.setdefault("publication_languages", {})
-    selections.setdefault(submission_id, ["fa"])
+    selections.setdefault(submission_id, [])
     selected = selections[submission_id]
     keyboard = []
     for language, label in LANG_NAMES.items():
@@ -1360,7 +1393,7 @@ async def show_publication_languages(query, context, submission_id):
         InlineKeyboardButton("لغو", callback_data=f"pubcancel:{submission_id}"),
     ])
     await query.edit_message_text(
-        f"🌐 زبان‌های انتشار ثبت #{submission_id} را انتخاب کنید.\nمی‌توانید چند زبان را هم‌زمان انتخاب کنید.",
+        f"🌐 زبان یا زبان‌های انتشار ثبت #{submission_id} را انتخاب کنید.\n\nاطلاعات تماس، شناسه تلگرام و نشانی دقیق از کانال حذف می‌شود. شهر، منطقه و بخش غیرحساس نشانی می‌تواند نمایش داده شود.\n\nپس از انتخاب حداقل یک زبان، دکمه «تأیید و انتشار» را بزنید.",
         reply_markup=InlineKeyboardMarkup(keyboard),
     )
 
@@ -1409,7 +1442,7 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.answer("زبان انتخاب‌شده معتبر نیست.", show_alert=True)
             return
         selections = context.user_data.setdefault("publication_languages", {})
-        selected = selections.setdefault(submission_id, ["fa"])
+        selected = selections.setdefault(submission_id, [])
         if language in selected:
             selected.remove(language)
         else:
@@ -1430,7 +1463,7 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text("❌ ثبت موردنظر پیدا نشد.")
             return
         selections = context.user_data.setdefault("publication_languages", {})
-        languages = list(selections.get(submission_id, ["fa"]))
+        languages = list(selections.get(submission_id, []))
         if not languages:
             await query.answer("حداقل یک زبان را انتخاب کنید.", show_alert=True)
             return
