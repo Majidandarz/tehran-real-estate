@@ -4,8 +4,6 @@ import sqlite3
 import logging
 import asyncio
 import re
-from datetime import datetime
-from zoneinfo import ZoneInfo
 from threading import Thread
 from html import escape
 
@@ -136,56 +134,31 @@ WELCOME = {
 }
 
 MENU = {
-    "fa": [
-        ["🏠 ثبت آگهی فروش", "🔑 ثبت آگهی اجاره"],
-        ["🔎 درخواست خرید", "🏘 درخواست اجاره"],
-        ["🤝 همکاری مشاوران", "🏗 مشارکت در ساخت"],
-        ["📋 آگهی‌های من", "📨 درخواست‌های من"],
-        ["🆘 پشتیبانی", "🌐 تغییر زبان"],
-    ],
-    "en": [
-        ["🏠 Sell Property", "🔑 Rent Property"],
-        ["🔎 Buy Request", "🏘 Rent Request"],
-        ["🤝 Broker Cooperation", "🏗 Builder / Project"],
-        ["📋 My Listings", "📨 My Requests"],
-        ["🆘 Support", "🌐 تغییر زبان"],
-    ],
-    "az": [
-        ["🏠 Satış elanı", "🔑 Kirayə elanı"],
-        ["🔎 Alış sorğusu", "🏘 Kirayə sorğusu"],
-        ["🤝 Əməkdaşlıq", "🏗 Tikinti layihəsi"],
-        ["📋 Elanlarım", "📨 Sorğularım"],
-        ["🆘 Dəstək", "🌐 تغییر زبان"],
-    ],
-    "tr": [
-        ["🏠 Satılık İlan", "🔑 Kiralık İlan"],
-        ["🔎 Satın Alma Talebi", "🏘 Kiralama Talebi"],
-        ["🤝 Danışman İş Birliği", "🏗 İnşaat Projesi"],
-        ["📋 İlanlarım", "📨 Taleplerim"],
-        ["🆘 Destek", "🌐 تغییر زبان"],
-    ],
-    "ar": [
-        ["🏠 إعلان بيع", "🔑 إعلان إيجار"],
-        ["🔎 طلب شراء", "🏘 طلب إيجار"],
-        ["🤝 تعاون الوسطاء", "🏗 مشروع بناء"],
-        ["📋 إعلاناتي", "📨 طلباتي"],
-        ["🆘 الدعم", "🌐 تغییر زبان"],
-    ],
-    "zh": [
-        ["🏠 发布出售房源", "🔑 发布出租房源"],
-        ["🔎 求购房产", "🏘 求租房产"],
-        ["🤝 经纪人合作", "🏗 开发商与项目"],
-        ["📋 我的房源", "📨 我的需求"],
-        ["🆘 客服支持", "🌐 تغییر زبان"],
-    ],
-    "ru": [
-        ["🏠 Продать недвижимость", "🔑 Сдать в аренду"],
-        ["🔎 Запрос на покупку", "🏘 Запрос на аренду"],
-        ["🤝 Сотрудничество брокеров", "🏗 Застройщик / Проект"],
-        ["📋 Мои объявления", "📨 Мои запросы"],
-        ["🆘 Поддержка", "🌐 تغییر زبان"],
-    ],
+    "fa": [["🏠 خرید ملک", "🔑 اجاره ملک"], ["📝 درخواست خرید", "📨 درخواست اجاره"], ["💼 سرمایه‌گذاری ملکی", "🏗 مشارکت در ساخت"], ["⭐ علاقه‌مندی‌ها", "📋 آگهی‌ها و درخواست‌های من"], ["🆘 پشتیبانی"]],
+    "en": [["🏠 Buy Property", "🔑 Rent Property"], ["📝 Buy Request", "📨 Rental Request"], ["💼 Property Investment", "🏗 Joint Construction"], ["⭐ Favorites", "📋 My Listings & Requests"], ["🆘 Support"]],
+    "az": [["🏠 Əmlak al", "🔑 Əmlak kirayələ"], ["📝 Alış sorğusu", "📨 İcarə sorğusu"], ["💼 Əmlaka investisiya", "🏗 Birgə tikinti"], ["⭐ Seçilmişlər", "📋 Elanlarım və sorğularım"], ["🆘 Dəstək"]],
+    "tr": [["🏠 Gayrimenkul satın al", "🔑 Gayrimenkul kirala"], ["📝 Satın alma talebi", "📨 Kiralama talebi"], ["💼 Gayrimenkul yatırımı", "🏗 Kat karşılığı inşaat"], ["⭐ Favoriler", "📋 İlanlarım ve taleplerim"], ["🆘 Destek"]],
+    "ar": [["🏠 شراء عقار", "🔑 استئجار عقار"], ["📝 طلب شراء", "📨 طلب إيجار"], ["💼 الاستثمار العقاري", "🏗 شراكة بناء"], ["⭐ المفضلة", "📋 إعلاناتي وطلباتي"], ["🆘 الدعم"]],
+    "zh": [["🏠 购买房产", "🔑 租赁房产"], ["📝 求购需求", "📨 求租需求"], ["💼 房地产投资", "🏗 合作建设"], ["⭐ 收藏", "📋 我的房源与需求"], ["🆘 客服"]],
+    "ru": [["🏠 Купить недвижимость", "🔑 Арендовать недвижимость"], ["📝 Запрос на покупку", "📨 Запрос на аренду"], ["💼 Инвестиции в недвижимость", "🏗 Совместное строительство"], ["⭐ Избранное", "📋 Мои объявления и запросы"], ["🆘 Поддержка"]],
 }
+
+# Полный каталог категорий. Кнопки переводятся на язык пользователя при показе.
+SUBMENUS = {
+    "buy": ["🏢 آپارتمان مسکونی", "🏡 ویلا و خانه مستقل", "🌳 زمین و باغ", "🏚 ملک کلنگی", "🏬 مغازه و ملک تجاری", "🏢 دفتر کار و ملک اداری", "🏭 ملک صنعتی و کارخانه", "🏗 سوله و انبار", "🏢 شهرک صنعتی", "🏨 هتل و اقامتگاه", "🏥 درمانی و بیمارستان", "🏬 پاساژ و مجتمع تجاری", "🏗 پیش‌خرید و پروژه در حال ساخت", "💎 املاک لوکس و گران‌قیمت", "📈 ملک مناسب سرمایه‌گذاری", "📦 سایر انواع ملک"],
+    "rent": ["🏢 آپارتمان مسکونی", "🏡 ویلا و خانه مستقل", "🌳 زمین و باغ", "🏚 ملک کلنگی", "🏬 مغازه و ملک تجاری", "🏢 دفتر کار و ملک اداری", "🏭 ملک صنعتی و کارخانه", "🏗 سوله و انبار", "🏨 اجاره کوتاه‌مدت و روزانه", "💎 املاک لوکس", "📦 سایر انواع ملک"],
+    "buy_req": ["🏢 آپارتمان مسکونی", "🏡 ویلا و خانه مستقل", "🌳 زمین و باغ", "🏚 ملک کلنگی", "🏬 مغازه و ملک تجاری", "🏢 دفتر کار و ملک اداری", "🏭 ملک صنعتی و کارخانه", "🏗 سوله و انبار", "🏗 پیش‌خرید و پروژه در حال ساخت", "💎 املاک لوکس و گران‌قیمت", "📦 سایر انواع ملک"],
+    "rent_req": ["🏢 آپارتمان مسکونی", "🏡 ویلا و خانه مستقل", "🏬 مغازه و ملک تجاری", "🏢 دفتر کار و ملک اداری", "🏭 ملک صنعتی و کارخانه", "🏗 سوله و انبار", "🏨 اجاره کوتاه‌مدت و روزانه", "💎 املاک لوکس", "📦 سایر انواع ملک"],
+    "investment": ["🏠 خرید ملک برای اجاره‌دادن", "📈 خرید برای افزایش قیمت و فروش", "🏬 سرمایه‌گذاری تجاری", "💎 املاک لوکس و خاص", "🏗 پروژه‌های ساختمانی و در حال ساخت", "🏙 پروژه‌های بزرگ و چندواحدی", "🤝 جذب شریک یا سرمایه‌گذار", "🌳 سرمایه‌گذاری در زمین و باغ"],
+    "construction": ["🧑‍💼 مالک ملک و متقاضی سازنده", "🏗 سازنده و متقاضی زمین یا ملک", "💰 سرمایه‌گذار متقاضی پروژه مشارکتی", "🤝 یافتن شریک برای پروژه ساختمانی", "🏚 مشارکت روی ملک کلنگی", "🏬 مشارکت در ساخت تجاری و اداری", "🏭 مشارکت در ساخت صنعتی", "🏙 تجمیع پلاک و پروژه چندواحدی", "📋 معرفی پروژه‌های آماده مشارکت", "🧭 مشاوره و ارزیابی مشارکت"],
+    "favorites": ["⭐ مشاهده آگهی‌های ذخیره‌شده", "🔔 آگهی‌های جدید مشابه موارد ذخیره‌شده", "⚖️ مقایسه ملک‌های ذخیره‌شده", "🗑 حذف آگهی از ذخیره‌شده‌ها", "💲 پیگیری تغییر قیمت"],
+}
+MAIN_ACTIONS = {
+    "🏠 خرید ملک":"buy", "🔑 اجاره ملک":"rent", "📝 درخواست خرید":"buy_req", "📨 درخواست اجاره":"rent_req",
+    "💼 سرمایه‌گذاری ملکی":"investment", "🏗 مشارکت در ساخت":"construction", "⭐ علاقه‌مندی‌ها":"favorites",
+    "📋 آگهی‌ها و درخواست‌های من":"my_items", "🆘 پشتیبانی":"support",
+}
+KIND_FOR_MENU = {"buy":"sell_ad", "rent":"rent_ad", "buy_req":"buy_req", "rent_req":"rent_req", "investment":"builder", "construction":"builder"}
 
 FIELDS = ["city", "property_type", "area", "rooms", "price", "details", "contact"]
 
@@ -371,7 +344,7 @@ async def translate_submission_data(data, source, target):
 
 # ==================== KEYBOARDS ====================
 
-EMOJI_PREFIXES = ("🏢 ", "🏠 ", "🏭 ", "🏬 ", "📄 ", "📍 ", "🏛 ", "🔀 ", "✅ ", "❌ ", "📷 ", "📱 ", "⬅️ ", "🆘 ", "🌐 ")
+EMOJI_PREFIXES = ("🏢 ", "🏠 ", "🏭 ", "🏬 ", "📄 ", "📍 ", "🏛 ", "🔀 ", "✅ ", "❌ ", "📷 ", "📱 ", "⬅️ ", "🆘 ", "🌐 ", "🔑 ", "📝 ", "📨 ", "💼 ", "🏗 ", "⭐ ", "🌳 ", "🏚 ", "🏡 ", "🏨 ", "💎 ", "📈 ", "📦 ", "🤝 ", "💰 ", "🧑‍💼 ", "🏙 ", "📋 ", "🔔 ", "⚖️ ", "🗑 ", "💲 ", "🧭 ")
 
 
 def normalize_button_text(value):
@@ -487,47 +460,6 @@ def language_prompt():
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.effective_user:
         return
-
-    # Deep link used by the "درخواست بازدید این ملک" button under a published ad.
-    args = context.args or []
-    if args and args[0].startswith("visit_"):
-        try:
-            payload = args[0].split("_")
-            if len(payload) != 3 or payload[0] != "visit":
-                raise ValueError("invalid visit payload")
-            submission_id = int(payload[1])
-            language = payload[2]
-            if language not in CHANNELS:
-                raise ValueError("invalid language")
-        except (ValueError, TypeError):
-            await update.message.reply_text("لینک درخواست بازدید معتبر نیست. لطفاً از دکمه زیر آگهی استفاده کنید.")
-            return
-
-        submission = get_submission(submission_id)
-        with connect_db() as conn:
-            publication = conn.execute(
-                "SELECT channel, message_id, status FROM publications WHERE submission_id=? AND language=?",
-                (submission_id, language),
-            ).fetchone()
-        if not submission or not publication or publication["status"] != "success" or submission.get("status") != "approved":
-            await update.message.reply_text("این آگهی در حال حاضر منتشرشده یا قابل درخواست بازدید نیست.")
-            return
-
-        context.user_data["pending_visit_request"] = {
-            "submission_id": submission_id,
-            "language": language,
-        }
-        keyboard = ReplyKeyboardMarkup(
-            [[KeyboardButton("📱 ارسال شماره تلفن من", request_contact=True)]],
-            resize_keyboard=True,
-            one_time_keyboard=True,
-        )
-        await update.message.reply_text(
-            f"درخواست بازدید از آگهی شماره {submission_id} ثبت می‌شود. برای ارسال درخواست، شماره تلفن خودتان را با دکمه زیر به اشتراک بگذارید.",
-            reply_markup=keyboard,
-        )
-        return
-
     context.user_data.pop("form", None)
     context.user_data.pop("awaiting_support", None)
     context.user_data.pop("rent_menu", None)
@@ -1094,7 +1026,8 @@ async def finish_office_rent(update, context):
 async def begin_form(update, context, kind, language):
     context.user_data["awaiting_support"] = False
     context.user_data.pop("rent_menu", None)
-    if kind == "rent_ad":
+    menu_category_flow = bool(context.user_data.pop("menu_form_category", False))
+    if kind == "rent_ad" and not menu_category_flow:
         context.user_data.pop("form", None)
         context.user_data["rent_menu"] = True
         await update.message.reply_text(
@@ -1105,8 +1038,8 @@ async def begin_form(update, context, kind, language):
     if kind == "rent_office_ad":
         await begin_office_rent_form(update, context, language)
         return
-    context.user_data["form"] = {"kind": kind, "language": language, "step": 0, "data": {}, "mode": "standard"}
-    await update.message.reply_text(f"📝 {FIELD_LABELS[language]['city']}:", reply_markup=main_keyboard(language))
+    context.user_data["form"] = {"kind": kind, "language": language, "step": 0, "data": {}, "mode": "standard", "fields": ["city", "area", "rooms", "price", "details", "contact"]}
+    await update.message.reply_text(f"📝 {FIELD_LABELS[language]['city']}:", reply_markup=form_keyboard([[await localized("❌ لغو ثبت", language)]], language))
 
 
 # ==================== ADMIN REVIEW ====================
@@ -1236,14 +1169,8 @@ async def publish_submission(context, submission, language):
     message_text = await render_submission(data, submission["kind"], language, submission["language"])
     if submission["kind"] == "rent_apartment_ad":
         message_text = message_text.replace("<b>شناسه آگهی:</b> ", f"<b>شناسه آگهی:</b> {submission_id} ")
-    bot_info = await context.bot.get_me()
-    visit_url = f"https://t.me/{bot_info.username}?start=visit_{submission_id}_{language}"
-    visit_keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("درخواست بازدید این ملک", url=visit_url)]
-    ])
     message = await context.bot.send_message(
-        chat_id=channel, text=message_text, parse_mode="HTML",
-        disable_web_page_preview=True, reply_markup=visit_keyboard,
+        chat_id=channel, text=message_text, parse_mode="HTML", disable_web_page_preview=True,
     )
     if submission["kind"] in {"rent_office_ad", "rent_apartment_ad"}:
         image_ids = data.get("images", [])
@@ -1419,75 +1346,6 @@ async def show_user_submissions(update, user_id, only_requests=False):
     await update.message.reply_text("\n".join(lines), reply_markup=main_keyboard(language))
 
 
-async def process_visit_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = update.message
-    user = update.effective_user
-    pending = context.user_data.get("pending_visit_request")
-    if not message or not message.contact or not user or not pending:
-        return False
-
-    contact = message.contact
-    # Only accept the Telegram contact-share button for the requester themselves.
-    if contact.user_id != user.id:
-        await message.reply_text("لطفاً فقط با دکمه «ارسال شماره تلفن من» شماره خودتان را ارسال کنید.")
-        return True
-
-    submission_id = pending.get("submission_id")
-    language = pending.get("language")
-    submission = get_submission(submission_id) if submission_id else None
-    with connect_db() as conn:
-        publication = conn.execute(
-            "SELECT channel, message_id, status FROM publications WHERE submission_id=? AND language=?",
-            (submission_id, language),
-        ).fetchone()
-
-    if not submission or not publication or publication["status"] != "success":
-        context.user_data.pop("pending_visit_request", None)
-        await message.reply_text("متأسفانه آگهی دیگر در دسترس نیست. لطفاً از آگهی منتشرشده دوباره وارد شوید.")
-        return True
-
-    channel = publication["channel"]
-    message_id = publication["message_id"]
-    channel_name = channel.lstrip("@")
-    ad_link = f"https://t.me/{channel_name}/{message_id}" if message_id else f"https://t.me/{channel_name}"
-    data = json.loads(submission.get("data") or "{}")
-    kind = KINDS.get(submission.get("kind", ""), {}).get(language, submission.get("kind", "نامشخص"))
-    details = []
-    for key, value in data.items():
-        if key in {"images", "image_ids", "photos"} or value in (None, "", [], {}):
-            continue
-        if isinstance(value, (dict, list)):
-            value = json.dumps(value, ensure_ascii=False)
-        details.append(f"• <b>{escape(str(key))}:</b> {escape(str(value))}")
-    details_text = "\n".join(details[:35]) or "جزئیات ثبت‌شده در دسترس نیست."
-    username = f"@{user.username}" if user.username else "ندارد"
-    requester_name = escape(user.full_name or "نامشخص")
-    phone = escape(contact.phone_number or "ثبت نشده")
-    timestamp = datetime.now(ZoneInfo("Asia/Tehran")).strftime("%Y-%m-%d %H:%M:%S")
-    admin_text = (
-        "🏠 <b>درخواست جدید بازدید ملک</b>\n\n"
-        f"<b>شناسه آگهی:</b> {submission_id}\n"
-        f"<b>نوع آگهی:</b> {escape(str(kind))}\n"
-        f"<b>شماره تماس درخواست‌کننده:</b> {phone}\n"
-        f"<b>نام تلگرام:</b> {requester_name}\n"
-        f"<b>نام کاربری:</b> {escape(username)}\n"
-        f"<b>شناسه کاربری تلگرام:</b> <code>{user.id}</code>\n"
-        f"<b>زمان درخواست (تهران):</b> {timestamp}\n"
-        f"<b>لینک آگهی:</b> {ad_link}\n\n"
-        f"<b>جزئیات ملک:</b>\n{details_text}"
-    )
-    try:
-        await context.bot.send_message(chat_id=ADMIN_ID, text=admin_text, parse_mode="HTML", disable_web_page_preview=True)
-    except Exception:
-        logger.exception("Could not send property visit request to admin")
-        await message.reply_text("ارسال درخواست فعلاً انجام نشد. لطفاً چند دقیقه دیگر دوباره تلاش کنید.")
-        return True
-
-    context.user_data.pop("pending_visit_request", None)
-    await message.reply_text("درخواست بازدید شما برای مدیر ارسال شد. با شما تماس گرفته خواهد شد.", reply_markup=ReplyKeyboardMarkup([["منوی اصلی"]], resize_keyboard=True))
-    return True
-
-
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message:
         return
@@ -1496,9 +1354,6 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if not update.message.text:
-        if update.message.contact and context.user_data.get("pending_visit_request"):
-            if await process_visit_contact(update, context):
-                return
         # Keep existing media/contact handling for the office-rent form.
         if context.user_data.get("form", {}).get("mode") in {"office_rent", "apartment_rent"}:
             if update.message.contact or update.message.photo:
@@ -1629,6 +1484,65 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
             context.user_data["rent_property_menu"] = True
         return
 
+    # New complete menu navigation: each selected category opens the relevant form.
+    action = None
+    for canonical, menu_action in MAIN_ACTIONS.items():
+        shown = await localized(canonical, user_language)
+        if normalize_button_text(text) == normalize_button_text(shown) or normalize_button_text(text) == normalize_button_text(canonical):
+            action = menu_action
+            break
+    if action:
+        if action == "my_items":
+            await show_user_submissions(update, user.id)
+            return
+        if action == "support":
+            context.user_data["awaiting_support"] = True
+            await update.message.reply_text(await localized("پیام خود را برای پشتیبانی ارسال کنید:", user_language), reply_markup=main_keyboard(user_language))
+            return
+        if action == "favorites":
+            context.user_data["menu_mode"] = "favorites"
+        else:
+            context.user_data["menu_mode"] = action
+        options = SUBMENUS.get(action, [])
+        translated_options = [await localized(option, user_language) for option in options]
+        prompt = "نوع ملک یا موضوع موردنظر را انتخاب کنید:"
+        await update.message.reply_text(await localized(prompt, user_language), reply_markup=submenu_keyboard(translated_options, language=user_language))
+        return
+
+    menu_mode = context.user_data.get("menu_mode")
+    if menu_mode:
+        options = SUBMENUS.get(menu_mode, [])
+        selected = None
+        for option in options:
+            shown = await localized(option, user_language)
+            if normalize_button_text(text) in {normalize_button_text(shown), normalize_button_text(option)}:
+                selected = option
+                break
+        if selected:
+            context.user_data.pop("menu_mode", None)
+            if menu_mode == "favorites":
+                await update.message.reply_text(await localized("امکانات ذخیره‌سازی هنوز در این نسخه فعال نیستند.", user_language), reply_markup=main_keyboard(user_language))
+                return
+            # Keep the established specialized apartment-rent workflow; all other
+            # categories use the common complete listing/request form.
+            if menu_mode == "rent" and "آپارتمان" in selected:
+                await begin_apartment_rent_form(update, context, user_language)
+                return
+            if menu_mode == "rent" and ("اداری" in selected or "دفتر کار" in selected):
+                await begin_office_rent_form(update, context, user_language)
+                return
+            kind = KIND_FOR_MENU.get(menu_mode, "builder")
+            if menu_mode == "rent":
+                context.user_data["menu_form_category"] = True
+            await begin_form(update, context, kind, user_language)
+            active = context.user_data.get("form")
+            if active:
+                active["data"]["property_type"] = selected
+                active["data"]["menu_category"] = menu_mode
+            return
+        await update.message.reply_text(await localized("لطفاً یکی از گزینه‌های همین فهرست را انتخاب کنید یا به منوی اصلی برگردید.", user_language), reply_markup=submenu_keyboard([await localized(x, user_language) for x in options], language=user_language))
+        return
+
     kind = detect_kind(text)
     if kind:
         await begin_form(update, context, kind, user_language)
@@ -1664,16 +1578,22 @@ async def process_standard_form(update, context):
         await begin_form(update, context, new_kind, language)
         return True
 
+    if normalize_button_text(text) in {normalize_button_text("❌ لغو ثبت"), normalize_button_text(await localized("❌ لغو ثبت", language))}:
+        context.user_data.pop("form", None)
+        await update.message.reply_text(await localized("ثبت لغو شد.", language), reply_markup=main_keyboard(language))
+        return True
+
+    fields = form.get("fields", FIELDS)
     index = form["step"]
-    if index < 0 or index >= len(FIELDS):
+    if index < 0 or index >= len(fields):
         context.user_data.pop("form", None)
         await update.message.reply_text(await localized("فرم قبلی دچار اختلال شد. لطفاً دوباره شروع کنید.", language), reply_markup=main_keyboard(language))
         return True
-    field = FIELDS[index]
+    field = fields[index]
     form["data"][field] = text
     form["step"] += 1
-    if form["step"] < len(FIELDS):
-        next_field = FIELDS[form["step"]]
+    if form["step"] < len(fields):
+        next_field = fields[form["step"]]
         await update.message.reply_text(f"➡️ {FIELD_LABELS[language][next_field]}:", reply_markup=main_keyboard(language))
         return True
 
