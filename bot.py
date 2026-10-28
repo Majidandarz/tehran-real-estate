@@ -48,11 +48,11 @@ LANG_NAMES = {
 }
 
 LANG_LABELS = {
-    "fa": "فارسی",
-    "en": "English",
-    "az": "Azərbaycan dili",
-    "tr": "Türkçe",
-    "ar": "العربية",
+    "fa": "🇮🇷 فارسی",
+    "en": "🇬🇧 English",
+    "az": "🇦🇿 Azərbaycan dili",
+    "tr": "🇹🇷 Türkçe",
+    "ar": "🇸🇦 العربية",
 }
 
 LANGUAGE_KEYBOARD = [
