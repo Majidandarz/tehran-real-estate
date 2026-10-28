@@ -1066,40 +1066,84 @@ RENT_REQUEST_FIELDS = ["حداکثر مبلغ اجاره ماهانه", "حدا�
 
 
 def build_form_fields(kind, category, menu_mode):
-    # Each item is (stable key, Persian prompt). Existing languages/channels remain unchanged.
+    """Short user-friendly forms: essential questions first, category details grouped together."""
     is_listing = menu_mode in {"buy", "rent", "investment", "construction"}
     fields = []
+
     if menu_mode in {"buy", "rent"}:
-        fields.extend(COMMON_LISTING_FIELDS)
-        fields.append(("property_usage", "نوع کاربری ملک"))
-        if category in ROOM_TYPES: fields.append(("rooms", "تعداد اتاق/خواب"))
-        if category in BATHROOM_TYPES: fields.append(("bathrooms", "تعداد سرویس‌های بهداشتی"))
-        if category in PARKING_TYPES: fields.append(("parking", "تعداد جای پارک یا ظرفیت پارکینگ"))
-        if category in {"🏚 ملک کلنگی", "🌳 زمین و باغ", "🏭 ملک صنعتی، کارخانه و کارگاه", "🏗 سوله و انبار", "🏙 مستغلات و مجتمع تجاری", "🏡 ویلا و خانه مستقل"}:
-            fields.extend([("land_area", "مساحت زمین"), ("building_area", "مساحت زیربنا")])
+        # Keep the listing form short; detailed specifications go into one optional text answer.
+        fields = [
+            ("title", "عنوان کوتاه آگهی"),
+            ("province", "استان"),
+            ("city", "شهر"),
+            ("district", "منطقه یا محله"),
+            ("exact_address", "نشانی دقیق ملک (محرمانه برای مدیریت؛ در آگهی عمومی نمایش داده نمی‌شود)"),
+            ("total_price", "قیمت کل به تومان"),
+            ("area", "متراژ ملک"),
+        ]
+        if category in ROOM_TYPES:
+            fields.append(("rooms", "تعداد اتاق یا خواب"))
         if menu_mode == "buy" and category in TITLE_TYPES:
-            fields.extend([("document_status", "وضعیت سند و مالکیت"), ("ownership_status", "وضعیت مالکیت")])
-        if category == "🏡 ویلا و خانه مستقل": fields.extend([(f"villa_{i}", x) for i, x in enumerate(VILLA_FIELDS)])
-        elif category == "🌳 زمین و باغ": fields.extend([(f"land_{i}", x) for i, x in enumerate(LAND_FIELDS)])
-        elif category == "🏚 ملک کلنگی": fields.extend([(f"old_{i}", x) for i, x in enumerate(OLD_BUILDING_FIELDS)])
-        elif category in {"🏭 ملک صنعتی، کارخانه و کارگاه", "🏗 سوله و انبار"}: fields.extend([(f"industrial_{i}", x) for i, x in enumerate(INDUSTRIAL_FIELDS)])
-        elif category in {"🏢 دفتر کار و ملک اداری", "🏬 مغازه و ملک تجاری", "🏙 مستغلات و مجتمع تجاری"}:
-            fields.extend([(f"office_{i}", x) for i, x in enumerate(OFFICE_AMENITIES)])
-        elif category == "🏢 آپارتمان مسکونی": fields.extend([(f"amenity_{i}", x) for i, x in enumerate(RESIDENTIAL_AMENITIES)])
+            fields.append(("document_status", "وضعیت سند (اگر اطلاع ندارید بنویسید: نامشخص)"))
+        fields.extend([
+            ("description", "توضیح کوتاه درباره ملک و مهم‌ترین امکانات"),
+            ("delivery_status", "وضعیت تخلیه و تحویل (مثلاً تخلیه یا دارای مستأجر)"),
+        ])
     elif menu_mode == "buy_req":
-        fields = [("property_type", "نوع ملک موردنیاز"), ("province", "استان"), ("city", "شهر"), ("district", "مناطق موردنظر"), ("budget_min", "حداقل بودجه"), ("budget_max", "حداکثر بودجه"), ("area_min", "حداقل متراژ"), ("area_max", "حداکثر متراژ"), ("essential_amenities", "امکانات ضروری ملک"), ("transaction_timing", "زمان موردنظر برای معامله"), ("specific_conditions", "توضیحات و شرایط اختصاصی"), ("urgency", "میزان فوریت درخواست"), ("payment_terms", "شرایط پرداخت"), ("nearby_areas", "امکان دریافت پیشنهاد از مناطق نزدیک؟ (بله/خیر)")] + [(f"buyreq_{i}", x) for i, x in enumerate(BUY_REQUEST_FIELDS)]
+        fields = [
+            ("property_type", "چه نوع ملکی می‌خواهید؟"),
+            ("province", "استان موردنظر"),
+            ("city", "شهر"),
+            ("district", "محله یا مناطق دلخواه"),
+            ("budget_max", "حداکثر بودجه به تومان"),
+            ("area_min", "حداقل متراژ موردنظر"),
+            ("specific_conditions", "۲ یا ۳ ویژگی ضروری و توضیحات (اختیاری؛ اگر ندارید بنویسید: ندارد)"),
+            ("transaction_timing", "چه زمانی قصد خرید دارید؟"),
+        ]
     elif menu_mode == "rent_req":
-        fields = [("property_type", "نوع ملک موردنیاز"), ("province", "استان"), ("city", "شهر"), ("district", "مناطق موردنظر"), ("budget_min", "حداقل بودجه"), ("budget_max", "حداکثر بودجه"), ("area_min", "حداقل متراژ"), ("area_max", "حداکثر متراژ"), ("essential_amenities", "امکانات ضروری ملک"), ("transaction_timing", "زمان موردنظر برای معامله"), ("specific_conditions", "توضیحات و شرایط اختصاصی"), ("urgency", "میزان فوریت درخواست"), ("payment_terms", "شرایط پرداخت"), ("nearby_areas", "امکان دریافت پیشنهاد از مناطق نزدیک؟ (بله/خیر)")] + [(f"rentreq_{i}", x) for i, x in enumerate(RENT_REQUEST_FIELDS)]
+        fields = [
+            ("property_type", "چه نوع ملکی می‌خواهید؟"),
+            ("province", "استان موردنظر"),
+            ("city", "شهر"),
+            ("district", "محله یا مناطق دلخواه"),
+            ("budget_max", "حداکثر اجاره ماهانه و مبلغ ودیعه"),
+            ("area_min", "حداقل متراژ موردنظر"),
+            ("specific_conditions", "ویژگی‌های ضروری یا توضیحات (اختیاری؛ اگر ندارید بنویسید: ندارد)"),
+            ("transaction_timing", "زمان شروع اجاره"),
+        ]
     elif menu_mode == "investment":
-        fields = [("title", "عنوان فرصت سرمایه‌گذاری"), ("province", "استان"), ("city", "شهر و موقعیت پروژه"), ("exact_address", "نشانی دقیق محرمانه برای مدیریت"), ("description", "شرح پروژه")] + [(f"investment_{i}", x) for i, x in enumerate(INVESTMENT_FIELDS)]
+        fields = [
+            ("title", "عنوان فرصت سرمایه‌گذاری"),
+            ("province", "استان"),
+            ("city", "شهر و موقعیت کلی پروژه"),
+            ("exact_address", "نشانی دقیق (محرمانه برای مدیریت)"),
+            ("total_price", "ارزش کل پروژه یا مبلغ سرمایه موردنیاز"),
+            ("description", "خلاصه پروژه، سهم پیشنهادی و شرایط اصلی"),
+        ]
     elif menu_mode == "construction":
-        fields = [("title", "عنوان پروژه مشارکت"), ("province", "استان"), ("city", "شهر و منطقه"), ("exact_address", "نشانی دقیق محرمانه برای مدیریت"), ("description", "شرح پروژه")] + [(f"construction_{i}", x) for i, x in enumerate(CONSTRUCTION_FIELDS)]
+        fields = [
+            ("title", "عنوان پروژه مشارکت در ساخت"),
+            ("province", "استان"),
+            ("city", "شهر و منطقه"),
+            ("exact_address", "نشانی دقیق (محرمانه برای مدیریت)"),
+            ("description", "خلاصه پروژه، متراژ، سهم پیشنهادی و شرایط اصلی"),
+        ]
     else:
-        fields = [("title", "عنوان"), ("description", "توضیحات"), ("province", "استان"), ("city", "شهر و منطقه")]
-    # Common request metadata and media are appended after category-specific fields.
+        fields = [
+            ("title", "عنوان"),
+            ("description", "توضیحات کوتاه"),
+            ("province", "استان"),
+            ("city", "شهر و منطقه"),
+        ]
+
+    # Media is retained for listings, but the long category-specific questionnaires are removed.
     if is_listing:
-        fields.extend([("images", "تصاویر ملک (حداکثر ۵ تصویر؛ هر تصویر را جداگانه ارسال کنید، سپس دکمه پایان تصاویر را بزنید)"), ("video_note", "ویدئو یا لینک ویدئوی ملک (در صورت نداشتن بنویسید: ندارد)")])
-    fields.extend([("registrant_type", "نوع حساب ثبت‌کننده: مالک، مشاور یا آژانس"), ("contact", "شماره تماس را با دکمه اشتراک‌گذاری شماره تلگرام ارسال کنید")])
+        fields.append(("images", "تصاویر ملک (حداکثر ۵ تصویر؛ پس از ارسال، دکمه پایان تصاویر را بزنید)"))
+        fields.append(("video_note", "ویدئو یا لینک ویدئو (اختیاری؛ اگر ندارید بنویسید: ندارد)"))
+    fields.extend([
+        ("registrant_type", "نوع ثبت‌کننده: مالک، مشاور یا آژانس"),
+        ("contact", "شماره تماس را با دکمه اشتراک‌گذاری شماره تلگرام ارسال کنید"),
+    ])
     return fields
 
 async def begin_form(update, context, kind, language, category=None, menu_mode=None):
