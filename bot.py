@@ -54,11 +54,15 @@ LANG_LABELS = {
     "ar": "العربية",
 }
 
+LANG_CODES = ("fa", "en", "az", "tr", "ar")
+
 LANGUAGE_KEYBOARD = [
-    [LANG_NAMES["fa"], LANG_NAMES["en"]],
-    [LANG_NAMES["az"], LANG_NAMES["tr"]],
-    [LANG_NAMES["ar"]],
+    ["🇮🇷 فارسی", "🇬🇧 English"],
+    ["🇦🇿 Azərbaycan dili", "🇹🇷 Türkçe"],
+    ["🇸🇦 العربية"],
 ]
+
+# ==================== WELCOME MESSAGES ====================
 
 WELCOME = {
     "fa": """🏡✨ به گروه بزرگ مشاورین املاک تهران خوش آمدید! ✨🏡
@@ -73,44 +77,46 @@ WELCOME = {
 
     "en": """🏡✨ Welcome to the Tehran Real Estate Group! ✨🏡
 
-🌟 With over 20 years of experience, an extensive property information network in Iran, and more than 1,000 active consultants nationwide, we are here to help you.
+🌟 With more than 20 years of experience, an extensive property information network in Iran, and over 1,000 active consultants throughout the country, Tehran Real Estate is here to serve you.
 
-🤝 Our team is committed to customer satisfaction and providing reliable, professional services.
+🤝 Our staff and management are committed to customer satisfaction and to providing services that are professional, reliable, and worthy of your trust.
 
-🌹 We hope you have a satisfying experience and a valuable partnership with us.
+🌹 We hope you enjoy a satisfying experience and a valuable partnership with us.
 
-💠 Tehran Real Estate — your trusted partner in making confident property decisions. 💠""",
+💠 Tehran Real Estate — your partner on the path to a confident and reliable choice. 💠""",
 
     "az": """🏡✨ Tehran Daşınmaz Əmlak Məsləhətçiləri Qrupuna xoş gəlmisiniz! ✨🏡
 
-🌟 20 ildən artıq təcrübəmiz, geniş daşınmaz əmlak məlumat şəbəkəmiz və ölkə üzrə 1.000-dən çox fəal məsləhətçimizlə sizin xidmətinizdəyik.
+🌟 Tehran Daşınmaz Əmlak 20 ildən artıq fəaliyyət təcrübəsi, İranda ən geniş daşınmaz əmlak məlumat şəbəkələrindən biri və ölkə üzrə 1.000-dən çox fəal məsləhətçisi ilə sizin yanınızdadır.
 
-🤝 Məqsədimiz müştəri məmnuniyyətini təmin etmək və etibarlı, peşəkar xidmət göstərməkdir.
+🤝 Komandamızın və rəhbərliyimizin məqsədi dəyərli müştərilərimizin məmnuniyyətini qazanmaq, etibarlı və peşəkar xidmət göstərməkdir.
 
-🌹 Sizinlə uğurlu və dəyərli əməkdaşlıq arzulayırıq.
+🌹 Sizinlə məmnunedici təcrübə və dəyərli əməkdaşlıq qurmağı arzulayırıq.
 
-💠 Tehran Daşınmaz Əmlak — düzgün seçim yolunda etibarlı tərəfdaşınız. 💠""",
+💠 Tehran Daşınmaz Əmlak — etibarlı seçim yolunda sizin tərəfdaşınız. 💠""",
 
     "tr": """🏡✨ Tahran Gayrimenkul Danışmanları Grubuna hoş geldiniz! ✨🏡
 
-🌟 20 yılı aşkın deneyimimiz, geniş gayrimenkul bilgi ağımız ve ülke genelinde 1.000'den fazla aktif danışmanımızla hizmetinizdeyiz.
+🌟 Tahran Gayrimenkul, 20 yılı aşkın faaliyet deneyimi, İran'ın en geniş gayrimenkul bilgi ağlarından biri ve ülke genelinde 1.000'den fazla aktif danışmanıyla yanınızdadır.
 
-🤝 Amacımız müşteri memnuniyetini sağlamak ve güvenilir, profesyonel hizmet sunmaktır.
+🤝 Ekibimizin ve yönetimimizin amacı değerli müşterilerimizin memnuniyetini kazanmak ve güvenilir, profesyonel, beklentilerinize uygun hizmet sunmaktır.
 
-🌹 Sizinle başarılı ve değerli bir iş birliği yapmayı dileriz.
+🌹 Bizimle memnuniyet verici bir deneyim ve değerli bir iş birliği yaşamanızı dileriz.
 
-💠 Tahran Gayrimenkul — doğru seçim yolunda güvenilir ortağınız. 💠""",
+💠 Tahran Gayrimenkul — güvenilir bir seçim yaparken yanınızda. 💠""",
 
     "ar": """🏡✨ أهلاً وسهلاً بكم في مجموعة مستشاري عقارات طهران! ✨🏡
 
-🌟 بخبرة تزيد على 20 عاماً وشبكة واسعة لمعلومات العقارات وأكثر من 1,000 مستشار نشط في جميع أنحاء البلاد، نحن هنا لخدمتكم.
+🌟 تقف عقارات طهران إلى جانبكم بخبرة تزيد على 20 عاماً، وبواحدة من أوسع شبكات معلومات العقارات في إيران، وأكثر من 1,000 مستشار نشط في جميع أنحاء البلاد.
 
-🤝 هدفنا تحقيق رضا العملاء وتقديم خدمات موثوقة واحترافية.
+🤝 يهدف فريقنا وإدارتنا إلى نيل رضا عملائنا الكرام وتقديم خدمات مهنية وموثوقة وجديرة بثقتكم.
 
-🌹 نتمنى لكم تجربة مرضية وتعاوناً مثمراً.
+🌹 نتمنى لكم تجربة مرضية وتعاوناً قيّماً ومثمراً معنا.
 
-💠 عقارات طهران — شريككم الموثوق لاختيار عقاري مناسب. 💠""",
+💠 عقارات طهران — شريككم في طريق الاختيار العقاري الموثوق. 💠""",
 }
+
+# ==================== MENU ====================
 
 MENU = {
     "fa": [
@@ -150,7 +156,15 @@ MENU = {
     ],
 }
 
-FIELDS = ["city", "property_type", "area", "rooms", "price", "details", "contact"]
+FIELDS = [
+    "city",
+    "property_type",
+    "area",
+    "rooms",
+    "price",
+    "details",
+    "contact",
+]
 
 FIELD_LABELS = {
     "fa": {
@@ -168,7 +182,7 @@ FIELD_LABELS = {
         "area": "Area",
         "rooms": "Number of rooms",
         "price": "Price or budget",
-        "details": "Details",
+        "details": "Additional details",
         "contact": "Contact number",
     },
     "az": {
@@ -177,7 +191,7 @@ FIELD_LABELS = {
         "area": "Sahə",
         "rooms": "Otaq sayı",
         "price": "Qiymət və ya büdcə",
-        "details": "Ətraflı məlumat",
+        "details": "Əlavə məlumat",
         "contact": "Əlaqə nömrəsi",
     },
     "tr": {
@@ -186,7 +200,7 @@ FIELD_LABELS = {
         "area": "Metrekare",
         "rooms": "Oda sayısı",
         "price": "Fiyat veya bütçe",
-        "details": "Açıklama",
+        "details": "Ek açıklamalar",
         "contact": "İletişim numarası",
     },
     "ar": {
@@ -195,52 +209,41 @@ FIELD_LABELS = {
         "area": "المساحة",
         "rooms": "عدد الغرف",
         "price": "السعر أو الميزانية",
-        "details": "التفاصيل",
+        "details": "تفاصيل إضافية",
         "contact": "رقم التواصل",
     },
 }
 
 KINDS = {
     "sell_ad": {
-        "fa": "آگهی فروش",
-        "en": "Property for sale",
-        "az": "Satış elanı",
-        "tr": "Satılık gayrimenkul",
+        "fa": "آگهی فروش", "en": "Property for sale",
+        "az": "Satış elanı", "tr": "Satılık gayrimenkul",
         "ar": "عقار للبيع",
     },
     "rent_ad": {
-        "fa": "آگهی اجاره",
-        "en": "Property for rent",
-        "az": "Kirayə elanı",
-        "tr": "Kiralık gayrimenkul",
+        "fa": "آگهی اجاره", "en": "Property for rent",
+        "az": "Kirayə elanı", "tr": "Kiralık gayrimenkul",
         "ar": "عقار للإيجار",
     },
     "buy_req": {
-        "fa": "درخواست خرید",
-        "en": "Property purchase request",
-        "az": "Alış sorğusu",
-        "tr": "Satın alma talebi",
+        "fa": "درخواست خرید", "en": "Property purchase request",
+        "az": "Alış sorğusu", "tr": "Satın alma talebi",
         "ar": "طلب شراء عقار",
     },
     "rent_req": {
-        "fa": "درخواست اجاره",
-        "en": "Rental request",
-        "az": "Kirayə sorğusu",
-        "tr": "Kiralama talebi",
+        "fa": "درخواست اجاره", "en": "Rental request",
+        "az": "Kirayə sorğusu", "tr": "Kiralama talebi",
         "ar": "طلب استئجار عقار",
     },
     "broker_ad": {
-        "fa": "همکاری مشاوران",
-        "en": "Broker cooperation",
+        "fa": "همکاری مشاوران", "en": "Broker cooperation",
         "az": "Əmlak məsləhətçilərinin əməkdaşlığı",
         "tr": "Danışman iş birliği",
         "ar": "تعاون الوسطاء العقاريين",
     },
     "builder": {
-        "fa": "پروژه سازنده",
-        "en": "Builder / development project",
-        "az": "Tikinti layihəsi",
-        "tr": "İnşaat projesi",
+        "fa": "پروژه سازنده", "en": "Builder / development project",
+        "az": "Tikinti layihəsi", "tr": "İnşaat projesi",
         "ar": "مشروع بناء",
     },
 }
@@ -253,13 +256,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger("tehran-real-estate")
 
-
 # ==================== DATABASE ====================
 
 def connect_db():
-    connection = sqlite3.connect(DB_PATH, timeout=30)
-    connection.row_factory = sqlite3.Row
-    return connection
+    conn = sqlite3.connect(DB_PATH, timeout=30)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 
 def init_db():
@@ -317,10 +319,7 @@ def save_user(user, language):
                 full_name=excluded.full_name,
                 username=excluded.username
         """, (
-            user.id,
-            language,
-            user.full_name or "",
-            user.username or "",
+            user.id, language, user.full_name or "", user.username or ""
         ))
 
 
@@ -334,16 +333,14 @@ def get_user(user_id):
 
 def create_submission(user_id, language, kind, data):
     with connect_db() as conn:
-        cursor = conn.execute("""
+        cur = conn.execute("""
             INSERT INTO submissions (user_id, language, kind, data)
             VALUES (?, ?, ?, ?)
         """, (
-            user_id,
-            language,
-            kind,
+            user_id, language, kind,
             json.dumps(data, ensure_ascii=False),
         ))
-        return cursor.lastrowid
+        return cur.lastrowid
 
 
 def get_submission(submission_id):
@@ -362,8 +359,9 @@ def set_submission_status(submission_id, status):
         )
 
 
-def record_publication(submission_id, language, channel, status,
-                       message_id=None, error=""):
+def record_publication(
+    submission_id, language, channel, status, message_id=None, error=""
+):
     with connect_db() as conn:
         conn.execute("""
             INSERT INTO publications
@@ -378,7 +376,6 @@ def record_publication(submission_id, language, channel, status,
         """, (
             submission_id, language, channel, status, message_id, error
         ))
-
 
 # ==================== TRANSLATION ====================
 
@@ -412,20 +409,22 @@ async def translate(text, target, source=None):
 
 async def translate_submission_data(data, source, target):
     result = dict(data)
-
     for key in ("city", "property_type", "details"):
         value = str(data.get(key, "")).strip()
         if value:
             result[key] = await translate(value, target, source)
-
     return result
-
 
 # ==================== KEYBOARDS ====================
 
 def language_keyboard():
+    # پرچم مستقیماً در متن هر دکمه قرار دارد.
     return ReplyKeyboardMarkup(
-        LANGUAGE_KEYBOARD,
+        [
+            ["🇮🇷 فارسی", "🇬🇧 English"],
+            ["🇦🇿 Azərbaycan dili", "🇹🇷 Türkçe"],
+            ["🇸🇦 العربية"],
+        ],
         resize_keyboard=True,
         one_time_keyboard=True,
         is_persistent=True,
@@ -442,10 +441,13 @@ def main_keyboard(language):
 
 def parse_language(text):
     text = text.strip()
+
+    # ابتدا برچسب کامل دارای پرچم بررسی می‌شود.
     for code, label in LANG_NAMES.items():
         if text == label:
             return code
 
+    # سازگاری با برچسب‌های قدیمی و بدون پرچم
     aliases = {
         "فارسی": "fa",
         "English": "en",
@@ -458,13 +460,12 @@ def parse_language(text):
 
 def language_prompt():
     return (
-        "🌐 لطفاً زبان خود را انتخاب کنید:\n\n"
+        "🌐 لطفاً زبان خود را انتخاب کنید:\n"
         "🌐 Please select your language:\n"
         "🌐 Zəhmət olmasa, dilinizi seçin:\n"
         "🌐 Lütfen dilinizi seçin:\n"
         "🌐 يرجى اختيار لغتك:"
     )
-
 
 # ==================== START AND LANGUAGE ====================
 
@@ -472,26 +473,36 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.effective_user:
         return
 
-    context.user_data.pop("form", None)
-
+    # شروع مجدد، فرم نیمه‌تمام را حذف نمی‌کند.
     await update.message.reply_text(
         language_prompt(),
         reply_markup=language_keyboard(),
     )
 
 
-async def choose_language(update: Update, context: ContextTypes.DEFAULT_TYPE,
-                          language: str):
+async def choose_language(update, context, language):
     user = update.effective_user
     save_user(user, language)
+
+    # زبان فرم فعال عوض می‌شود؛ داده‌ها و مرحله فعلی باقی می‌مانند.
+    form = context.user_data.get("form")
+    if form:
+        form["language"] = language
 
     await update.message.reply_text(
         WELCOME[language],
         reply_markup=main_keyboard(language),
     )
 
+    # اگر فرم نیمه‌تمام باشد، سؤال فعلی به زبان جدید تکرار می‌شود.
+    if form and form.get("step", 0) < len(FIELDS):
+        current_field = FIELDS[form["step"]]
+        await update.message.reply_text(
+            f"📝 {FIELD_LABELS[language][current_field]}:",
+            reply_markup=main_keyboard(language),
+        )
 
-# ==================== FORM ROUTING ====================
+# ==================== FORM TYPES ====================
 
 def detect_kind(text):
     mapping = {
@@ -552,17 +563,23 @@ async def process_form(update, context):
     if not form:
         return False
 
-    text = update.message.text.strip()
     language = form["language"]
-    index = form["step"]
-    field = FIELDS[index]
+    text = update.message.text.strip()
+    step = form["step"]
+
+    if step >= len(FIELDS):
+        context.user_data.pop("form", None)
+        return False
+
+    field = FIELDS[step]
     form["data"][field] = text
     form["step"] += 1
 
     if form["step"] < len(FIELDS):
         next_field = FIELDS[form["step"]]
         await update.message.reply_text(
-            f"➡️ {FIELD_LABELS[language][next_field]}:"
+            f"➡️ {FIELD_LABELS[language][next_field]}:",
+            reply_markup=main_keyboard(language),
         )
         return True
 
@@ -575,11 +592,11 @@ async def process_form(update, context):
     context.user_data.pop("form", None)
 
     confirmations = {
-        "fa": "✅ اطلاعات شما ثبت شد و برای بررسی مدیر ارسال می‌شود.",
-        "en": "✅ Your submission has been received and sent for review.",
-        "az": "✅ Məlumatınız qəbul edildi və yoxlanış üçün göndərildi.",
-        "tr": "✅ Bilgileriniz alındı ve inceleme için gönderildi.",
-        "ar": "✅ تم استلام معلوماتك وإرسالها للمراجعة.",
+        "fa": "✅ اطلاعات شما ثبت شد و برای بررسی مدیر ارسال شد.",
+        "en": "✅ Your submission was saved and sent to the administrator for review.",
+        "az": "✅ Məlumatınız qeydə alındı və yoxlanış üçün administratora göndərildi.",
+        "tr": "✅ Bilgileriniz kaydedildi ve inceleme için yöneticiye gönderildi.",
+        "ar": "✅ تم حفظ معلوماتك وإرسالها إلى المدير للمراجعة.",
     }
     await update.message.reply_text(
         confirmations[language],
@@ -588,7 +605,6 @@ async def process_form(update, context):
 
     await send_admin_review(context, submission_id)
     return True
-
 
 # ==================== ADMIN REVIEW ====================
 
@@ -635,7 +651,7 @@ async def send_admin_review(context, submission_id):
     user = get_user(submission["user_id"]) or {}
     source_language = submission["language"]
 
-    for language in CHANNELS:
+    for language in LANG_CODES:
         try:
             body = await render_submission(
                 data, submission["kind"], language, source_language
@@ -645,9 +661,9 @@ async def send_admin_review(context, submission_id):
                 f"👤 {escape(user.get('full_name', ''))}\n"
                 f"🆔 <code>{submission['user_id']}</code>\n"
                 f"🌐 زبان ثبت‌کننده: "
-                f"{escape(LANG_LABELS[source_language])}\n"
-                f"📌 وضعیت: در انتظار بررسی\n\n"
+                f"{escape(LANG_LABELS[source_language])}\n\n"
             )
+
             await context.bot.send_message(
                 chat_id=ADMIN_ID,
                 text=header + body,
@@ -655,18 +671,12 @@ async def send_admin_review(context, submission_id):
                 reply_markup=review_keyboard(submission_id)
                 if language == "fa" else None,
             )
-        except Exception as exc:
-            logger.exception("Admin review translation/send failed")
-            await context.bot.send_message(
-                chat_id=ADMIN_ID,
-                text=(
-                    f"⚠️ ارسال نسخه {LANG_LABELS[language]} برای ثبت "
-                    f"#{submission_id} ناموفق بود.\n{str(exc)[:500]}"
-                ),
+        except Exception:
+            logger.exception(
+                "ارسال ثبت شماره %s برای مدیر ناموفق بود", submission_id
             )
 
-
-# ==================== CHANNEL PUBLICATION ====================
+# ==================== PUBLICATION ====================
 
 async def publish_submission(context, submission, language):
     submission_id = submission["id"]
@@ -682,7 +692,7 @@ async def publish_submission(context, submission, language):
         return True, "قبلاً منتشر شده است."
 
     data = json.loads(submission["data"])
-    message_text = await render_submission(
+    text = await render_submission(
         data,
         submission["kind"],
         language,
@@ -691,7 +701,7 @@ async def publish_submission(context, submission, language):
 
     message = await context.bot.send_message(
         chat_id=channel,
-        text=message_text,
+        text=text,
         parse_mode="HTML",
         disable_web_page_preview=True,
     )
@@ -708,16 +718,17 @@ async def publish_submission(context, submission, language):
 
 async def show_publication_languages(query, context, submission_id):
     selections = context.user_data.setdefault("publication_languages", {})
-    selections.setdefault(submission_id, ["fa"])
-    selected = selections[submission_id]
+    selected = selections.setdefault(submission_id, ["fa"])
 
     keyboard = []
-    for language, label in LANG_NAMES.items():
+    for language in LANG_CODES:
         mark = "✅" if language in selected else "▫️"
-        keyboard.append([InlineKeyboardButton(
-            f"{mark} {label}",
-            callback_data=f"pubtoggle:{submission_id}:{language}",
-        )])
+        keyboard.append([
+            InlineKeyboardButton(
+                f"{mark} {LANG_NAMES[language]}",
+                callback_data=f"pubtoggle:{submission_id}:{language}",
+            )
+        ])
 
     keyboard.append([
         InlineKeyboardButton(
@@ -737,11 +748,14 @@ async def show_publication_languages(query, context, submission_id):
     )
 
 
-async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def admin_callback(update, context):
     query = update.callback_query
 
     if query.from_user.id != ADMIN_ID:
-        await query.answer("⛔ فقط مدیر اصلی دسترسی دارد.", show_alert=True)
+        await query.answer(
+            "⛔ فقط مدیر اصلی دسترسی دارد.",
+            show_alert=True,
+        )
         return
 
     await query.answer()
@@ -758,23 +772,39 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if action.startswith("reject:"):
         submission_id = int(action.split(":")[1])
         submission = get_submission(submission_id)
+
+        if not submission:
+            await query.edit_message_text("❌ ثبت موردنظر پیدا نشد.")
+            return
+
         set_submission_status(submission_id, "rejected")
         await query.edit_message_text(f"❌ ثبت #{submission_id} رد شد.")
 
-        if submission:
-            try:
-                await context.bot.send_message(
-                    chat_id=submission["user_id"],
-                    text="❌ ثبت شما پس از بررسی تأیید نشد.",
-                )
-            except Exception:
-                logger.warning("Could not notify submitter")
+        user = get_user(submission["user_id"]) or {}
+        language = user.get("language", "fa")
+        rejected_text = {
+            "fa": "❌ ثبت شما پس از بررسی تأیید نشد.",
+            "en": "❌ Your submission was not approved after review.",
+            "az": "❌ Məlumatınız yoxlamadan sonra təsdiqlənmədi.",
+            "tr": "❌ Gönderiniz inceleme sonucunda onaylanmadı.",
+            "ar": "❌ لم تتم الموافقة على تسجيلك بعد المراجعة.",
+        }
+
+        try:
+            await context.bot.send_message(
+                submission["user_id"], rejected_text[language]
+            )
+        except Exception:
+            logger.exception("اعلان رد به کاربر ارسال نشد")
         return
 
     if action.startswith("pubtoggle:"):
         _, raw_id, language = action.split(":")
         submission_id = int(raw_id)
-        selections = context.user_data.setdefault("publication_languages", {})
+
+        selections = context.user_data.setdefault(
+            "publication_languages", {}
+        )
         selected = selections.setdefault(submission_id, ["fa"])
 
         if language in selected:
@@ -790,6 +820,7 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data.setdefault(
             "publication_languages", {}
         ).pop(submission_id, None)
+
         await query.edit_message_text("انتشار لغو شد.")
         return
 
@@ -801,7 +832,9 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text("❌ ثبت موردنظر پیدا نشد.")
             return
 
-        selections = context.user_data.setdefault("publication_languages", {})
+        selections = context.user_data.setdefault(
+            "publication_languages", {}
+        )
         languages = selections.pop(submission_id, ["fa"])
 
         if not languages:
@@ -823,12 +856,15 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ok, detail = await publish_submission(
                     context, submission, language
                 )
-                successful += int(ok)
+                if ok:
+                    successful += 1
                 report.append(
                     f"✅ {LANG_NAMES[language]} ({channel}): {detail}"
                 )
             except Exception as exc:
-                logger.exception("Publication failed for %s", language)
+                logger.exception(
+                    "انتشار در کانال %s ناموفق بود", channel
+                )
                 record_publication(
                     submission_id,
                     language,
@@ -855,43 +891,60 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ),
         )
 
-        try:
-            await context.bot.send_message(
-                chat_id=submission["user_id"],
-                text=(
-                    "✅ ثبت شما منتشر شد."
-                    if successful
-                    else "⚠️ انتشار انجام نشد؛ ثبت شما برای بررسی مجدد محفوظ است."
-                ),
-            )
-        except Exception:
-            pass
+        user = get_user(submission["user_id"]) or {}
+        language = user.get("language", "fa")
+        published_text = {
+            "fa": "✅ ثبت شما منتشر شد.",
+            "en": "✅ Your submission has been published.",
+            "az": "✅ Məlumatınız yayımlandı.",
+            "tr": "✅ Gönderiniz yayımlandı.",
+            "ar": "✅ تم نشر تسجيلك.",
+        }
 
+        try:
+            if successful:
+                await context.bot.send_message(
+                    submission["user_id"], published_text[language]
+                )
+        except Exception:
+            logger.exception("اعلان انتشار برای کاربر ارسال نشد")
 
 # ==================== USER MESSAGES ====================
 
 LANGUAGE_CHANGE_BUTTONS = {
-    "🌐 تغییر زبان", "🌐 Change Language", "🌐 Dil dəyişdir",
-    "🌐 Dil Değiştir", "🌐 تغيير اللغة",
+    "🌐 تغییر زبان",
+    "🌐 Change Language",
+    "🌐 Dil dəyişdir",
+    "🌐 Dil Değiştir",
+    "🌐 تغيير اللغة",
 }
 
 SUPPORT_BUTTONS = {
-    "🆘 پشتیبانی", "🆘 Support", "🆘 Dəstək",
-    "🆘 Destek", "🆘 الدعم",
+    "🆘 پشتیبانی",
+    "🆘 Support",
+    "🆘 Dəstək",
+    "🆘 Destek",
+    "🆘 الدعم",
 }
 
 MY_LISTINGS_BUTTONS = {
-    "📋 آگهی‌های من", "📋 My Listings", "📋 Elanlarım",
-    "📋 İlanlarım", "📋 إعلاناتي",
+    "📋 آگهی‌های من",
+    "📋 My Listings",
+    "📋 Elanlarım",
+    "📋 İlanlarım",
+    "📋 إعلاناتي",
 }
 
 MY_REQUESTS_BUTTONS = {
-    "📨 درخواست‌های من", "📨 My Requests", "📨 Sorğularım",
-    "📨 Taleplerim", "📨 طلباتي",
+    "📨 درخواست‌های من",
+    "📨 My Requests",
+    "📨 Sorğularım",
+    "📨 Taleplerim",
+    "📨 طلباتي",
 }
 
 
-async def show_user_submissions(update, user_id, only_requests=False):
+async def show_user_submissions(update, user_id, language, only_requests=False):
     sql = """
         SELECT id, kind, status, created_at
         FROM submissions
@@ -905,15 +958,28 @@ async def show_user_submissions(update, user_id, only_requests=False):
         rows = conn.execute(sql, (user_id,)).fetchall()
 
     if not rows:
-        await update.message.reply_text("هنوز موردی ثبت نکرده‌اید.")
+        messages = {
+            "fa": "هنوز موردی ثبت نکرده‌اید.",
+            "en": "You have not submitted anything yet.",
+            "az": "Hələ heç nə göndərməmisiniz.",
+            "tr": "Henüz bir kayıt oluşturmadınız.",
+            "ar": "لم ترسل أي تسجيل بعد.",
+        }
+        await update.message.reply_text(messages[language])
         return
 
-    lines = ["📋 ثبت‌های شما:\n"]
+    titles = {
+        "fa": "📋 ثبت‌های شما:",
+        "en": "📋 Your submissions:",
+        "az": "📋 Göndərdikləriniz:",
+        "tr": "📋 Kayıtlarınız:",
+        "ar": "📋 تسجيلاتك:",
+    }
+
+    lines = [titles[language], ""]
     for row in rows:
-        lines.append(
-            f"#{row['id']} — {KINDS.get(row['kind'], {}).get('fa', row['kind'])}"
-            f" — {row['status']}"
-        )
+        kind_name = KINDS.get(row["kind"], {}).get(language, row["kind"])
+        lines.append(f"#{row['id']} — {kind_name} — {row['status']}")
 
     await update.message.reply_text("\n".join(lines))
 
@@ -925,10 +991,20 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     text = update.message.text.strip()
 
+    # زبان همیشه قبل از پردازش فرم بررسی می‌شود.
+    # بنابراین انتخاب زبان به‌اشتباه به‌عنوان پاسخ فرم ذخیره نمی‌شود.
     language = parse_language(text)
     if language:
-        context.user_data.pop("form", None)
         await choose_language(update, context, language)
+        return
+
+    # دکمه تغییر زبان نیز قبل از پردازش فرم بررسی می‌شود.
+    # فرم فعال و داده‌های آن حفظ می‌شوند.
+    if text in LANGUAGE_CHANGE_BUTTONS:
+        await update.message.reply_text(
+            language_prompt(),
+            reply_markup=language_keyboard(),
+        )
         return
 
     saved_user = get_user(user.id)
@@ -941,32 +1017,17 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user_language = saved_user["language"]
 
-    if await process_form(update, context):
-        return
-
-    if text in LANGUAGE_CHANGE_BUTTONS:
-        await update.message.reply_text(
-            language_prompt(),
-            reply_markup=language_keyboard(),
-        )
-        return
-
-    kind = detect_kind(text)
-    if kind:
-        await begin_form(update, context, kind, user_language)
-        return
-
-    if text in MY_LISTINGS_BUTTONS:
-        await show_user_submissions(update, user.id)
-        return
-
-    if text in MY_REQUESTS_BUTTONS:
-        await show_user_submissions(update, user.id, only_requests=True)
-        return
-
+    # پشتیبانی باید قبل از فرم بررسی شود.
     if text in SUPPORT_BUTTONS:
         context.user_data["awaiting_support"] = True
-        await update.message.reply_text("پیام خود را برای پشتیبانی ارسال کنید:")
+        prompts = {
+            "fa": "پیام خود را برای پشتیبانی ارسال کنید:",
+            "en": "Please send your support message:",
+            "az": "Dəstək mesajınızı göndərin:",
+            "tr": "Lütfen destek mesajınızı gönderin:",
+            "ar": "يرجى إرسال رسالة الدعم:",
+        }
+        await update.message.reply_text(prompts[user_language])
         return
 
     if context.user_data.get("awaiting_support"):
@@ -981,26 +1042,61 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
             await context.bot.send_message(
                 chat_id=ADMIN_ID,
-                text=(
-                    f"🆘 پیام پشتیبانی\n"
-                    f"کاربر: {user.id}\n\n{text}"
-                ),
+                text=f"🆘 پیام پشتیبانی\nکاربر: {user.id}\n\n{text}",
             )
         except Exception:
-            logger.exception("Support notification failed")
+            logger.exception("ارسال پیام پشتیبانی برای مدیر ناموفق بود")
 
-        await update.message.reply_text("✅ پیام شما برای پشتیبانی ارسال شد.")
+        confirmations = {
+            "fa": "✅ پیام شما برای پشتیبانی ارسال شد.",
+            "en": "✅ Your support message was sent.",
+            "az": "✅ Dəstək mesajınız göndərildi.",
+            "tr": "✅ Destek mesajınız gönderildi.",
+            "ar": "✅ تم إرسال رسالة الدعم.",
+        }
+        await update.message.reply_text(
+            confirmations[user_language],
+            reply_markup=main_keyboard(user_language),
+        )
         return
 
+    # دکمه‌های اصلی قبل از پردازش پاسخ فرم بررسی می‌شوند.
+    kind = detect_kind(text)
+    if kind:
+        await begin_form(update, context, kind, user_language)
+        return
+
+    if text in MY_LISTINGS_BUTTONS:
+        await show_user_submissions(
+            update, user.id, user_language, only_requests=False
+        )
+        return
+
+    if text in MY_REQUESTS_BUTTONS:
+        await show_user_submissions(
+            update, user.id, user_language, only_requests=True
+        )
+        return
+
+    # فقط متن‌هایی که دکمه فرمانی نیستند به‌عنوان پاسخ فرم ثبت می‌شوند.
+    if await process_form(update, context):
+        return
+
+    error_messages = {
+        "fa": "لطفاً از گزینه‌های منو استفاده کنید.",
+        "en": "Please use the menu buttons.",
+        "az": "Zəhmət olmasa, menyu düymələrindən istifadə edin.",
+        "tr": "Lütfen menü düğmelerini kullanın.",
+        "ar": "يرجى استخدام أزرار القائمة.",
+    }
     await update.message.reply_text(
-        "لطفاً از گزینه‌های منو استفاده کنید.",
+        error_messages[user_language],
         reply_markup=main_keyboard(user_language),
     )
 
-
 # ==================== ADMIN COMMAND ====================
 
-async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def admin_command(update, context):
     if update.effective_user.id != ADMIN_ID:
         await update.message.reply_text("⛔ دسترسی ندارید.")
         return
@@ -1019,32 +1115,32 @@ async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"📊 کل ثبت‌ها: {total}"
     )
 
-
-# ==================== RENDER HEALTH SERVER ====================
+# ==================== HEALTH SERVER ====================
 
 web_app = Flask(__name__)
 
 
 @web_app.get("/")
-def health():
+def home():
     return "Tehran Real Estate Bot is running.", 200
 
 
 @web_app.get("/health")
-def health_check():
+def health():
     return {"status": "ok"}, 200
 
 
 def run_web():
-    port = int(os.getenv("PORT", "10000"))
-    web_app.run(host="0.0.0.0", port=port)
-
+    web_app.run(
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", "10000")),
+    )
 
 # ==================== MAIN ====================
 
 def main():
     if not BOT_TOKEN:
-        raise RuntimeError("BOT_TOKEN تنظیم نشده است.")
+        raise RuntimeError("متغیر BOT_TOKEN تنظیم نشده است.")
 
     init_db()
     Thread(target=run_web, daemon=True).start()
@@ -1053,6 +1149,7 @@ def main():
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("admin", admin_command))
+
     application.add_handler(
         CallbackQueryHandler(
             admin_callback,
@@ -1064,6 +1161,7 @@ def main():
             ),
         )
     )
+
     application.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text)
     )
