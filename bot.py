@@ -504,14 +504,19 @@ def detect_kind(text):
     return mapping.get(text)
 
 
-RENT_CATEGORY_BUTTONS = {
-    "اداری", "مسکونی", "صنعتی", "تجاری",
-    "Office", "Residential", "Industrial", "Commercial",
-    "Ofis", "Yaşayış", "Sənaye", "Kommersiya",
-    "Ofis", "Konut", "Sanayi", "Ticari",
-    "مكتبي", "سكني", "صناعي", "تجاري",
-    "办公", "住宅", "工业", "商业",
-    "Офисная", "Жилая", "Промышленная", "Коммерческая",
+RENT_CATEGORY_LABELS = {
+    "fa": {"اداری": "🏢 اداری", "مسکونی": "🏠 مسکونی", "صنعتی": "🏭 صنعتی", "تجاری": "🏬 تجاری"},
+    "en": {"اداری": "🏢 Office", "مسکونی": "🏠 Residential", "صنعتی": "🏭 Industrial", "تجاری": "🏬 Commercial"},
+    "az": {"اداری": "🏢 Ofis", "مسکونی": "🏠 Yaşayış", "صنعتی": "🏭 Sənaye", "تجاری": "🏬 Kommersiya"},
+    "tr": {"اداری": "🏢 Ofis", "مسکونی": "🏠 Konut", "صنعتی": "🏭 Sanayi", "تجاری": "🏬 Ticari"},
+    "ar": {"اداری": "🏢 مكتبي", "مسکونی": "🏠 سكني", "صنعتی": "🏭 صناعي", "تجاری": "🏬 تجاري"},
+    "zh": {"اداری": "🏢 办公", "مسکونی": "🏠 住宅", "صنعتی": "🏭 工业", "تجاری": "🏬 商业"},
+    "ru": {"اداری": "🏢 Офисная", "مسکونی": "🏠 Жилая", "صنعتی": "🏭 Промышленная", "تجاری": "🏬 Коммерческая"},
+}
+RENT_CATEGORY_PROMPTS = {
+    "fa": "نوع آگهی اجاره را انتخاب کنید:", "en": "Choose the rental property category:",
+    "az": "İcarə elanının kateqoriyasını seçin:", "tr": "Kiralık gayrimenkul kategorisini seçin:",
+    "ar": "اختر فئة العقار للإيجار:", "zh": "请选择出租房产类别：", "ru": "Выберите категорию аренды недвижимости:",
 }
 RENT_CATEGORY_MAP = {
     "اداری": "اداری", "مسکونی": "مسکونی", "صنعتی": "صنعتی", "تجاری": "تجاری",
@@ -522,6 +527,10 @@ RENT_CATEGORY_MAP = {
     "办公": "اداری", "住宅": "مسکونی", "工业": "صنعتی", "商业": "تجاری",
     "Офисная": "اداری", "Жилая": "مسکونی", "Промышленная": "صنعتی", "Коммерческая": "تجاری",
 }
+
+def rent_category_options(language):
+    labels = RENT_CATEGORY_LABELS.get(language, RENT_CATEGORY_LABELS["fa"])
+    return [labels[key] for key in ("اداری", "مسکونی", "صنعتی", "تجاری")]
 BACK_BUTTONS = {"⬅️ بازگشت به منوی اصلی", "⬅️ Back to Main Menu", "⬅️ Ana menüyə qayıt", "⬅️ Ana menüye dön", "⬅️ العودة إلى القائمة الرئيسية", "⬅️ 返回主菜单", "⬅️ Вернуться в главное меню"}
 CHOICE_BACK = "⬅️ بازگشت"
 OFFICE_CHOICE_BUTTONS = {"سند اداری", "موقعیت اداری", "آپارتمان", "مستغلات"}
@@ -540,8 +549,8 @@ async def begin_form(update, context, kind, language):
     if kind == "rent_ad":
         context.user_data["rent_menu"] = True
         await update.message.reply_text(
-            "نوع آگهی اجاره را انتخاب کنید:",
-            reply_markup=submenu_keyboard(["🏢 اداری", "🏠 مسکونی", "🏭 صنعتی", "🏬 تجاری"]),
+            RENT_CATEGORY_PROMPTS.get(language, RENT_CATEGORY_PROMPTS["fa"]),
+            reply_markup=submenu_keyboard(rent_category_options(language)),
         )
         context.user_data.pop("form", None)
         return
@@ -734,8 +743,8 @@ async def begin_form(update, context, kind, language):
         context.user_data.pop("form", None)
         context.user_data["rent_menu"] = True
         await update.message.reply_text(
-            "نوع آگهی اجاره را انتخاب کنید:",
-            reply_markup=submenu_keyboard(["🏢 اداری", "🏠 مسکونی", "🏭 صنعتی", "🏬 تجاری"]),
+            RENT_CATEGORY_PROMPTS.get(language, RENT_CATEGORY_PROMPTS["fa"]),
+            reply_markup=submenu_keyboard(rent_category_options(language)),
         )
         return
     if kind == "rent_office_ad":
@@ -1122,7 +1131,10 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if context.user_data.get("rent_menu"):
         category = RENT_CATEGORY_MAP.get(normalize_button_text(text))
         if not category:
-            await update.message.reply_text("لطفاً یکی از گزینه‌های زیرمنوی اجاره را انتخاب کنید.", reply_markup=submenu_keyboard(["🏢 اداری", "🏠 مسکونی", "🏭 صنعتی", "🏬 تجاری"]))
+            await update.message.reply_text(
+                RENT_CATEGORY_PROMPTS.get(user_language, RENT_CATEGORY_PROMPTS["fa"]),
+                reply_markup=submenu_keyboard(rent_category_options(user_language)),
+            )
             return
         context.user_data.pop("rent_menu", None)
         if category == "اداری":
@@ -1130,7 +1142,15 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             # زیرمنو برای هر چهار دسته نمایش داده می‌شود؛ فرم کامل فعلاً برای اداری تعریف شده است.
             await update.message.reply_text(
-                f"بخش «{category}» انتخاب شد؛ فرم اختصاصی این دسته هنوز تعریف نشده است.",
+                {
+                    "fa": f"بخش «{category}» انتخاب شد؛ فرم اختصاصی این دسته هنوز تعریف نشده است.",
+                    "en": f"The {category} category was selected; its dedicated form is not available yet.",
+                    "az": f"{category} kateqoriyası seçildi; bu kateqoriya üçün ayrıca forma hələ hazır deyil.",
+                    "tr": f"{category} kategorisi seçildi; bu kategoriye özel form henüz hazır değil.",
+                    "ar": f"تم اختيار فئة {category}؛ النموذج المخصص لها غير متاح بعد.",
+                    "zh": f"已选择{category}类别；该类别的专用表单尚未开放。",
+                    "ru": f"Выбрана категория «{category}»; специальная форма пока недоступна.",
+                }.get(user_language, f"بخش «{category}» انتخاب شد؛ فرم اختصاصی این دسته هنوز تعریف نشده است."),
                 reply_markup=main_keyboard(user_language),
             )
         return
