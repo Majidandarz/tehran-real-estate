@@ -146,42 +146,42 @@ MENU = {
         ["🔎 Buy Request", "🏘 Rent Request"],
         ["🤝 Broker Cooperation", "🏗 Builder / Project"],
         ["📋 My Listings", "📨 My Requests"],
-        ["🆘 Support", "🌐 Change Language"],
+        ["🆘 Support", "🌐 تغییر زبان"],
     ],
     "az": [
         ["🏠 Satış elanı", "🔑 Kirayə elanı"],
         ["🔎 Alış sorğusu", "🏘 Kirayə sorğusu"],
         ["🤝 Əməkdaşlıq", "🏗 Tikinti layihəsi"],
         ["📋 Elanlarım", "📨 Sorğularım"],
-        ["🆘 Dəstək", "🌐 Dil dəyişdir"],
+        ["🆘 Dəstək", "🌐 تغییر زبان"],
     ],
     "tr": [
         ["🏠 Satılık İlan", "🔑 Kiralık İlan"],
         ["🔎 Satın Alma Talebi", "🏘 Kiralama Talebi"],
         ["🤝 Danışman İş Birliği", "🏗 İnşaat Projesi"],
         ["📋 İlanlarım", "📨 Taleplerim"],
-        ["🆘 Destek", "🌐 Dil Değiştir"],
+        ["🆘 Destek", "🌐 تغییر زبان"],
     ],
     "ar": [
         ["🏠 إعلان بيع", "🔑 إعلان إيجار"],
         ["🔎 طلب شراء", "🏘 طلب إيجار"],
         ["🤝 تعاون الوسطاء", "🏗 مشروع بناء"],
         ["📋 إعلاناتي", "📨 طلباتي"],
-        ["🆘 الدعم", "🌐 تغيير اللغة"],
+        ["🆘 الدعم", "🌐 تغییر زبان"],
     ],
     "zh": [
         ["🏠 发布出售房源", "🔑 发布出租房源"],
         ["🔎 求购房产", "🏘 求租房产"],
         ["🤝 经纪人合作", "🏗 开发商与项目"],
         ["📋 我的房源", "📨 我的需求"],
-        ["🆘 客服支持", "🌐 更改语言"],
+        ["🆘 客服支持", "🌐 تغییر زبان"],
     ],
     "ru": [
         ["🏠 Продать недвижимость", "🔑 Сдать в аренду"],
         ["🔎 Запрос на покупку", "🏘 Запрос на аренду"],
         ["🤝 Сотрудничество брокеров", "🏗 Застройщик / Проект"],
         ["📋 Мои объявления", "📨 Мои запросы"],
-        ["🆘 Поддержка", "🌐 Сменить язык"],
+        ["🆘 Поддержка", "🌐 تغییر زبان"],
     ],
 }
 
@@ -200,6 +200,7 @@ FIELD_LABELS = {
 KINDS = {
     "sell_ad": {"fa": "آگهی فروش", "en": "Property for sale", "az": "Satış elanı", "tr": "Satılık gayrimenkul", "ar": "عقار للبيع", "zh": "出售房产", "ru": "Продажа недвижимости"},
     "rent_ad": {"fa": "آگهی اجاره", "en": "Property for rent", "az": "Kirayə elanı", "tr": "Kiralık gayrimenkul", "ar": "عقار للإيجار", "zh": "出租房产", "ru": "Аренда недвижимости"},
+    "rent_apartment_ad": {"fa": "آگهی اجاره آپارتمان", "en": "Apartment for rent", "az": "Kirayə mənzil elanı", "tr": "Kiralık daire ilanı", "ar": "إعلان شقة للإيجار", "zh": "公寓出租信息", "ru": "Объявление об аренде квартиры"},
     "rent_office_ad": {"fa": "آگهی اجاره اداری", "en": "Office property for rent", "az": "İcarəyə verilən ofis", "tr": "Kiralık ofis", "ar": "مكتب للإيجار", "zh": "出租办公房产", "ru": "Аренда офисной недвижимости"},
     "buy_req": {"fa": "درخواست خرید", "en": "Property purchase request", "az": "Alış sorğusu", "tr": "Satın alma talebi", "ar": "طلب شراء عقار", "zh": "求购房产", "ru": "Запрос на покупку"},
     "rent_req": {"fa": "درخواست اجاره", "en": "Rental request", "az": "Kirayə sorğusu", "tr": "Kiralama talebi", "ar": "طلب استئجار عقار", "zh": "求租房产", "ru": "Запрос на аренду"},
@@ -333,10 +334,28 @@ def translate_sync(text, target, source=None):
     return response.json()["data"]["translations"][0]["translatedText"]
 
 
+_TRANSLATION_CACHE = {}
+
 async def translate(text, target, source=None):
     if not text or target == source:
         return text
-    return await asyncio.to_thread(translate_sync, text, target, source)
+    cache_key = (str(text), target, source or "")
+    if cache_key in _TRANSLATION_CACHE:
+        return _TRANSLATION_CACHE[cache_key]
+    result = await asyncio.to_thread(translate_sync, text, target, source)
+    _TRANSLATION_CACHE[cache_key] = result
+    return result
+
+
+async def localized(text, language):
+    """Translate UI copy to the selected language, with safe fallback if translation is unavailable."""
+    if language == "fa":
+        return text
+    try:
+        return await translate(text, language, "fa")
+    except Exception:
+        logger.exception("UI translation failed for language %s", language)
+        return text
 
 
 async def translate_submission_data(data, source, target):
@@ -367,11 +386,11 @@ def normalize_button_text(value):
 
 
 def with_language_button(rows, language="fa"):
-    """Add a language-change control in the currently selected language."""
+    """Keep a language-change control on every user keyboard, in the selected language."""
     result = [list(row) for row in rows]
-    aliases = {normalize_button_text(label) for label in LANGUAGE_BUTTONS.values()}
+    aliases = {normalize_button_text(x) for x in LANGUAGE_BUTTONS.values()}
     for row in result:
-        row[:] = [item for item in row if normalize_button_text(str(item)) not in aliases]
+        row[:] = [item for item in row if normalize_button_text(str(item).replace("🌐 ", "")) not in aliases]
     result.append([LANGUAGE_BUTTONS.get(language, LANGUAGE_BUTTONS["fa"])])
     return result
 
@@ -386,14 +405,15 @@ def main_keyboard(language):
     return ReplyKeyboardMarkup(rows, resize_keyboard=True, is_persistent=True)
 
 
+BACK_LABELS = {
+    "fa": "⬅️ بازگشت به منوی اصلی", "en": "⬅️ Back to Main Menu",
+    "az": "⬅️ Əsas menyuya qayıt", "tr": "⬅️ Ana menüye dön",
+    "ar": "⬅️ العودة إلى القائمة الرئيسية", "zh": "⬅️ 返回主菜单", "ru": "⬅️ Вернуться в главное меню",
+}
+
 def submenu_keyboard(options, back_label=None, language="fa"):
-    back_labels = {
-        "fa": "⬅️ بازگشت به منوی اصلی", "en": "⬅️ Back to Main Menu",
-        "az": "⬅️ Ana menyuya qayıt", "tr": "⬅️ Ana menüye dön",
-        "ar": "⬅️ العودة إلى القائمة الرئيسية", "zh": "⬅️ 返回主菜单", "ru": "⬅️ Вернуться в главное меню",
-    }
     rows = [[option] for option in options]
-    rows.append([back_label or back_labels.get(language, back_labels["fa"])])
+    rows.append([back_label or BACK_LABELS.get(language, BACK_LABELS["fa"])])
     rows = with_language_button(rows, language)
     return ReplyKeyboardMarkup(rows, resize_keyboard=True, is_persistent=True)
 
@@ -468,7 +488,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.pop("form", None)
     context.user_data.pop("awaiting_support", None)
     context.user_data.pop("rent_menu", None)
-    context.user_data["language_picker_active"] = True
+    context.user_data.pop("rent_property_menu", None)
     await update.message.reply_text(language_prompt(), reply_markup=language_keyboard())
 
 
@@ -476,28 +496,42 @@ async def choose_language(update, context, language):
     user = update.effective_user
     if not user or not update.message:
         return
+    # Preserve the current workflow when the user changes language mid-process.
+    active_form = context.user_data.get("form")
+    if active_form:
+        active_form["language"] = language
     save_user(user, language)
-    context.user_data["language_picker_active"] = False
-    form = context.user_data.get("form")
-    if form:
-        form["language"] = language
-        if form.get("mode") == "office_rent":
-            await ask_office_step(update.message, context)
-        else:
-            index = form.get("step", 0)
-            if 0 <= index < len(FIELDS):
-                field = FIELDS[index]
-                await update.message.reply_text(f"📝 {FIELD_LABELS[language][field]}:", reply_markup=main_keyboard(language))
+    if active_form and active_form.get("mode") in {"office_rent", "apartment_rent"}:
+        await update.message.reply_text(WELCOME[language], reply_markup=main_keyboard(language))
+        if active_form.get("mode") == "apartment_rent":
+            if active_form.get("awaiting_images"):
+                await update.message.reply_text(await localized("حداقل ۴ عکس ارسال کنید؛ سپس «📷 پایان تصاویر» را بفرستید.", language), reply_markup=form_keyboard([[await localized("📷 پایان تصاویر", language)], [await localized("❌ لغو ثبت", language)]], language))
+            elif active_form.get("awaiting_agent_name"):
+                await update.message.reply_text(await localized("نام و نام خانوادگی مشاور را وارد کنید (فقط برای مدیر اصلی):", language))
+            elif active_form.get("awaiting_agency_name"):
+                await update.message.reply_text(await localized("نام دفتر املاک را وارد کنید (فقط برای مدیر اصلی):", language))
+            elif active_form.get("dynamic_parking_count"):
+                await update.message.reply_text(await localized("تعداد جای پارک را فقط با عدد وارد کنید:", language))
             else:
-                context.user_data.pop("form", None)
-                await update.message.reply_text(WELCOME[language], reply_markup=main_keyboard(language))
+                await ask_apartment_step(update.message, context)
+        else:
+            await ask_office_step(update.message, context)
+        return
+    if active_form:
+        await update.message.reply_text(WELCOME[language], reply_markup=main_keyboard(language))
+        step = active_form.get("step", 0)
+        if 0 <= step < len(FIELDS):
+            await update.message.reply_text(f"📝 {FIELD_LABELS[language][FIELDS[step]]}:", reply_markup=main_keyboard(language))
         return
     if context.user_data.get("rent_menu"):
-        await update.message.reply_text(RENT_CATEGORY_PROMPTS[language], reply_markup=submenu_keyboard(rent_category_options(language), language=language))
+        await update.message.reply_text(WELCOME[language] + "\n\n" + RENT_CATEGORY_PROMPTS.get(language, RENT_CATEGORY_PROMPTS["fa"]), reply_markup=submenu_keyboard(rent_category_options(language), language=language))
+        return
+    if context.user_data.get("rent_property_menu"):
+        labels = {"fa": ["🏢 آپارتمان", "🏡 ویلا", "🏠 خانه مستقل"], "en": ["🏢 Apartment", "🏡 Villa", "🏠 Detached house"], "az": ["🏢 Mənzil", "🏡 Villa", "🏠 Müstəqil ev"], "tr": ["🏢 Daire", "🏡 Villa", "🏠 Müstakil ev"], "ar": ["🏢 شقة", "🏡 فيلا", "🏠 منزل مستقل"], "zh": ["🏢 公寓", "🏡 别墅", "🏠 独立住宅"], "ru": ["🏢 Квартира", "🏡 Вилла", "🏠 Отдельный дом"]}.get(language, ["🏢 آپارتمان", "🏡 ویلا", "🏠 خانه مستقل"])
+        await update.message.reply_text(await localized("نوع ملک مسکونی را انتخاب کنید:", language), reply_markup=submenu_keyboard(labels, language=language))
         return
     if context.user_data.get("awaiting_support"):
-        prompts = {"fa":"پیام خود را برای پشتیبانی ارسال کنید:","en":"Send your message to support:","az":"Dəstəyə mesajınızı göndərin:","tr":"Destek mesajınızı gönderin:","ar":"أرسل رسالتك إلى الدعم:","zh":"请发送您的客服消息：","ru":"Отправьте сообщение в службу поддержки:"}
-        await update.message.reply_text(prompts[language], reply_markup=main_keyboard(language))
+        await update.message.reply_text(WELCOME[language] + "\n\n" + await localized("پیام خود را برای پشتیبانی ارسال کنید:", language), reply_markup=main_keyboard(language))
         return
     await update.message.reply_text(WELCOME[language], reply_markup=main_keyboard(language))
 
@@ -561,12 +595,251 @@ RENT_CATEGORY_MAP = {
 def rent_category_options(language):
     labels = RENT_CATEGORY_LABELS.get(language, RENT_CATEGORY_LABELS["fa"])
     return [labels[key] for key in ("اداری", "مسکونی", "صنعتی", "تجاری")]
-BACK_BUTTONS = {"⬅️ بازگشت به منوی اصلی", "⬅️ Back to Main Menu", "⬅️ Ana menüyə qayıt", "⬅️ Ana menüye dön", "⬅️ العودة إلى القائمة الرئيسية", "⬅️ 返回主菜单", "⬅️ Вернуться в главное меню"}
+BACK_BUTTONS = {"⬅️ بازگشت به منوی اصلی", "⬅️ Back to Main Menu", "⬅️ Əsas menyuya qayıt", "⬅️ Ana menüyə qayıt", "⬅️ Ana menüye dön", "⬅️ العودة إلى القائمة الرئيسية", "⬅️ 返回主菜单", "⬅️ Вернуться в главное меню"}
 CHOICE_BACK = "⬅️ بازگشت"
 OFFICE_CHOICE_BUTTONS = {"سند اداری", "موقعیت اداری", "آپارتمان", "مستغلات"}
 BOOL_BUTTONS = {"دارد", "ندارد"}
 CONTACT_BUTTONS = {"📱 اشتراک‌گذاری شماره تلگرام", "📱 Share Telegram phone number"}
 CANCEL_FORM_BUTTONS = {"❌ لغو ثبت"}
+
+APARTMENT_STEPS = [
+    ("listing_role", "ثبت‌کننده ملک هستید یا مشاور املاک / واسطه؟", ["👤 مالک", "🏢 مشاور املاک / واسطه"]),
+    ("area", "متراژ آپارتمان را فقط با عدد وارد کنید:"),
+    ("rooms", "تعداد اتاق خواب را وارد کنید:"),
+    ("master_rooms", "تعداد اتاق مستر را وارد کنید:"),
+    ("terrace", "آپارتمان تراس دارد؟", ["✅ دارد", "❌ ندارد"]),
+    ("lobby", "ساختمان لابی دارد؟", ["✅ دارد", "❌ ندارد"]),
+    ("caretaker", "ساختمان سرایدار مقیم دارد؟", ["✅ دارد", "❌ ندارد"]),
+    ("elevator", "ساختمان آسانسور دارد؟", ["✅ دارد", "❌ ندارد"]),
+    ("parking", "آپارتمان پارکینگ دارد؟", ["✅ دارد", "❌ ندارد"]),
+    ("shared_pool", "ساختمان امکانات آبی مشترک دارد؟", ["✅ دارد", "❌ ندارد"]),
+    ("roof_garden", "ساختمان روف‌گاردن دارد؟", ["✅ دارد", "❌ ندارد"]),
+    ("floor", "طبقه واحد را وارد کنید (زیرزمین با عدد منفی و همکف با ۰):"),
+    ("construction_year", "سال ساخت را فقط با عدد وارد کنید:"),
+    ("furnished", "وضعیت مبله بودن آپارتمان را انتخاب کنید:", ["مبله", "غیرمبله"]),
+    ("pets", "وضعیت نگهداری حیوان خانگی را انتخاب کنید:", ["مجاز است", "مجاز نیست"]),
+    ("total_units", "تعداد کل واحدهای ساختمان را وارد کنید:"),
+    ("total_floors", "تعداد کل طبقات ساختمان را وارد کنید:"),
+    ("city", "نام شهر را وارد کنید:"),
+    ("municipal_district", "شماره منطقه شهرداری را فقط با عدد وارد کنید:"),
+    ("street", "نام خیابان اصلی را وارد کنید:"),
+    ("alley", "نام کوچه یا خیابان فرعی را وارد کنید (این اطلاعات عمومی نمی‌شود):"),
+    ("building_number", "شماره پلاک ساختمان را وارد کنید (این اطلاعات عمومی نمی‌شود):"),
+    ("unit_number", "شماره واحد را وارد کنید (این اطلاعات عمومی نمی‌شود):"),
+    ("deposit", "مبلغ رهن را به تومان و فقط با عدد وارد کنید:"),
+    ("rent", "مبلغ اجاره ماهانه را به تومان و فقط با عدد وارد کنید:"),
+    ("details", "توضیحات تکمیلی آگهی را وارد کنید:"),
+    ("images_choice", "آیا مایل به ارسال عکس‌های ملک هستید؟", ["بله", "خیر"]),
+    ("contact", "برای تأیید شماره تلفن، دکمه اشتراک‌گذاری شماره تماس خودتان را بزنید."),
+]
+
+APARTMENT_NUMERIC_FIELDS = {"area", "rooms", "master_rooms", "construction_year", "total_units", "total_floors", "municipal_district", "building_number", "unit_number", "deposit", "rent"}
+APARTMENT_BOOL_FIELDS = {"terrace", "lobby", "caretaker", "elevator", "parking", "shared_pool", "roof_garden"}
+
+async def begin_apartment_rent_form(update, context, language):
+    context.user_data["form"] = {"kind": "rent_apartment_ad", "language": language, "step": 0, "data": {}, "mode": "apartment_rent", "images": []}
+    await ask_apartment_step(update.message, context)
+
+async def ask_apartment_step(message, context):
+    form = context.user_data.get("form")
+    if not form or form.get("mode") != "apartment_rent":
+        return
+    key, prompt, *options = APARTMENT_STEPS[form["step"]]
+    language = form["language"]
+    if key == "contact":
+        rows = [[KeyboardButton(await localized("📱 اشتراک‌گذاری شماره تلگرام", language), request_contact=True)], [await localized("❌ لغو ثبت", language)]]
+    elif key == "images_choice":
+        rows = [[await localized("بله", language), await localized("خیر", language)], [await localized("❌ لغو ثبت", language)]]
+    elif options:
+        rows = [[await localized(opt, language) for opt in options[0]], [await localized("❌ لغو ثبت", language)]]
+    else:
+        rows = [[await localized("❌ لغو ثبت", language)]]
+    await message.reply_text(await localized(prompt, language), reply_markup=form_keyboard(rows, language))
+
+async def apartment_next(message, context):
+    form = context.user_data.get("form")
+    if form and form["step"] < len(APARTMENT_STEPS):
+        await ask_apartment_step(message, context)
+
+async def process_apartment_rent(update, context):
+    form = context.user_data.get("form")
+    if not form or form.get("mode") != "apartment_rent":
+        return False
+    message = update.message
+    if not message:
+        return False
+    language = form["language"]
+    text = (message.text or "").strip()
+    cancel = normalize_button_text(await localized("❌ لغو ثبت", language))
+    if normalize_button_text(text) in {normalize_button_text(x) for x in CANCEL_FORM_BUTTONS} | {cancel}:
+        context.user_data.pop("form", None)
+        await message.reply_text(await localized("ثبت آگهی لغو شد.", language), reply_markup=main_keyboard(language))
+        return True
+
+    # Branches that temporarily collect information without advancing the main step.
+    if form.get("awaiting_agent_name"):
+        if not text:
+            await message.reply_text(await localized("نام و نام خانوادگی مشاور را وارد کنید.", language)); return True
+        form["data"]["agent_name"] = text
+        form["awaiting_agent_name"] = False
+        form["awaiting_agency_name"] = True
+        await message.reply_text(await localized("نام دفتر املاک را وارد کنید (فقط برای مدیر اصلی):", language), reply_markup=form_keyboard([[await localized("❌ لغو ثبت", language)]], language))
+        return True
+    if form.get("awaiting_agency_name"):
+        if not text:
+            await message.reply_text(await localized("نام دفتر املاک را وارد کنید.", language)); return True
+        form["data"]["agency_name"] = text
+        form["awaiting_agency_name"] = False
+        form["step"] += 1
+        await ask_apartment_step(message, context)
+        return True
+    if form.get("dynamic_parking_count"):
+        normalized = text.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
+        if not normalized.isdigit():
+            await message.reply_text(await localized("تعداد جای پارک باید فقط عدد باشد.", language)); return True
+        form["data"]["parking_spaces"] = normalized
+        form["dynamic_parking_count"] = False
+        await ask_apartment_step(message, context)
+        return True
+    if form.get("awaiting_images"):
+        if message.photo:
+            form["images"].append(message.photo[-1].file_id)
+            form["data"]["images"] = list(form["images"])
+            await message.reply_text(await localized(f"تصویر دریافت شد. تعداد فعلی: {len(form['images'])}؛ حداقل ۴ تصویر لازم است.", language), reply_markup=form_keyboard([[await localized("📷 پایان تصاویر", language)], [await localized("❌ لغو ثبت", language)]], language))
+            return True
+        if normalize_button_text(text) in {"پایان تصاویر", normalize_button_text(await localized("📷 پایان تصاویر", language))}:
+            if len(form["images"]) < 4:
+                await message.reply_text(await localized(f"حداقل ۴ تصویر لازم است؛ تاکنون {len(form['images'])} تصویر ارسال کرده‌اید.", language)); return True
+            form["awaiting_images"] = False
+            form["step"] = next(i for i, step in enumerate(APARTMENT_STEPS) if step[0] == "contact")
+            await ask_apartment_step(message, context)
+            return True
+        await message.reply_text(await localized("عکس ارسال کنید یا پس از حداقل ۴ عکس، پایان تصاویر را بفرستید.", language))
+        return True
+
+    key = APARTMENT_STEPS[form["step"]][0]
+    if message.contact:
+        if key != "contact":
+            await message.reply_text(await localized("لطفاً در مرحله درخواست‌شده پاسخ دهید.", language)); return True
+        if message.contact.user_id and message.contact.user_id != update.effective_user.id:
+            await message.reply_text(await localized("فقط شماره تماس متعلق به حساب تلگرام خودتان قابل قبول است.", language)); return True
+        phone = (message.contact.phone_number or "").strip()
+        with connect_db() as conn:
+            rows = conn.execute("SELECT user_id, data FROM submissions WHERE kind='rent_apartment_ad'").fetchall()
+        for row in rows:
+            try: saved = json.loads(row["data"])
+            except Exception: continue
+            if saved.get("contact") == phone and row["user_id"] != update.effective_user.id:
+                await message.reply_text(await localized("این شماره قبلاً برای حساب دیگری استفاده شده است؛ ثبت آگهی با این شماره ممکن نیست.", language)); return True
+        form["data"]["contact"] = phone
+        form["data"]["telegram_user_id"] = update.effective_user.id
+        form["data"]["telegram_username"] = update.effective_user.username or ""
+        await finish_apartment_rent(update, context)
+        return True
+
+    if key == "contact":
+        await message.reply_text(await localized("برای ادامه، شماره تماس خودتان را با دکمه اشتراک‌گذاری شماره تماس ارسال کنید.", language)); return True
+    if not text:
+        await message.reply_text(await localized("لطفاً پاسخ این مرحله را ارسال کنید.", language)); return True
+
+    if key == "images_choice":
+        norm = normalize_button_text(text).casefold()
+        yes_values = {normalize_button_text(await localized("بله", language)).casefold(), "بله", "yes", "да", "نعم", "evet", "是", "bəli"}
+        no_values = {normalize_button_text(await localized("خیر", language)).casefold(), "خیر", "no", "нет", "لا", "hayır", "不", "xeyr"}
+        if norm in yes_values:
+            form["data"]["images_submitted"] = "yes"
+            form["data"]["images"] = []
+            form["awaiting_images"] = True
+            await message.reply_text(await localized("حداقل ۴ عکس ارسال کنید؛ سپس «📷 پایان تصاویر» را بفرستید.", language), reply_markup=form_keyboard([[await localized("📷 پایان تصاویر", language)], [await localized("❌ لغو ثبت", language)]], language))
+            return True
+        if norm in no_values:
+            form["data"]["images_submitted"] = "no"
+            form["data"]["images"] = []
+            form["step"] += 1
+            await ask_apartment_step(message, context)
+            return True
+        await message.reply_text(await localized("لطفاً بله یا خیر را انتخاب کنید.", language)); return True
+
+    if key == "listing_role":
+        allowed = APARTMENT_STEPS[form["step"]][2]
+        matched = None
+        for opt in allowed:
+            if normalize_button_text(text) in {normalize_button_text(opt), normalize_button_text(await localized(opt, language))}:
+                matched = opt; break
+        if not matched:
+            await message.reply_text(await localized("لطفاً مالک یا مشاور املاک / واسطه را انتخاب کنید.", language)); return True
+        form["data"][key] = "owner" if "مالک" in matched else "broker"
+        if form["data"][key] == "broker":
+            form["awaiting_agent_name"] = True
+            await message.reply_text(await localized("نام و نام خانوادگی مشاور را وارد کنید (فقط برای مدیر اصلی):", language), reply_markup=form_keyboard([[await localized("❌ لغو ثبت", language)]], language))
+            return True
+        form["data"]["agent_name"] = ""
+        form["data"]["agency_name"] = ""
+        form["step"] += 1
+        await ask_apartment_step(message, context)
+        return True
+
+    if key in APARTMENT_BOOL_FIELDS or key in {"furnished", "pets"}:
+        allowed = APARTMENT_STEPS[form["step"]][2]
+        matched = None
+        for opt in allowed:
+            if normalize_button_text(text) in {normalize_button_text(opt), normalize_button_text(await localized(opt, language))}:
+                matched = opt; break
+        if not matched:
+            await message.reply_text(await localized("لطفاً یکی از گزینه‌های نمایش‌داده‌شده را انتخاب کنید.", language)); return True
+        form["data"][key] = normalize_button_text(matched)
+        form["step"] += 1
+        if key == "parking" and matched.startswith("❌"):
+            form["data"]["parking_spaces"] = "0"
+        elif key == "parking" and matched.startswith("✅"):
+            form["dynamic_parking_count"] = True
+            await message.reply_text(await localized("تعداد جای پارک را فقط با عدد وارد کنید:", language), reply_markup=form_keyboard([[await localized("❌ لغو ثبت", language)]], language))
+            return True
+    elif key in APARTMENT_NUMERIC_FIELDS or key == "floor":
+        normalized = text.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
+        if key == "floor":
+            try: int(normalized)
+            except ValueError:
+                await message.reply_text(await localized("طبقه باید عدد صحیح باشد؛ برای زیرزمین عدد منفی و برای همکف ۰ وارد کنید.", language)); return True
+        elif not normalized.isdigit():
+            await message.reply_text(await localized("ورودی این مرحله باید فقط عدد صحیح و بدون علامت باشد.", language)); return True
+        form["data"][key] = normalized
+        form["step"] += 1
+    else:
+        form["data"][key] = text
+        form["step"] += 1
+
+    if form["step"] >= len(APARTMENT_STEPS):
+        await finish_apartment_rent(update, context)
+    else:
+        await ask_apartment_step(message, context)
+    return True
+
+async def finish_apartment_rent(update, context):
+    form = context.user_data.get("form")
+    if not form:
+        return
+    data = form["data"]
+    # Duplicate-property candidates are flagged for the main admin, not silently rejected.
+    duplicate = False
+    with connect_db() as conn:
+        rows = conn.execute("SELECT id, user_id, data FROM submissions WHERE kind='rent_apartment_ad' AND status IN ('pending','approved','published')").fetchall()
+    for row in rows:
+        try: old = json.loads(row["data"])
+        except Exception: continue
+        if old.get("city", "").casefold() == data.get("city", "").casefold() and old.get("street", "").casefold() == data.get("street", "").casefold() and old.get("area") == data.get("area") and old.get("building_number") == data.get("building_number"):
+            duplicate = True; data["possible_duplicate_of"] = row["id"]; break
+    data["publication_date"] = __import__("datetime").datetime.now().strftime("%Y-%m-%d")
+    data["views"] = 0
+    submission_id = create_submission(update.effective_user.id, form["language"], form["kind"], data)
+    language = form["language"]
+    context.user_data.pop("form", None)
+    await update.message.reply_text(await localized(f"آگهی شما با شناسه {submission_id} ثبت شد و پس از بررسی مدیر اصلی منتشر می‌شود.", language), reply_markup=main_keyboard(language))
+    if duplicate:
+        try: await context.bot.send_message(chat_id=ADMIN_ID, text=f"⚠️ احتمال آگهی تکراری: #{submission_id} شبیه آگهی #{data['possible_duplicate_of']} است.")
+        except Exception: logger.exception("Could not alert admin about possible duplicate")
+    await send_admin_review(context, submission_id)
+
 
 async def begin_form(update, context, kind, language):
     context.user_data["awaiting_support"] = False
@@ -612,44 +885,6 @@ OFFICE_STEPS = [
     ("contact", "برای ثبت شماره تماس، دکمه اشتراک‌گذاری شماره تلفن را بزنید."),
 ]
 
-OFFICE_I18N = {
- "fa": {
-  "prompts": ["نوع سند/موقعیت اداری را انتخاب کنید:","نوع ملک را انتخاب کنید:","متراژ ملک را فقط با عدد وارد کنید:","تعداد پارکینگ را فقط با عدد وارد کنید:","تعداد اتاق را فقط با عدد وارد کنید:","آسانسور دارد؟","لابی دارد؟","شهر را فقط با حروف وارد کنید:","منطقه شهرداری را فقط با عدد وارد کنید:","نام خیابان را فقط با حروف وارد کنید:","نام کوچه یا خیابان فرعی را وارد کنید (عدد و حروف مجاز است):","شماره پلاک را فقط با عدد وارد کنید:","مبلغ رهن را فقط با عدد وارد کنید:","مبلغ اجاره ماهانه را فقط با عدد وارد کنید:","حداقل ۴ تصویر ملک را ارسال کنید. پس از ارسال ۴ تصویر یا بیشتر، عبارت «📷 پایان تصاویر» را بفرستید.","برای ثبت شماره تماس، دکمه اشتراک‌گذاری شماره تلفن را بزنید."],
-  "options": [["📄 سند اداری","📍 موقعیت اداری"],["🏢 آپارتمان","🏛 مستغلات"],[],[],[],["✅ دارد","❌ ندارد"],["✅ دارد","❌ ندارد"]],
-  "cancel":"❌ لغو ثبت", "finish_images":"📷 پایان تصاویر", "share_contact":"📱 اشتراک‌گذاری شماره تلگرام"
- },
- "en": {
-  "prompts": ["Choose the office document/status:","Choose the property type:","Enter the property area using numbers only:","Enter the number of parking spaces using numbers only:","Enter the number of rooms using numbers only:","Is there an elevator?","Is there a lobby?","Enter the city using letters only:","Enter the municipal district using numbers only:","Enter the street name using letters only:","Enter the alley or side street (letters and numbers are allowed):","Enter the building number using numbers only:","Enter the deposit amount using numbers only:","Enter the monthly rent using numbers only:","Send at least 4 property photos. After sending 4 or more, press ‘📷 Finish Photos’.","To provide your phone number, use the phone-sharing button."],
-  "options": [["📄 Office deed","📍 Office location"],["🏢 Apartment","🏛 Commercial property"],[],[],[],["✅ Yes","❌ No"],["✅ Yes","❌ No"]], "cancel":"❌ Cancel Listing", "finish_images":"📷 Finish Photos", "share_contact":"📱 Share Telegram Phone"
- },
- "az": {
-  "prompts": ["Ofis sənədini/statusunu seçin:","Əmlak növünü seçin:","Sahəni yalnız rəqəmlərlə daxil edin:","Dayanacaq yerlərinin sayını rəqəmlərlə daxil edin:","Otaqların sayını rəqəmlərlə daxil edin:","Lift var?","Lobbi var?","Şəhəri yalnız hərflərlə daxil edin:","Bələdiyyə rayonunu rəqəmlərlə daxil edin:","Küçə adını yalnız hərflərlə daxil edin:","Dalana və ya yan küçəyə adını daxil edin (rəqəm və hərflər olar):","Bina nömrəsini rəqəmlərlə daxil edin:","Depozit məbləğini rəqəmlərlə daxil edin:","Aylıq kirayəni rəqəmlərlə daxil edin:","Ən azı 4 əmlak şəkli göndərin. Sonra ‘📷 Şəkilləri bitir’ düyməsini seçin.","Telefon nömrəsini paylaşmaq üçün telefon paylaşma düyməsini seçin."],
-  "options": [["📄 Ofis sənədi","📍 Ofis yeri"],["🏢 Mənzil","🏛 Kommersiya əmlakı"],[],[],[],["✅ Var","❌ Yoxdur"],["✅ Var","❌ Yoxdur"]], "cancel":"❌ Elanı ləğv et", "finish_images":"📷 Şəkilləri bitir", "share_contact":"📱 Telegram nömrəsini paylaş"
- },
- "tr": {
-  "prompts": ["Ofis belge/durumunu seçin:","Gayrimenkul türünü seçin:","Alanı yalnız rakamlarla girin:","Otopark sayısını yalnız rakamlarla girin:","Oda sayısını yalnız rakamlarla girin:","Asansör var mı?","Lobi var mı?","Şehri yalnız harflerle girin:","Belediye bölgesini rakamlarla girin:","Sokak adını yalnız harflerle girin:","Ara sokak adını girin (harf ve rakam kullanılabilir):","Bina numarasını rakamlarla girin:","Depozito tutarını rakamlarla girin:","Aylık kirayı rakamlarla girin:","En az 4 mülk fotoğrafı gönderin. Ardından ‘📷 Fotoğrafları Bitir’ düğmesine basın.","Telefon numaranızı paylaşmak için telefon paylaşma düğmesini kullanın."],
-  "options": [["📄 Ofis belgesi","📍 Ofis konumu"],["🏢 Daire","🏛 Ticari mülk"],[],[],[],["✅ Var","❌ Yok"],["✅ Var","❌ Yok"]], "cancel":"❌ İlanı iptal et", "finish_images":"📷 Fotoğrafları Bitir", "share_contact":"📱 Telegram telefonunu paylaş"
- },
- "ar": {
-  "prompts": ["اختر مستند المكتب أو حالته:","اختر نوع العقار:","أدخل المساحة بالأرقام فقط:","أدخل عدد مواقف السيارات بالأرقام فقط:","أدخل عدد الغرف بالأرقام فقط:","هل يوجد مصعد؟","هل يوجد بهو؟","أدخل المدينة بالحروف فقط:","أدخل المنطقة البلدية بالأرقام فقط:","أدخل اسم الشارع بالحروف فقط:","أدخل اسم الزقاق أو الشارع الفرعي (الحروف والأرقام مسموحة):","أدخل رقم المبنى بالأرقام فقط:","أدخل مبلغ التأمين بالأرقام فقط:","أدخل الإيجار الشهري بالأرقام فقط:","أرسل 4 صور للعقار على الأقل، ثم اضغط «📷 إنهاء الصور».","لمشاركة رقم الهاتف، استخدم زر مشاركة الهاتف."],
-  "options": [["📄 مستند مكتب","📍 موقع مكتب"],["🏢 شقة","🏛 عقار تجاري"],[],[],[],["✅ نعم","❌ لا"],["✅ نعم","❌ لا"]], "cancel":"❌ إلغاء الإعلان", "finish_images":"📷 إنهاء الصور", "share_contact":"📱 مشاركة رقم تلغرام"
- },
- "zh": {
-  "prompts": ["请选择办公文件/位置类型：","请选择房产类型：","仅输入数字填写面积：","仅输入数字填写停车位数量：","仅输入数字填写房间数量：","是否有电梯？","是否有大堂？","仅使用字母填写城市：","仅输入数字填写市政区域：","仅使用字母填写街道名称：","填写巷道或支路名称（可使用字母和数字）：","仅输入数字填写门牌号：","仅输入数字填写押金金额：","仅输入数字填写月租金额：","请至少发送4张房产照片，然后点击‘📷 完成照片’。","请使用共享电话号码按钮提交联系电话。"],
-  "options": [["📄 办公文件","📍 办公位置"],["🏢 公寓","🏛 商业房产"],[],[],[],["✅ 有","❌ 没有"],["✅ 有","❌ 没有"]], "cancel":"❌ 取消发布", "finish_images":"📷 完成照片", "share_contact":"📱 分享Telegram电话"
- },
- "ru": {
-  "prompts": ["Выберите документ или статус офиса:","Выберите тип недвижимости:","Введите площадь только цифрами:","Введите количество парковочных мест только цифрами:","Введите количество комнат только цифрами:","Есть ли лифт?","Есть ли холл?","Введите город только буквами:","Введите муниципальный район только цифрами:","Введите название улицы только буквами:","Введите название переулка или боковой улицы (буквы и цифры допустимы):","Введите номер здания только цифрами:","Введите сумму залога только цифрами:","Введите ежемесячную арендную плату только цифрами:","Отправьте не менее 4 фотографий объекта, затем нажмите «📷 Завершить фотографии».","Чтобы указать номер телефона, используйте кнопку отправки контакта."],
-  "options": [["📄 Документ офиса","📍 Местоположение офиса"],["🏢 Квартира","🏛 Коммерческая недвижимость"],[],[],[],["✅ Есть","❌ Нет"],["✅ Есть","❌ Нет"]], "cancel":"❌ Отменить объявление", "finish_images":"📷 Завершить фотографии", "share_contact":"📱 Поделиться номером Telegram"
- }
-}
-
-OFFICE_CANONICAL = {
- "office_document_type": {"📄 سند اداری":"سند اداری","📍 موقعیت اداری":"موقعیت اداری"},
- "office_property_type": {"🏢 آپارتمان":"آپارتمان","🏛 مستغلات":"مستغلات"},
- "elevator": {"دارد":"دارد","ندارد":"ندارد"}, "lobby": {"دارد":"دارد","ندارد":"ندارد"}
-}
-
 async def begin_office_rent_form(update, context, language):
     context.user_data["rent_menu"] = False
     context.user_data["form"] = {
@@ -668,19 +903,20 @@ async def ask_office_step(message, context):
     if not form:
         return
     step = form["step"]
-    language = form.get("language", "fa")
-    key = OFFICE_STEPS[step][0]
-    catalog = OFFICE_I18N.get(language, OFFICE_I18N["fa"])
-    prompt = catalog["prompts"][step]
+    key, prompt, *options = OFFICE_STEPS[step]
     if key == "contact":
-        keyboard = form_keyboard([[KeyboardButton(catalog["share_contact"], request_contact=True)], [catalog["cancel"]]], language)
+        keyboard = form_keyboard(
+            [[KeyboardButton(await localized("📱 اشتراک‌گذاری شماره تلگرام", form["language"]), request_contact=True)],
+             [await localized("❌ لغو ثبت", form["language"])]], form["language"]
+        )
     elif key == "images":
-        keyboard = form_keyboard([[catalog["finish_images"]], [catalog["cancel"]]], language)
-    elif key in {"office_document_type", "office_property_type", "elevator", "lobby"}:
-        keyboard = submenu_keyboard(catalog["options"][step], catalog["cancel"], language)
+        keyboard = form_keyboard([[await localized("📷 پایان تصاویر", form["language"])], [await localized("❌ لغو ثبت", form["language"])]], form["language"])
+    elif options:
+        localized_options = [await localized(option, form["language"]) for option in options[0]]
+        keyboard = submenu_keyboard(localized_options, await localized("❌ لغو ثبت", form["language"]), form["language"])
     else:
-        keyboard = form_keyboard([[catalog["cancel"]]], language)
-    await message.reply_text(prompt, reply_markup=keyboard)
+        keyboard = form_keyboard([[await localized("❌ لغو ثبت", form["language"])]], form["language"])
+    await message.reply_text(await localized(prompt, form["language"]), reply_markup=keyboard)
 
 
 def digits_only(value):
@@ -703,16 +939,16 @@ async def process_office_rent(update, context):
     text = (message.text or "").strip()
     language = form["language"]
 
-    catalog = OFFICE_I18N.get(language, OFFICE_I18N["fa"])
-    if text in CANCEL_FORM_BUTTONS or normalize_button_text(text) == normalize_button_text(catalog["cancel"]):
+    cancel_labels = {normalize_button_text(x) for x in CANCEL_FORM_BUTTONS}
+    cancel_labels.add(normalize_button_text(await localized("❌ لغو ثبت", language)))
+    if normalize_button_text(text) in cancel_labels:
         context.user_data.pop("form", None)
-        confirmations = {"fa":"ثبت آگهی لغو شد.","en":"Listing cancelled.","az":"Elan ləğv edildi.","tr":"İlan iptal edildi.","ar":"تم إلغاء الإعلان.","zh":"已取消发布。","ru":"Объявление отменено."}
-        await message.reply_text(confirmations[language], reply_markup=main_keyboard(language))
+        await message.reply_text(await localized("ثبت آگهی لغو شد.", language), reply_markup=main_keyboard(language))
         return True
 
     if message.contact:
         if OFFICE_STEPS[form["step"]][0] != "contact":
-            await message.reply_text({"fa":"لطفاً در مرحله درخواست‌شده پاسخ دهید.","en":"Please respond to the current step.","az":"Zəhmət olmasa cari mərhələyə cavab verin.","tr":"Lütfen mevcut adıma yanıt verin.","ar":"يرجى الرد على الخطوة الحالية.","zh":"请回答当前步骤。","ru":"Пожалуйста, ответьте на текущем этапе."}[language])
+            await message.reply_text(await localized("لطفاً در مرحله درخواست‌شده پاسخ دهید.", language))
             return True
         form["data"]["contact"] = message.contact.phone_number
         form["data"]["telegram_user_id"] = message.contact.user_id or update.effective_user.id
@@ -728,57 +964,52 @@ async def process_office_rent(update, context):
             form["images"].append(file_id)
             form["data"]["images"] = list(form["images"])
             await message.reply_text(
-                {"fa":f"تصویر دریافت شد. تعداد تصاویر: {len(form['images'])}\n" + ("اکنون «📷 پایان تصاویر» را بفرستید یا تصویر بیشتری ارسال کنید." if len(form["images"]) >= 4 else f"حداقل {4-len(form['images'])} تصویر دیگر لازم است."),"en":f"Photo received. Total photos: {len(form['images'])}.\n" + ("Press ‘📷 Finish Photos’ or send more photos." if len(form["images"]) >= 4 else f"Please send {4-len(form['images'])} more photo(s)."),"az":f"Şəkil qəbul edildi. Cəmi: {len(form['images'])}.","tr":f"Fotoğraf alındı. Toplam fotoğraf: {len(form['images'])}.","ar":f"تم استلام الصورة. إجمالي الصور: {len(form['images'])}.","zh":f"已收到照片。照片总数：{len(form['images'])}。","ru":f"Фото получено. Всего фотографий: {len(form['images'])}."}[language],
-                reply_markup=form_keyboard([[catalog["finish_images"]], [catalog["cancel"]]], language),
+                f"تصویر دریافت شد. تعداد تصاویر: {len(form['images'])}\n"
+                + ("اکنون «📷 پایان تصاویر» را بفرستید یا تصویر بیشتری ارسال کنید." if len(form["images"]) >= 4 else f"حداقل {4-len(form['images'])} تصویر دیگر لازم است."),
+                reply_markup=form_keyboard([[await localized("📷 پایان تصاویر", language)], [await localized("❌ لغو ثبت", language)]], language),
             )
             return True
-        if normalize_button_text(text) == normalize_button_text(catalog["finish_images"]) or normalize_button_text(text) == "پایان تصاویر":
+        finish_labels = {"پایان تصاویر", normalize_button_text(await localized("📷 پایان تصاویر", language))}
+        if normalize_button_text(text) in finish_labels:
             if len(form["images"]) < 4:
-                msgs = {"fa":f"حداقل ۴ تصویر لازم است. تاکنون {len(form['images'])} تصویر ارسال کرده‌اید.","en":f"At least 4 photos are required. You have sent {len(form['images'])}.","az":f"Ən azı 4 şəkil lazımdır. İndiyədək {len(form['images'])} şəkil göndərmisiniz.","tr":f"En az 4 fotoğraf gerekli. Şimdiye kadar {len(form['images'])} fotoğraf gönderdiniz.","ar":f"يلزم إرسال 4 صور على الأقل. أرسلت حتى الآن {len(form['images'])} صور.","zh":f"至少需要4张照片。您目前已发送{len(form['images'])}张。","ru":f"Нужно не менее 4 фотографий. Вы отправили {len(form['images'])}."}
-                await message.reply_text(msgs[language])
+                await message.reply_text(await localized(f"حداقل ۴ تصویر لازم است. تاکنون {len(form['images'])} تصویر ارسال کرده‌اید.", language))
                 return True
             form["step"] += 1
             await ask_office_step(message, context)
             return True
-        prompts = {"fa":"لطفاً تصویر ملک ارسال کنید یا پس از ارسال حداقل ۴ تصویر، «📷 پایان تصاویر» را بفرستید.","en":"Please send property photos, then press ‘📷 Finish Photos’ after at least 4 photos.","az":"Zəhmət olmasa əmlak şəkillərini göndərin və ən azı 4 şəkildən sonra ‘📷 Şəkilləri bitir’ seçin.","tr":"Lütfen mülk fotoğraflarını gönderin; en az 4 fotoğraftan sonra ‘📷 Fotoğrafları Bitir’ seçin.","ar":"يرجى إرسال صور العقار ثم اختيار «📷 إنهاء الصور» بعد إرسال 4 صور على الأقل.","zh":"请发送房产照片，至少发送4张后点击‘📷 完成照片’。","ru":"Отправьте фотографии объекта, затем нажмите «📷 Завершить фотографии» после 4 фото."}
-        await message.reply_text(prompts[language])
+        await message.reply_text(await localized("لطفاً تصویر ملک ارسال کنید یا پس از ارسال حداقل ۴ تصویر، «📷 پایان تصاویر» را بفرستید.", language))
         return True
 
     if not text:
-        await message.reply_text({"fa":"لطفاً پاسخ را به‌صورت متن یا با دکمه مناسب ارسال کنید.","en":"Please reply with text or use the appropriate button.","az":"Zəhmət olmasa mətnlə cavab verin və ya uyğun düymədən istifadə edin.","tr":"Lütfen metinle yanıt verin veya uygun düğmeyi kullanın.","ar":"يرجى الرد بالنص أو استخدام الزر المناسب.","zh":"请发送文字回复或使用相应按钮。","ru":"Ответьте текстом или используйте соответствующую кнопку."}[language])
+        await message.reply_text(await localized("لطفاً پاسخ را به‌صورت متن یا با دکمه مناسب ارسال کنید.", language))
         return True
 
     if key in {"office_document_type", "office_property_type", "elevator", "lobby"}:
-        allowed = catalog["options"][form["step"]]
+        allowed = OFFICE_STEPS[form["step"]][2]
         normalized_text = normalize_button_text(text)
-        normalized_allowed = {normalize_button_text(option): option for option in allowed}
-        if normalized_text not in normalized_allowed:
-            await message.reply_text({"fa":"لطفاً یکی از گزینه‌های نمایش‌داده‌شده را انتخاب کنید.","en":"Please choose one of the displayed options.","az":"Zəhmət olmasa göstərilən seçimlərdən birini seçin.","tr":"Lütfen gösterilen seçeneklerden birini seçin.","ar":"يرجى اختيار أحد الخيارات المعروضة.","zh":"请选择显示的选项之一。","ru":"Выберите один из предложенных вариантов."}[language])
+        matched = None
+        for option in allowed:
+            shown = normalize_button_text(await localized(option, language))
+            if normalized_text == shown or normalized_text == normalize_button_text(option):
+                matched = option
+                break
+        if matched is None:
+            await message.reply_text(await localized("لطفاً یکی از گزینه‌های نمایش‌داده‌شده را انتخاب کنید.", language))
             return True
-        selected = normalized_text
-        canonical_map = {
-            "office_document_type": {"Office deed":"سند اداری", "Office location":"موقعیت اداری", "Ofis sənədi":"سند اداری", "Ofis yeri":"موقعیت اداری", "Ofis belgesi":"سند اداری", "Ofis konumu":"موقعیت اداری", "مستند مكتب":"سند اداری", "موقع مكتب":"موقعیت اداری", "办公文件":"سند اداری", "办公位置":"موقعیت اداری", "Документ офиса":"سند اداری", "Местоположение офиса":"موقعیت اداری"},
-            "office_property_type": {"Apartment":"آپارتمان", "Commercial property":"مستغلات", "Mənzil":"آپارتمان", "Kommersiya əmlakı":"مستغلات", "Daire":"آپارتمان", "Ticari mülk":"مستغلات", "شقة":"آپارتمان", "عقار تجاري":"مستغلات", "公寓":"آپارتمان", "商业房产":"مستغلات", "Квартира":"آپارتمان", "Коммерческая недвижимость":"مستغلات"},
-            "elevator": {"Yes":"دارد", "Var":"دارد", "نعم":"دارد", "有":"دارد", "Есть":"دارد", "No":"ندارد", "Yoxdur":"ندارد", "لا":"ندارد", "没有":"ندارد", "Нет":"ندارد"},
-            "lobby": {"Yes":"دارد", "Var":"دارد", "نعم":"دارد", "有":"دارد", "Есть":"دارد", "No":"ندارد", "Yoxdur":"ندارد", "لا":"ندارد", "没有":"ندارد", "Нет":"ندارد"},
-        }
-        value = canonical_map.get(key, {}).get(selected, selected)
-        if key in {"elevator", "lobby"}:
-            value = "دارد" if selected in {"دارد", "Yes", "Var", "نعم", "有", "Есть"} else "ندارد"
-        form["data"][key] = value
+        form["data"][key] = normalize_button_text(matched)
     elif key in {"area", "parking", "rooms", "municipal_district", "plaque", "deposit", "rent"}:
         if not digits_only(text):
-            await message.reply_text({"fa":"ورودی این مرحله باید فقط عدد باشد. لطفاً دوباره وارد کنید.","en":"This field accepts numbers only. Please try again.","az":"Bu sahəyə yalnız rəqəm daxil edin. Yenidən cəhd edin.","tr":"Bu alana yalnız rakam girin. Tekrar deneyin.","ar":"يجب إدخال أرقام فقط في هذه الخانة. حاول مرة أخرى.","zh":"此项只能输入数字，请重试。","ru":"В этом поле допустимы только цифры. Попробуйте снова."}[language])
+            await message.reply_text(await localized("ورودی این مرحله باید فقط عدد باشد. لطفاً دوباره وارد کنید.", language))
             return True
         form["data"][key] = text.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
     elif key in {"city", "street"}:
         if not letters_only(text):
-            await message.reply_text({"fa":"لطفاً فقط حروف وارد کنید؛ از عدد و نشانه استفاده نکنید.","en":"Please use letters only; do not enter numbers or symbols.","az":"Yalnız hərflərdən istifadə edin; rəqəm və işarələr daxil etməyin.","tr":"Lütfen yalnız harf kullanın; rakam veya işaret girmeyin.","ar":"يرجى استخدام الحروف فقط دون أرقام أو رموز.","zh":"请仅输入字母，不要输入数字或符号。","ru":"Используйте только буквы, без цифр и символов."}[language])
+            await message.reply_text(await localized("لطفاً فقط حروف وارد کنید؛ از عدد و نشانه استفاده نکنید.", language))
             return True
         form["data"][key] = text
     elif key == "alley":
         if not any(ch.isalnum() or ch.isalpha() for ch in text):
-            await message.reply_text({"fa":"نام کوچه یا خیابان فرعی را با حروف یا عدد وارد کنید.","en":"Enter the alley or side-street name using letters or numbers.","az":"Dalana və ya yan küçənin adını hərf və ya rəqəmlərlə daxil edin.","tr":"Ara sokak adını harf veya rakamlarla girin.","ar":"أدخل اسم الزقاق أو الشارع الفرعي باستخدام الحروف أو الأرقام.","zh":"请使用字母或数字填写巷道或支路名称。","ru":"Введите название переулка или боковой улицы буквами или цифрами."}[language])
+            await message.reply_text(await localized("نام کوچه یا خیابان فرعی را با حروف یا عدد وارد کنید.", language))
             return True
         form["data"][key] = text
     else:
@@ -844,10 +1075,31 @@ def review_keyboard(submission_id):
     ])
 
 
-async def render_submission(data, kind, language, source_language):
+async def render_submission(data, kind, language, source_language, admin_view=False):
     translated = await translate_submission_data(data, source_language, language)
     lines = [f"🏡 <b>{escape(KINDS.get(kind, KINDS['rent_ad']).get(language, KINDS.get(kind, KINDS['rent_ad'])['fa']))}</b>", ""]
-    if kind == "rent_office_ad":
+    if kind == "rent_apartment_ad" and not admin_view:
+        labels = {"area":"متراژ", "rooms":"تعداد اتاق خواب", "master_rooms":"تعداد اتاق مستر", "terrace":"تراس", "lobby":"لابی", "caretaker":"سرایدار مقیم", "elevator":"آسانسور", "parking":"پارکینگ", "parking_spaces":"تعداد جای پارک", "shared_pool":"امکانات آبی مشترک", "roof_garden":"روف‌گاردن", "floor":"طبقه", "construction_year":"سال ساخت", "furnished":"مبله بودن", "pets":"حیوان خانگی", "total_units":"تعداد واحدهای ساختمان", "total_floors":"تعداد طبقات ساختمان", "city":"شهر", "municipal_district":"منطقه شهرداری", "street":"خیابان اصلی", "deposit":"رهن (تومان)", "rent":"اجاره ماهانه (تومان)", "details":"توضیحات", "listing_role":"نوع ثبت‌کننده", "publication_date":"تاریخ انتشار"}
+        for key, label in labels.items():
+            value = str(data.get(key, "")).strip()
+            if key == "listing_role": value = "مالک" if value == "owner" else "مشاور املاک / واسطه"
+            if value: lines.append(f"<b>{escape(label)}:</b> {escape(value)}")
+        lines.append(f"<b>شناسه آگهی:</b> {submission_id if 'submission_id' in locals() else ''}")
+        lines.append(f"<b>تعداد تصاویر:</b> {len(data.get('images', []))}")
+        return "\n".join(lines)
+    if kind == "rent_apartment_ad":
+        labels = {
+            "listing_role": "نوع ثبت‌کننده", "agent_name": "نام مشاور (فقط مدیر اصلی)", "agency_name": "دفتر املاک (فقط مدیر اصلی)",
+            "area": "متراژ", "rooms": "تعداد اتاق خواب", "master_rooms": "تعداد اتاق مستر", "terrace": "تراس", "lobby": "لابی", "caretaker": "سرایدار مقیم", "elevator": "آسانسور", "parking": "پارکینگ", "parking_spaces": "تعداد جای پارک", "shared_pool": "امکانات آبی مشترک", "roof_garden": "روف‌گاردن", "floor": "طبقه", "construction_year": "سال ساخت", "furnished": "وضعیت مبله", "pets": "حیوان خانگی", "total_units": "تعداد کل واحدها", "total_floors": "تعداد کل طبقات", "city": "شهر", "municipal_district": "منطقه شهرداری", "street": "خیابان اصلی", "alley": "کوچه (فقط مدیر اصلی)", "building_number": "پلاک (فقط مدیر اصلی)", "unit_number": "شماره واحد (فقط مدیر اصلی)", "deposit": "مبلغ رهن (تومان)", "rent": "اجاره ماهانه (تومان)", "details": "توضیحات", "contact": "شماره تماس (فقط مدیر اصلی)", "telegram_user_id": "شناسه تلگرام (فقط مدیر اصلی)", "telegram_username": "نام کاربری تلگرام (فقط مدیر اصلی)", "possible_duplicate_of": "احتمال تکراری بودن با آگهی", "publication_date": "تاریخ ثبت"
+        }
+        for key, label in labels.items():
+            value = str(translated.get(key, "")).strip()
+            if value:
+                lines.append(f"<b>{escape(label)}:</b> {escape(value)}")
+        lines.append(f"<b>تعداد تصاویر:</b> {len(data.get('images', []))}")
+        for index, file_id in enumerate(data.get("images", []), start=1):
+            lines.append(f"<b>شناسه تصویر {index}:</b> <code>{escape(file_id)}</code>")
+    elif kind == "rent_office_ad":
         labels = {
             "office_document_type": "سند/موقعیت اداری",
             "office_property_type": "نوع ملک اداری",
@@ -891,7 +1143,7 @@ async def send_admin_review(context, submission_id):
     source_language = submission["language"]
     for language in CHANNELS:
         try:
-            body = await render_submission(data, submission["kind"], language, source_language)
+            body = await render_submission(data, submission["kind"], language, source_language, admin_view=True)
             header = (
                 f"📥 <b>ثبت جدید #{submission_id}</b>\n"
                 f"👤 {escape(user.get('full_name', ''))}\n"
@@ -914,7 +1166,7 @@ async def send_admin_review(context, submission_id):
                 logger.exception("Could not report admin review failure")
 
     # ارسال تصاویر واقعی ملک برای مدیر، علاوه بر متن بررسی
-    if submission["kind"] == "rent_office_ad":
+    if submission["kind"] in {"rent_office_ad", "rent_apartment_ad"}:
         image_ids = data.get("images", [])
         if image_ids:
             try:
@@ -939,10 +1191,12 @@ async def publish_submission(context, submission, language):
         return True, "قبلاً منتشر شده است."
     data = json.loads(submission["data"])
     message_text = await render_submission(data, submission["kind"], language, submission["language"])
+    if submission["kind"] == "rent_apartment_ad":
+        message_text = message_text.replace("<b>شناسه آگهی:</b> ", f"<b>شناسه آگهی:</b> {submission_id} ")
     message = await context.bot.send_message(
         chat_id=channel, text=message_text, parse_mode="HTML", disable_web_page_preview=True,
     )
-    if submission["kind"] == "rent_office_ad":
+    if submission["kind"] in {"rent_office_ad", "rent_apartment_ad"}:
         image_ids = data.get("images", [])
         if image_ids:
             from telegram import InputMediaPhoto
@@ -1077,7 +1331,8 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ==================== USER MESSAGES ====================
 
 LANGUAGE_CHANGE_BUTTONS = {
-    *LANGUAGE_BUTTONS.values(),
+    "🌐 تغییر زبان", "🌐 Change Language", "🌐 Dil dəyişdir",
+    "🌐 Dil Değiştir", "🌐 تغيير اللغة", "🌐 更改语言", "🌐 Сменить язык",
 }
 SUPPORT_BUTTONS = {
     "🆘 پشتیبانی", "🆘 Support", "🆘 Dəstək", "🆘 Destek",
@@ -1100,13 +1355,19 @@ async def show_user_submissions(update, user_id, only_requests=False):
     sql += " ORDER BY id DESC LIMIT 20"
     with connect_db() as conn:
         rows = conn.execute(sql, (user_id,)).fetchall()
+    saved_user = get_user(user_id)
+    language = saved_user["language"] if saved_user else "fa"
     if not rows:
-        await update.message.reply_text("هنوز موردی ثبت نکرده‌اید.")
+        await update.message.reply_text(await localized("هنوز موردی ثبت نکرده‌اید.", language), reply_markup=main_keyboard(language))
         return
-    lines = ["📋 ثبت‌های شما:\n"]
+    heading = await localized("📋 ثبت‌های شما:", language)
+    lines = [heading + "\n"]
+    status_labels = {"pending": "در انتظار بررسی", "approved": "تأیید شده", "rejected": "رد شده", "published": "منتشر شده"}
     for row in rows:
-        lines.append(f"#{row['id']} — {KINDS.get(row['kind'], {}).get('fa', row['kind'])} — {row['status']}")
-    await update.message.reply_text("\n".join(lines))
+        kind_label = KINDS.get(row["kind"], {}).get(language, KINDS.get(row["kind"], {}).get("fa", row["kind"]))
+        status_label = await localized(status_labels.get(row["status"], row["status"]), language)
+        lines.append(f"#{row['id']} — {kind_label} — {status_label}")
+    await update.message.reply_text("\n".join(lines), reply_markup=main_keyboard(language))
 
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1118,9 +1379,12 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not update.message.text:
         # Keep existing media/contact handling for the office-rent form.
-        if context.user_data.get("form", {}).get("mode") == "office_rent":
+        if context.user_data.get("form", {}).get("mode") in {"office_rent", "apartment_rent"}:
             if update.message.contact or update.message.photo:
-                if await process_office_rent(update, context):
+                if context.user_data.get("form", {}).get("mode") == "apartment_rent":
+                    if await process_apartment_rent(update, context):
+                        return
+                elif await process_office_rent(update, context):
                     return
         return
 
@@ -1128,19 +1392,21 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # The language-change control must work from the main menu, every submenu,
     # and every step of an active form.
-    language_change_labels = {normalize_button_text(label) for label in LANGUAGE_BUTTONS.values()}
-    if text in LANGUAGE_CHANGE_BUTTONS or normalize_button_text(text) in language_change_labels:
-        context.user_data["language_picker_active"] = True
+    if text in LANGUAGE_CHANGE_BUTTONS or normalize_button_text(text.replace("🌐 ", "")) in {normalize_button_text(v.replace("🌐 ", "")) for v in LANGUAGE_BUTTONS.values()}:
         await update.message.reply_text(language_prompt(), reply_markup=language_keyboard())
         return
 
-    # A language label is treated as a selection only while the picker is active.
-    language = parse_language(text) if context.user_data.get("language_picker_active") or not get_user(user.id) else None
+    # Handle language selection before any active form can consume the text.
+    # This prevents a stale office-rent form from intercepting language buttons.
+    language = parse_language(text)
     if language:
         await choose_language(update, context, language)
         return
 
     # Continue the existing office-rent flow for ordinary text messages.
+    if context.user_data.get("form", {}).get("mode") == "apartment_rent":
+        if await process_apartment_rent(update, context):
+            return
     if context.user_data.get("form", {}).get("mode") == "office_rent":
         if await process_office_rent(update, context):
             return
@@ -1151,12 +1417,19 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     user_language = saved_user["language"]
 
-    if text in BACK_BUTTONS or normalize_button_text(text) in {"Back to Main Menu", "Ana menyuya qayıt", "Ana menüye dön", "العودة إلى القائمة الرئيسية", "返回主菜单", "Вернуться в главное меню"}:
+    if text in BACK_BUTTONS:
         context.user_data.pop("form", None)
         context.user_data.pop("rent_menu", None)
+        context.user_data.pop("rent_property_menu", None)
         context.user_data.pop("awaiting_support", None)
-        back_messages = {"fa":"به منوی اصلی بازگشتید.","en":"Returned to the main menu.","az":"Əsas menyuya qayıtdınız.","tr":"Ana menüye döndünüz.","ar":"تمت العودة إلى القائمة الرئيسية.","zh":"已返回主菜单。","ru":"Вы вернулись в главное меню."}
-        await update.message.reply_text(back_messages[user_language], reply_markup=main_keyboard(user_language))
+        await update.message.reply_text(await localized("به منوی اصلی بازگشتید.", user_language), reply_markup=main_keyboard(user_language))
+        return
+
+    if text in LANGUAGE_CHANGE_BUTTONS:
+        context.user_data.pop("form", None)
+        context.user_data.pop("awaiting_support", None)
+        context.user_data.pop("rent_menu", None)
+        await update.message.reply_text(language_prompt(), reply_markup=language_keyboard())
         return
 
     if text in MY_LISTINGS_BUTTONS:
@@ -1174,7 +1447,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if text in SUPPORT_BUTTONS:
         context.user_data.pop("form", None)
         context.user_data["awaiting_support"] = True
-        await update.message.reply_text("پیام خود را برای پشتیبانی ارسال کنید:", reply_markup=main_keyboard(user_language))
+        await update.message.reply_text(await localized("پیام خود را برای پشتیبانی ارسال کنید:", user_language), reply_markup=main_keyboard(user_language))
         return
 
     if context.user_data.get("awaiting_support"):
@@ -1202,25 +1475,37 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not category:
             await update.message.reply_text(
                 RENT_CATEGORY_PROMPTS.get(user_language, RENT_CATEGORY_PROMPTS["fa"]),
-                reply_markup=submenu_keyboard(rent_category_options(user_language), language=user_language),
+                reply_markup=submenu_keyboard(rent_category_options(user_language)),
             )
             return
         context.user_data.pop("rent_menu", None)
         if category == "اداری":
             await begin_office_rent_form(update, context, user_language)
+        elif category == "مسکونی":
+            context.user_data["rent_property_menu"] = True
+            labels = {
+                "fa": ["🏢 آپارتمان", "🏡 ویلا", "🏠 خانه مستقل"],
+                "en": ["🏢 Apartment", "🏡 Villa", "🏠 Detached house"],
+                "az": ["🏢 Mənzil", "🏡 Villa", "🏠 Müstəqil ev"],
+                "tr": ["🏢 Daire", "🏡 Villa", "🏠 Müstakil ev"],
+                "ar": ["🏢 شقة", "🏡 فيلا", "🏠 منزل مستقل"],
+                "zh": ["🏢 公寓", "🏡 别墅", "🏠 独立住宅"],
+                "ru": ["🏢 Квартира", "🏡 Вилла", "🏠 Отдельный дом"],
+            }.get(user_language, ["🏢 آپارتمان", "🏡 ویلا", "🏠 خانه مستقل"])
+            await update.message.reply_text(await localized("نوع ملک مسکونی را انتخاب کنید:", user_language), reply_markup=submenu_keyboard(labels, language=user_language))
         else:
-            category_label = RENT_CATEGORY_LABELS[user_language][category]
-            category_label = normalize_button_text(category_label)
-            messages = {
-                "fa": f"بخش «{category_label}» انتخاب شد؛ فرم اختصاصی این دسته هنوز تعریف نشده است.",
-                "en": f"The {category_label} category was selected; its dedicated form is not available yet.",
-                "az": f"{category_label} kateqoriyası seçildi; bu kateqoriya üçün ayrıca forma hələ hazır deyil.",
-                "tr": f"{category_label} kategorisi seçildi; bu kategoriye özel form henüz hazır değil.",
-                "ar": f"تم اختيار فئة {category_label}؛ النموذج المخصص لها غير متاح بعد.",
-                "zh": f"已选择{category_label}类别；该类别的专用表单尚未开放。",
-                "ru": f"Выбрана категория «{category_label}»; специальная форма пока недоступна.",
-            }
-            await update.message.reply_text(messages[user_language], reply_markup=main_keyboard(user_language))
+            await update.message.reply_text(await localized("فرم این دسته هنوز آماده نیست.", user_language), reply_markup=main_keyboard(user_language))
+        return
+
+    if context.user_data.get("rent_property_menu"):
+        normalized = normalize_button_text(text)
+        if normalized in {normalize_button_text(await localized(x, user_language)) for x in ("🏢 آپارتمان", "🏢 Apartment", "🏢 Mənzil", "🏢 Daire", "🏢 شقة", "🏢 公寓", "🏢 Квартира")} or any(word in normalized.casefold() for word in ("apartment", "mənzil", "daire", "شقة", "公寓", "квартира", "آپارتمان")):
+            context.user_data.pop("rent_property_menu", None)
+            await begin_apartment_rent_form(update, context, user_language)
+        else:
+            context.user_data.pop("rent_property_menu", None)
+            await update.message.reply_text(await localized("فرم اختصاصی ویلا و خانه مستقل هنوز آماده نیست. برای ادامه، گزینه آپارتمان را انتخاب کنید.", user_language), reply_markup=submenu_keyboard(["🏢 آپارتمان", "🏡 ویلا", "🏠 خانه مستقل"], language=user_language))
+            context.user_data["rent_property_menu"] = True
         return
 
     kind = detect_kind(text)
@@ -1231,7 +1516,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if await process_standard_form(update, context):
         return
 
-    await update.message.reply_text("لطفاً از گزینه‌های منو استفاده کنید.", reply_markup=main_keyboard(user_language))
+    await update.message.reply_text(await localized("لطفاً از گزینه‌های منو استفاده کنید.", user_language), reply_markup=main_keyboard(user_language))
 
 
 async def process_standard_form(update, context):
@@ -1243,8 +1528,7 @@ async def process_standard_form(update, context):
     text = update.message.text.strip()
     language = form["language"]
 
-    if text in LANGUAGE_CHANGE_BUTTONS or normalize_button_text(text) in {normalize_button_text(x) for x in LANGUAGE_BUTTONS.values()}:
-        context.user_data["language_picker_active"] = True
+    if text in LANGUAGE_CHANGE_BUTTONS or normalize_button_text(text.replace("🌐 ", "")) in {normalize_button_text(v.replace("🌐 ", "")) for v in LANGUAGE_BUTTONS.values()}:
         await update.message.reply_text(language_prompt(), reply_markup=language_keyboard())
         return True
     if text in MY_LISTINGS_BUTTONS or text in MY_REQUESTS_BUTTONS:
@@ -1252,7 +1536,7 @@ async def process_standard_form(update, context):
     if text in SUPPORT_BUTTONS:
         context.user_data.pop("form", None)
         context.user_data["awaiting_support"] = True
-        await update.message.reply_text("پیام خود را برای پشتیبانی ارسال کنید:", reply_markup=main_keyboard(language))
+        await update.message.reply_text(await localized("پیام خود را برای پشتیبانی ارسال کنید:", language), reply_markup=main_keyboard(language))
         return True
     new_kind = detect_kind(text)
     if new_kind:
@@ -1262,7 +1546,7 @@ async def process_standard_form(update, context):
     index = form["step"]
     if index < 0 or index >= len(FIELDS):
         context.user_data.pop("form", None)
-        await update.message.reply_text("فرم قبلی دچار اختلال شد. لطفاً دوباره شروع کنید.", reply_markup=main_keyboard(language))
+        await update.message.reply_text(await localized("فرم قبلی دچار اختلال شد. لطفاً دوباره شروع کنید.", language), reply_markup=main_keyboard(language))
         return True
     field = FIELDS[index]
     form["data"][field] = text
