@@ -4,6 +4,8 @@ import sqlite3
 import logging
 import asyncio
 import re
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from threading import Thread
 from html import escape
 
@@ -485,6 +487,47 @@ def language_prompt():
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.effective_user:
         return
+
+    # Deep link used by the "درخواست بازدید این ملک" button under a published ad.
+    args = context.args or []
+    if args and args[0].startswith("visit_"):
+        try:
+            payload = args[0].split("_")
+            if len(payload) != 3 or payload[0] != "visit":
+                raise ValueError("invalid visit payload")
+            submission_id = int(payload[1])
+            language = payload[2]
+            if language not in CHANNELS:
+                raise ValueError("invalid language")
+        except (ValueError, TypeError):
+            await update.message.reply_text("لینک درخواست بازدید معتبر نیست. لطفاً از دکمه زیر آگهی استفاده کنید.")
+            return
+
+        submission = get_submission(submission_id)
+        with connect_db() as conn:
+            publication = conn.execute(
+                "SELECT channel, message_id, status FROM publications WHERE submission_id=? AND language=?",
+                (submission_id, language),
+            ).fetchone()
+        if not submission or not publication or publication["status"] != "success" or submission.get("status") != "approved":
+            await update.message.reply_text("این آگهی در حال حاضر منتشرشده یا قابل درخواست بازدید نیست.")
+            return
+
+        context.user_data["pending_visit_request"] = {
+            "submission_id": submission_id,
+            "language": language,
+        }
+        keyboard = ReplyKeyboardMarkup(
+            [[KeyboardButton("📱 ارسال شماره تلفن من", request_contact=True)]],
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
+        await update.message.reply_text(
+            f"درخواست بازدید از آگهی شماره {submission_id} ثبت می‌شود. برای ارسال درخواست، شماره تلفن خودتان را با دکمه زیر به اشتراک بگذارید.",
+            reply_markup=keyboard,
+        )
+        return
+
     context.user_data.pop("form", None)
     context.user_data.pop("awaiting_support", None)
     context.user_data.pop("rent_menu", None)
@@ -1193,8 +1236,14 @@ async def publish_submission(context, submission, language):
     message_text = await render_submission(data, submission["kind"], language, submission["language"])
     if submission["kind"] == "rent_apartment_ad":
         message_text = message_text.replace("<b>شناسه آگهی:</b> ", f"<b>شناسه آگهی:</b> {submission_id} ")
+    bot_info = await context.bot.get_me()
+    visit_url = f"https://t.me/{bot_info.username}?start=visit_{submission_id}_{language}"
+    visit_keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("درخواست بازدید این ملک", url=visit_url)]
+    ])
     message = await context.bot.send_message(
-        chat_id=channel, text=message_text, parse_mode="HTML", disable_web_page_preview=True,
+        chat_id=channel, text=message_text, parse_mode="HTML",
+        disable_web_page_preview=True, reply_markup=visit_keyboard,
     )
     if submission["kind"] in {"rent_office_ad", "rent_apartment_ad"}:
         image_ids = data.get("images", [])
@@ -1370,6 +1419,75 @@ async def show_user_submissions(update, user_id, only_requests=False):
     await update.message.reply_text("\n".join(lines), reply_markup=main_keyboard(language))
 
 
+async def process_visit_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message = update.message
+    user = update.effective_user
+    pending = context.user_data.get("pending_visit_request")
+    if not message or not message.contact or not user or not pending:
+        return False
+
+    contact = message.contact
+    # Only accept the Telegram contact-share button for the requester themselves.
+    if contact.user_id != user.id:
+        await message.reply_text("لطفاً فقط با دکمه «ارسال شماره تلفن من» شماره خودتان را ارسال کنید.")
+        return True
+
+    submission_id = pending.get("submission_id")
+    language = pending.get("language")
+    submission = get_submission(submission_id) if submission_id else None
+    with connect_db() as conn:
+        publication = conn.execute(
+            "SELECT channel, message_id, status FROM publications WHERE submission_id=? AND language=?",
+            (submission_id, language),
+        ).fetchone()
+
+    if not submission or not publication or publication["status"] != "success":
+        context.user_data.pop("pending_visit_request", None)
+        await message.reply_text("متأسفانه آگهی دیگر در دسترس نیست. لطفاً از آگهی منتشرشده دوباره وارد شوید.")
+        return True
+
+    channel = publication["channel"]
+    message_id = publication["message_id"]
+    channel_name = channel.lstrip("@")
+    ad_link = f"https://t.me/{channel_name}/{message_id}" if message_id else f"https://t.me/{channel_name}"
+    data = json.loads(submission.get("data") or "{}")
+    kind = KINDS.get(submission.get("kind", ""), {}).get(language, submission.get("kind", "نامشخص"))
+    details = []
+    for key, value in data.items():
+        if key in {"images", "image_ids", "photos"} or value in (None, "", [], {}):
+            continue
+        if isinstance(value, (dict, list)):
+            value = json.dumps(value, ensure_ascii=False)
+        details.append(f"• <b>{escape(str(key))}:</b> {escape(str(value))}")
+    details_text = "\n".join(details[:35]) or "جزئیات ثبت‌شده در دسترس نیست."
+    username = f"@{user.username}" if user.username else "ندارد"
+    requester_name = escape(user.full_name or "نامشخص")
+    phone = escape(contact.phone_number or "ثبت نشده")
+    timestamp = datetime.now(ZoneInfo("Asia/Tehran")).strftime("%Y-%m-%d %H:%M:%S")
+    admin_text = (
+        "🏠 <b>درخواست جدید بازدید ملک</b>\n\n"
+        f"<b>شناسه آگهی:</b> {submission_id}\n"
+        f"<b>نوع آگهی:</b> {escape(str(kind))}\n"
+        f"<b>شماره تماس درخواست‌کننده:</b> {phone}\n"
+        f"<b>نام تلگرام:</b> {requester_name}\n"
+        f"<b>نام کاربری:</b> {escape(username)}\n"
+        f"<b>شناسه کاربری تلگرام:</b> <code>{user.id}</code>\n"
+        f"<b>زمان درخواست (تهران):</b> {timestamp}\n"
+        f"<b>لینک آگهی:</b> {ad_link}\n\n"
+        f"<b>جزئیات ملک:</b>\n{details_text}"
+    )
+    try:
+        await context.bot.send_message(chat_id=ADMIN_ID, text=admin_text, parse_mode="HTML", disable_web_page_preview=True)
+    except Exception:
+        logger.exception("Could not send property visit request to admin")
+        await message.reply_text("ارسال درخواست فعلاً انجام نشد. لطفاً چند دقیقه دیگر دوباره تلاش کنید.")
+        return True
+
+    context.user_data.pop("pending_visit_request", None)
+    await message.reply_text("درخواست بازدید شما برای مدیر ارسال شد. با شما تماس گرفته خواهد شد.", reply_markup=ReplyKeyboardMarkup([["منوی اصلی"]], resize_keyboard=True))
+    return True
+
+
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message:
         return
@@ -1378,6 +1496,9 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if not update.message.text:
+        if update.message.contact and context.user_data.get("pending_visit_request"):
+            if await process_visit_contact(update, context):
+                return
         # Keep existing media/contact handling for the office-rent form.
         if context.user_data.get("form", {}).get("mode") in {"office_rent", "apartment_rent"}:
             if update.message.contact or update.message.photo:
