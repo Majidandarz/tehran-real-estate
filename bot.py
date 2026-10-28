@@ -1066,84 +1066,61 @@ RENT_REQUEST_FIELDS = ["حداکثر مبلغ اجاره ماهانه", "حدا�
 
 
 def build_form_fields(kind, category, menu_mode):
-    """Short user-friendly forms: essential questions first, category details grouped together."""
-    is_listing = menu_mode in {"buy", "rent", "investment", "construction"}
+    """Minimal mobile-first forms. No user-entered ad title; the selected menu/category identifies the submission."""
+    is_listing = menu_mode in {"buy", "rent"}
     fields = []
 
+    # Listing ads: ask only for information needed to identify and assess the property.
+    # Exact street address, legal-document status, payment terms and other details are not required here.
     if menu_mode in {"buy", "rent"}:
-        # Keep the listing form short; detailed specifications go into one optional text answer.
         fields = [
-            ("title", "عنوان کوتاه آگهی"),
-            ("province", "استان"),
-            ("city", "شهر"),
-            ("district", "منطقه یا محله"),
-            ("exact_address", "نشانی دقیق ملک (محرمانه برای مدیریت؛ در آگهی عمومی نمایش داده نمی‌شود)"),
-            ("total_price", "قیمت کل به تومان"),
-            ("area", "متراژ ملک"),
+            ("location_summary", "شهر و محله ملک را بنویسید (نشانی دقیق لازم نیست)"),
+            ("total_price", "قیمت کل به تومان" if menu_mode == "buy" else "مبلغ رهن و اجاره ماهانه؛ اگر یکی ندارد، بنویسید صفر"),
+            ("area", "متراژ ملک به مترمربع"),
         ]
         if category in ROOM_TYPES:
-            fields.append(("rooms", "تعداد اتاق یا خواب"))
-        if menu_mode == "buy" and category in TITLE_TYPES:
-            fields.append(("document_status", "وضعیت سند (اگر اطلاع ندارید بنویسید: نامشخص)"))
-        fields.extend([
-            ("description", "توضیح کوتاه درباره ملک و مهم‌ترین امکانات"),
-            ("delivery_status", "وضعیت تخلیه و تحویل (مثلاً تخلیه یا دارای مستأجر)"),
-        ])
+            fields.append(("rooms", "تعداد اتاق یا خواب (اگر مشخص نیست، بنویسید نامشخص)"))
+        fields.append(("description", "فقط نکات مهم ملک و امکانات اصلی را کوتاه بنویسید (اختیاری؛ در صورت نداشتن بنویسید ندارد)"))
+        fields.append(("images", "تصاویر ملک (حداکثر ۵ تصویر؛ پس از ارسال، دکمه پایان تصاویر را بزنید)"))
+
+    # Purchase/rental requests: category is already selected in the menu, so do not ask it again.
     elif menu_mode == "buy_req":
         fields = [
-            ("property_type", "چه نوع ملکی می‌خواهید؟"),
-            ("province", "استان موردنظر"),
-            ("city", "شهر"),
-            ("district", "محله یا مناطق دلخواه"),
-            ("budget_max", "حداکثر بودجه به تومان"),
-            ("area_min", "حداقل متراژ موردنظر"),
-            ("specific_conditions", "۲ یا ۳ ویژگی ضروری و توضیحات (اختیاری؛ اگر ندارید بنویسید: ندارد)"),
-            ("transaction_timing", "چه زمانی قصد خرید دارید؟"),
+            ("location_summary", "شهر و محله‌های موردنظر"),
+            ("budget_max", "حداکثر بودجه خرید به تومان"),
+            ("requirements_summary", "متراژ و ۲ یا ۳ شرط ضروری را در یک پیام بنویسید (اختیاری)"),
+            ("transaction_timing", "زمان تقریبی خرید (مثلاً فوری یا تا سه ماه آینده؛ اختیاری)"),
         ]
     elif menu_mode == "rent_req":
         fields = [
-            ("property_type", "چه نوع ملکی می‌خواهید؟"),
-            ("province", "استان موردنظر"),
-            ("city", "شهر"),
-            ("district", "محله یا مناطق دلخواه"),
-            ("budget_max", "حداکثر اجاره ماهانه و مبلغ ودیعه"),
-            ("area_min", "حداقل متراژ موردنظر"),
-            ("specific_conditions", "ویژگی‌های ضروری یا توضیحات (اختیاری؛ اگر ندارید بنویسید: ندارد)"),
-            ("transaction_timing", "زمان شروع اجاره"),
+            ("location_summary", "شهر و محله‌های موردنظر"),
+            ("budget_max", "حداکثر رهن و اجاره ماهانه به تومان"),
+            ("requirements_summary", "متراژ و ۲ یا ۳ شرط ضروری را در یک پیام بنویسید (اختیاری)"),
+            ("transaction_timing", "زمان شروع اجاره (اختیاری)"),
         ]
+
+    # Investment and construction opportunities: one concise project summary instead of long questionnaires.
     elif menu_mode == "investment":
         fields = [
-            ("title", "عنوان فرصت سرمایه‌گذاری"),
-            ("province", "استان"),
-            ("city", "شهر و موقعیت کلی پروژه"),
-            ("exact_address", "نشانی دقیق (محرمانه برای مدیریت)"),
-            ("total_price", "ارزش کل پروژه یا مبلغ سرمایه موردنیاز"),
-            ("description", "خلاصه پروژه، سهم پیشنهادی و شرایط اصلی"),
+            ("location_summary", "شهر و موقعیت کلی پروژه"),
+            ("investment_amount", "مبلغ سرمایه موردنیاز یا ارزش پروژه (اگر مشخص است)"),
+            ("description", "خلاصه پروژه، شرایط اصلی و سهم پیشنهادی را در یک پیام بنویسید"),
         ]
     elif menu_mode == "construction":
         fields = [
-            ("title", "عنوان پروژه مشارکت در ساخت"),
-            ("province", "استان"),
-            ("city", "شهر و منطقه"),
-            ("exact_address", "نشانی دقیق (محرمانه برای مدیریت)"),
-            ("description", "خلاصه پروژه، متراژ، سهم پیشنهادی و شرایط اصلی"),
+            ("location_summary", "شهر و موقعیت کلی ملک یا زمین"),
+            ("area", "متراژ زمین (اگر مشخص است)"),
+            ("description", "خلاصه شرایط مشارکت، سهم پیشنهادی و وضعیت پروژه را در یک پیام بنویسید"),
         ]
     else:
         fields = [
-            ("title", "عنوان"),
-            ("description", "توضیحات کوتاه"),
-            ("province", "استان"),
-            ("city", "شهر و منطقه"),
+            ("location_summary", "شهر و منطقه"),
+            ("description", "توضیحات ضروری را کوتاه بنویسید"),
         ]
 
-    # Media is retained for listings, but the long category-specific questionnaires are removed.
-    if is_listing:
-        fields.append(("images", "تصاویر ملک (حداکثر ۵ تصویر؛ پس از ارسال، دکمه پایان تصاویر را بزنید)"))
-        fields.append(("video_note", "ویدئو یا لینک ویدئو (اختیاری؛ اگر ندارید بنویسید: ندارد)"))
-    fields.extend([
-        ("registrant_type", "نوع ثبت‌کننده: مالک، مشاور یا آژانس"),
-        ("contact", "شماره تماس را با دکمه اشتراک‌گذاری شماره تلگرام ارسال کنید"),
-    ])
+    # Contact sharing and final reviewer submission stay in the existing workflow.
+    # No separate 'ad title' or registrant-type question is imposed on users.
+    fields.append(("contact", "شماره تماس را با دکمه اشتراک‌گذاری شماره تلگرام ارسال کنید"))
     return fields
 
 async def begin_form(update, context, kind, language, category=None, menu_mode=None):
@@ -1155,6 +1132,9 @@ async def begin_form(update, context, kind, language, category=None, menu_mode=N
         menu_mode = {"sell_ad":"buy", "rent_ad":"rent", "buy_req":"buy_req", "rent_req":"rent_req", "builder":"investment"}.get(kind, "buy")
     form_kind = {"buy":"sell_ad", "rent":"rent_ad", "buy_req":"buy_req", "rent_req":"rent_req", "investment":"builder", "construction":"builder"}.get(menu_mode, kind)
     fields = build_form_fields(form_kind, category, menu_mode)
+    # A request to buy/rent is a request, not a property listing: never ask its author for property photos.
+    if menu_mode in {"buy_req", "rent_req"}:
+        fields = [(key, prompt) for key, prompt in fields if key != "images"]
     context.user_data["form"] = {"kind": form_kind, "language": language, "step": 0, "data": {"property_type": category, "menu_mode": menu_mode, "source_language": language}, "mode": "complete", "fields": fields, "field_index": 0, "images": [], "awaiting_images": False}
     await ask_complete_form_step(update.message, context)
 
@@ -1191,9 +1171,14 @@ async def submit_complete_form(update, context):
     if not form: return False
     data = form["data"]
     images = form.get("images", [])
-    if form.get("awaiting_images"):
+    menu_mode = data.get("menu_mode", "")
+    # Photos are required only for an actual property listing, never for a buyer/renter request.
+    if menu_mode in {"buy_req", "rent_req"}:
+        form["awaiting_images"] = False
+        data.pop("images", None)
+    elif form.get("awaiting_images"):
         if not images:
-            await update.message.reply_text("برای آگهی حداقل یک تصویر الزامی است.")
+            await update.message.reply_text("برای آگهی ملک حداقل یک تصویر الزامی است.")
             return True
         data["images"] = images
         form["awaiting_images"] = False
@@ -1298,6 +1283,9 @@ async def render_submission(data, kind, language, source_language, admin_view=Fa
                 continue
             label = prompt_by_key.get(key, key.replace("_", " "))
             if key == "property_type": label = "نوع ملک"
+            if key == "location_summary": label = "موقعیت کلی"
+            if key == "requirements_summary": label = "نیازها و شرایط ضروری"
+            if key == "investment_amount": label = "مبلغ سرمایه‌گذاری / ارزش پروژه"
             if key == "menu_mode": label = "نوع فرایند"
             if key == "contact" and admin_view: label = "شماره تماس (محرمانه)"
             if key == "exact_address" and admin_view: label = "نشانی دقیق (محرمانه)"
