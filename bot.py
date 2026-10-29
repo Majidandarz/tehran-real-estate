@@ -1040,7 +1040,7 @@ OFFICE_STEPS = [
     ("plaque", "شماره پلاک را فقط با عدد وارد کنید:"),
     ("deposit", "مبلغ رهن را فقط با عدد وارد کنید:"),
     ("rent", "مبلغ اجاره ماهانه را فقط با عدد وارد کنید:"),
-    ("images", "حداقل ۴ تصویر ملک را ارسال کنید. پس از ارسال ۴ تصویر یا بیشتر، عبارت «📷 پایان تصاویر» را بفرستید."),
+    ("images", "در صورت تمایل حداکثر ۵ تصویر ملک را ارسال کنید و سپس «📷 پایان تصاویر» را بزنید."),
     ("contact", "برای ثبت شماره تماس، دکمه اشتراک‌گذاری شماره تلفن را بزنید."),
 ]
 
@@ -1235,7 +1235,6 @@ COMMON_LISTING_FIELDS = [
     ("title", "عنوان آگهی"), ("description", "توضیحات کامل ملک"),
     ("province", "استان"), ("city", "شهر"), ("district", "منطقه"),
     ("exact_address", "نشانی دقیق ملک (فقط برای مدیریت؛ در آگهی عمومی نمایش داده نمی‌شود)"),
-    ("map_location", "موقعیت ملک روی نقشه یا مختصات/لینک نقشه"),
     ("total_price", "قیمت کل (تومان)"), ("price_per_meter", "قیمت هر متر (در صورت اطلاع)"),
     ("negotiable", "قیمت قابل مذاکره است؟ (بله/خیر)"), ("payment_terms", "شرایط پرداخت"),
     ("delivery_status", "وضعیت تخلیه و تحویل"), ("viewing_time", "زمان مناسب بازدید"),
@@ -1294,14 +1293,14 @@ def build_form_fields(kind, category, menu_mode):
             add("total_units", "تعداد کل واحدهای ساختمان")
             add("storage", "انباری دارد؟ بله یا خیر")
             add("balcony", "بالکن یا تراس دارد؟ بله یا خیر")
+            add("amenities", "امکانات ملک را انتخاب کنید؛ در پایان «پایان انتخاب امکانات» را بزنید")
             add("parking", "تعداد پارکینگ")
             add("construction_year", "سال ساخت")
-            add("amenities", "امکانات ملک (با ویرگول جدا کنید؛ اگر ندارد بنویسید ندارد)")
         elif office or commercial:
             add("floor", "طبقه واحد؛ همکف صفر و زیرزمین عدد منفی")
             add("total_floors", "تعداد کل طبقات ساختمان")
+            add("amenities", "امکانات ملک را انتخاب کنید؛ در پایان «پایان انتخاب امکانات» را بزنید")
             add("parking", "تعداد پارکینگ")
-            add("amenities", "امکانات، برِ خیابان، ویترین، انبار، برق و سایر مشخصات")
         elif industrial:
             for prompt in INDUSTRIAL_FIELDS:
                 add("industrial_" + str(len(fields)), prompt)
@@ -1320,9 +1319,10 @@ def build_form_fields(kind, category, menu_mode):
         add("deed_status", "وضعیت سند")
         add("delivery_status", "وضعیت تخلیه و تحویل")
         add("description", "توضیحات تکمیلی و ویژگی‌های مهم ملک")
-        add("exact_address", "نشانی کامل ملک (محرمانه؛ فقط برای مدیر اصلی)")
-        add("map_location", "لینک یا موقعیت نقشه (محرمانه؛ فقط برای مدیر اصلی)")
-        add("images", "تصاویر ملک؛ ۱ تا ۵ تصویر و سپس پایان تصاویر")
+        if not any(existing_key == "exact_address" for existing_key, _ in fields):
+            add("exact_address", "نشانی کامل ملک (محرمانه؛ فقط برای مدیر اصلی)")
+        add("images_choice", "📷 آیا تمایل به ارسال تصویر دارید؟")
+        add("images", "تصاویر ملک؛ حداکثر ۵ تصویر؛ پس از ارسال پایان تصاویر را انتخاب کنید")
         add("viewing_time", "زمان‌های مناسب برای بازدید")
         add("contact", "شماره تماس خود را فقط با دکمه اشتراک‌گذاری تلگرام ارسال کنید؛ فقط مدیر اصلی می‌بیند")
         return fields
@@ -1474,7 +1474,9 @@ def _field_choice_options(key, prompt):
         return ["بله", "خیر"]
     if k in {"area", "land_area", "existing_built_area", "completed_area", "remaining_area", "total_built_area", "min_area", "max_area"} or any(x in p for x in ("متراژ ملک", "متراژ زمین", "متراژ زیربنا", "حداقل متراژ", "حداکثر متراژ")):
         return ["تا ۵۰ متر", "۵۱ تا ۷۵ متر", "۷۶ تا ۱۰۰ متر", "۱۰۱ تا ۱۵۰ متر", "۱۵۱ تا ۲۰۰ متر", "۲۰۱ تا ۳۰۰ متر", "۳۰۱ تا ۵۰۰ متر", "۵۰۱ تا ۱۰۰۰ متر", "بیش از ۱۰۰۰ متر", "ورود دقیق متراژ"]
-    if any(x in k for x in ("rooms", "bedrooms", "master_rooms", "parking", "parking_spaces", "storage", "balcony_count", "total_units", "total_floors", "units_per_floor", "completed_projects", "partners_needed", "unit_count_to_add")) or any(x in p for x in ("تعداد اتاق", "تعداد پارکینگ", "تعداد جای پارک", "تعداد انباری", "تعداد بالکن", "تعداد طبقات", "تعداد واحد", "تعداد پروژه", "تعداد شرکا")):
+    if "parking" in k or "تعداد پارکینگ" in p or "تعداد جای پارک" in p:
+        return ["1", "2", "3", "4", "+5"]
+    if any(x in k for x in ("rooms", "bedrooms", "master_rooms", "storage", "balcony_count", "total_units", "total_floors", "units_per_floor", "completed_projects", "partners_needed", "unit_count_to_add")) or any(x in p for x in ("تعداد اتاق", "تعداد انباری", "تعداد بالکن", "تعداد طبقات", "تعداد واحد", "تعداد پروژه", "تعداد شرکا")):
         return [str(i) for i in range(0, 11)] + ["+10"]
     if k in {"floor", "unit_floor"} or "طبقه واحد" in p:
         return [str(i) for i in range(-5, 0)] + [str(i) for i in range(0, 31)] + ["+30"]
@@ -1515,9 +1517,13 @@ async def ask_complete_form_step(message, context):
         return
     key, prompt = fields[idx]
     if key == "images":
+        if form.get("data", {}).get("images_submitted") != "yes":
+            form["step"] += 1
+            await ask_complete_form_step(message, context)
+            return
         form["awaiting_images"] = True
-        rows = [["📷 پایان تصاویر"], ["❌ لغو ثبت"]]
-        await message.reply_text("📝 " + await localized(prompt, lang) + f"\nتعداد تصاویر ثبت‌شده: {len(form.get('images', []))}/5", reply_markup=form_keyboard(rows, lang))
+        rows = [["📷 پایان تصاویر"], [await localized(PREV_STEP_LABELS.get(lang, PREV_STEP_LABELS["fa"]), lang)], ["❌ لغو ثبت"]]
+        await message.reply_text("📝 " + await localized(prompt, lang) + f"\nتعداد تصاویر انتخاب‌شده: {len(form.get('images', []))}/5", reply_markup=form_keyboard(rows, lang))
         return
     if key == "video_note":
         form["awaiting_video"] = True
@@ -2246,8 +2252,32 @@ async def process_standard_form(update, context):
             form["_awaiting_exact_area"] = key
             await update.message.reply_text(await localized("متراژ دقیق را فقط با عدد وارد کنید.", language), reply_markup=form_keyboard([[await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)], ["❌ لغو ثبت"]], language))
             return True
+        if key == "images_choice":
+            if matched == "بله":
+                form["data"]["images_submitted"] = "yes"
+                form["images"] = []
+                form["step"] += 1
+            else:
+                form["data"]["images_submitted"] = "no"
+                form["data"]["images"] = []
+                # Skip the following images field entirely.
+                form["step"] += 2
+            await ask_complete_form_step(update.message, context)
+            return True
         if matched == "پایان انتخاب امکانات":
             form["data"][key] = form.get("_amenity_selections", [])
+            # If parking was not selected as an amenity, skip its count question.
+            if key == "amenities" and form["step"] + 1 < len(form["fields"]):
+                next_key, _ = form["fields"][form["step"] + 1]
+                if next_key == "parking" and not any("پارکینگ" in str(x).lower() for x in form.get("_amenity_selections", [])):
+                    form["data"]["parking"] = "ندارد"
+                    form["step"] += 2
+                else:
+                    form["step"] += 1
+            else:
+                form["step"] += 1
+            await ask_complete_form_step(update.message, context)
+            return True
         elif "امکانات" in prompt or "amenit" in key.lower():
             selected = form.setdefault("_amenity_selections", [])
             if matched not in selected:
