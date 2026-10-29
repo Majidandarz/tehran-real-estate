@@ -4,6 +4,7 @@ import sqlite3
 import logging
 import asyncio
 import re
+import zlib
 from threading import Thread
 from html import escape
 
@@ -359,9 +360,81 @@ async def translate_submission_data(data, source, target):
 EMOJI_PREFIXES = ("🏢 ", "🏠 ", "🏭 ", "🏬 ", "📄 ", "📍 ", "🏛 ", "🔀 ", "✅ ", "❌ ", "📷 ", "📱 ", "⬅️ ", "🆘 ", "🌐 ", "🔑 ", "📝 ", "📨 ", "💼 ", "🏗 ", "⭐ ", "🌳 ", "🏚 ", "🏡 ", "🏨 ", "💎 ", "📈 ", "📦 ", "🤝 ", "💰 ", "🧑‍💼 ", "🏙 ", "📋 ", "🔔 ", "⚖️ ", "🗑 ", "💲 ", "🧭 ")
 
 
+# ==================== GLOBAL BUTTON NUMBERING ====================
+# Numbers are assigned once per visible label and persisted so deleted numbers
+# are never recycled. Every reply-keyboard button is numbered automatically.
+BUTTON_NUMBER_FILE = os.getenv("BUTTON_NUMBER_FILE", "realestate_button_numbers.json")
+_BUTTON_NUMBER_LOCK = __import__("threading").RLock()
+_BUTTON_NUMBERS = {}
+_BUTTON_NEXT = 1
+
+
+def _strip_button_number(value):
+    return re.sub(r"^\s*\d{3,6}\s*[|.)-]\s*", "", str(value or "")).strip()
+
+
+def _button_key(value):
+    # Emoji and number are presentation only; keep the text as a stable identity.
+    value = _strip_button_number(value)
+    return re.sub(r"\s+", " ", value).strip().casefold()
+
+
+def _load_button_numbers():
+    global _BUTTON_NUMBERS, _BUTTON_NEXT
+    try:
+        with open(BUTTON_NUMBER_FILE, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+        _BUTTON_NUMBERS = {str(k): int(v) for k, v in data.get("numbers", {}).items()}
+        _BUTTON_NEXT = max(int(data.get("next", 1)), max(_BUTTON_NUMBERS.values(), default=0) + 1)
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        _BUTTON_NUMBERS, _BUTTON_NEXT = {}, 1
+
+
+def _save_button_numbers():
+    folder = os.path.dirname(os.path.abspath(BUTTON_NUMBER_FILE))
+    os.makedirs(folder, exist_ok=True)
+    tmp = BUTTON_NUMBER_FILE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump({"next": _BUTTON_NEXT, "numbers": _BUTTON_NUMBERS}, fh, ensure_ascii=False, indent=2)
+    os.replace(tmp, BUTTON_NUMBER_FILE)
+
+
+_load_button_numbers()
+
+
+def numbered_button(value):
+    global _BUTTON_NEXT
+    raw = str(value or "")
+    if not raw.strip() or re.match(r"^\s*\d{3,6}\s*[|.)-]\s*", raw):
+        return raw
+    key = _button_key(raw)
+    with _BUTTON_NUMBER_LOCK:
+        if key not in _BUTTON_NUMBERS:
+            _BUTTON_NUMBERS[key] = _BUTTON_NEXT
+            _BUTTON_NEXT += 1
+            _save_button_numbers()
+        number = _BUTTON_NUMBERS[key]
+    return f"{number:03d} | {raw}"
+
+
+def number_keyboard_rows(rows):
+    numbered = []
+    for row in rows:
+        new_row = []
+        for item in row:
+            if isinstance(item, KeyboardButton):
+                # Preserve special button behavior such as Telegram contact sharing.
+                item.text = numbered_button(item.text)
+                new_row.append(item)
+            else:
+                new_row.append(numbered_button(item))
+        numbered.append(new_row)
+    return numbered
+
+
 def normalize_button_text(value):
     """Remove leading menu emoji so labels remain compatible with existing flows."""
-    value = (value or "").strip()
+    value = _strip_button_number(value or "")
     changed = True
     while changed:
         changed = False
@@ -384,12 +457,12 @@ def with_language_button(rows, language="fa"):
 
 def language_keyboard():
     # Language picker itself is intentionally exempt from the persistent language button.
-    return ReplyKeyboardMarkup(LANGUAGE_KEYBOARD, resize_keyboard=True, one_time_keyboard=True, is_persistent=True)
+    return ReplyKeyboardMarkup(number_keyboard_rows(LANGUAGE_KEYBOARD), resize_keyboard=True, one_time_keyboard=True, is_persistent=True)
 
 
 def main_keyboard(language):
     rows = with_language_button(MENU.get(language, MENU["fa"]), language)
-    return ReplyKeyboardMarkup(rows, resize_keyboard=True, is_persistent=True)
+    return ReplyKeyboardMarkup(number_keyboard_rows(rows), resize_keyboard=True, is_persistent=True)
 
 
 BACK_LABELS = {
@@ -402,11 +475,11 @@ def submenu_keyboard(options, back_label=None, language="fa"):
     rows = [[option] for option in options]
     rows.append([back_label or BACK_LABELS.get(language, BACK_LABELS["fa"])])
     rows = with_language_button(rows, language)
-    return ReplyKeyboardMarkup(rows, resize_keyboard=True, is_persistent=True)
+    return ReplyKeyboardMarkup(number_keyboard_rows(rows), resize_keyboard=True, is_persistent=True)
 
 
 def form_keyboard(rows, language="fa"):
-    return ReplyKeyboardMarkup(with_language_button(rows, language), resize_keyboard=True, is_persistent=True)
+    return ReplyKeyboardMarkup(number_keyboard_rows(with_language_button(rows, language)), resize_keyboard=True, is_persistent=True)
 
 
 def parse_language(text):
@@ -660,7 +733,7 @@ async def process_apartment_rent(update, context):
     if not message:
         return False
     language = form["language"]
-    text = (message.text or "").strip()
+    text = _strip_button_number((message.text or "").strip())
     cancel = normalize_button_text(await localized("❌ لغو ثبت", language))
     if normalize_button_text(text) in {normalize_button_text(x) for x in CANCEL_FORM_BUTTONS} | {cancel}:
         context.user_data.pop("form", None)
@@ -927,7 +1000,7 @@ async def process_office_rent(update, context):
     message = update.message
     if not message:
         return False
-    text = (message.text or "").strip()
+    text = _strip_button_number((message.text or "").strip())
     language = form["language"]
 
     cancel_labels = {normalize_button_text(x) for x in CANCEL_FORM_BUTTONS}
@@ -1278,7 +1351,7 @@ async def ask_complete_form_step(message, context):
     if key == "contact":
         contact_button = KeyboardButton(await localized("📱 اشتراک‌گذاری شماره تماس", lang), request_contact=True)
         rows = [[contact_button], ["❌ لغو ثبت"]]
-        await message.reply_text("📝 " + await localized(prompt, lang), reply_markup=ReplyKeyboardMarkup(with_language_button(rows, lang), resize_keyboard=True, is_persistent=True))
+        await message.reply_text("📝 " + await localized(prompt, lang), reply_markup=ReplyKeyboardMarkup(number_keyboard_rows(with_language_button(rows, lang)), resize_keyboard=True, is_persistent=True))
         return
     rows = [["❌ لغو ثبت"]]
     if idx == len(fields)-1: rows.insert(0, ["✅ پایان و ارسال به ناظر"])
@@ -1321,8 +1394,8 @@ async def submit_complete_form(update, context):
 
 def review_keyboard(submission_id):
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("✅ تأیید و انتخاب زبان انتشار", callback_data=f"approve:{submission_id}")],
-        [InlineKeyboardButton("❌ رد", callback_data=f"reject:{submission_id}")],
+        [InlineKeyboardButton(numbered_button("✅ تأیید و انتخاب زبان انتشار"), callback_data=f"approve:{submission_id}")],
+        [InlineKeyboardButton(numbered_button("❌ رد"), callback_data=f"reject:{submission_id}")],
     ])
 
 
@@ -1537,10 +1610,10 @@ async def show_publication_languages(query, context, submission_id):
     keyboard = []
     for language, label in LANG_NAMES.items():
         mark = "✅" if language in selected else "▫️"
-        keyboard.append([InlineKeyboardButton(f"{mark} {label}", callback_data=f"pubtoggle:{submission_id}:{language}")])
+        keyboard.append([InlineKeyboardButton(numbered_button(f"{mark} {label}"), callback_data=f"pubtoggle:{submission_id}:{language}")])
     keyboard.append([
-        InlineKeyboardButton("🚀 تأیید و انتشار", callback_data=f"pubconfirm:{submission_id}"),
-        InlineKeyboardButton("لغو", callback_data=f"pubcancel:{submission_id}"),
+        InlineKeyboardButton(numbered_button("🚀 تأیید و انتشار"), callback_data=f"pubconfirm:{submission_id}"),
+        InlineKeyboardButton(numbered_button("لغو"), callback_data=f"pubcancel:{submission_id}"),
     ])
     await query.edit_message_text(
         f"🌐 زبان یا زبان‌های انتشار ثبت #{submission_id} را انتخاب کنید.\n\nاطلاعات تماس، شناسه تلگرام و نشانی دقیق از کانال حذف می‌شود. شهر، منطقه و بخش غیرحساس نشانی می‌تواند نمایش داده شود.\n\nپس از انتخاب حداقل یک زبان، دکمه «تأیید و انتشار» را بزنید.",
@@ -1706,7 +1779,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if await process_standard_form(update, context): return
         return
 
-    text = update.message.text.strip()
+    text = _strip_button_number(update.message.text.strip())
 
     # The language-change control must work from the main menu, every submenu,
     # and every step of an active form.
@@ -1901,7 +1974,7 @@ async def process_standard_form(update, context):
     if not form or form.get("mode") != "complete" or not update.message:
         return False
     language = form["language"]
-    text = (update.message.text or "").strip()
+    text = _strip_button_number((update.message.text or "").strip())
     if update.message.contact:
         contact = update.message.contact
         if not update.effective_user or not contact.user_id or contact.user_id != update.effective_user.id:
