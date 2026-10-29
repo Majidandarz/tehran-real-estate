@@ -779,9 +779,10 @@ async def ask_apartment_step(message, context):
         rows = []
         for option_row in (options[0][i:i+5] for i in range(0, len(options[0]), 5)):
             rows.append([await localized(opt, language) for opt in option_row])
-        rows.append([await localized("❌ لغو ثبت", language)])
     else:
-        rows = [[await localized("❌ لغو ثبت", language)]]
+        rows = []
+    rows.append([await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)])
+    rows.append([await localized("❌ لغو ثبت", language)])
     await message.reply_text(await localized(prompt, language), reply_markup=form_keyboard(rows, language))
 
 async def apartment_next(message, context):
@@ -802,6 +803,16 @@ async def process_apartment_rent(update, context):
     if normalize_button_text(text) in {normalize_button_text(x) for x in CANCEL_FORM_BUTTONS} | {cancel}:
         context.user_data.pop("form", None)
         await message.reply_text(await localized("ثبت آگهی لغو شد.", language), reply_markup=main_keyboard(language))
+        return True
+    previous_labels = {normalize_button_text(x) for x in PREV_STEP_LABELS.values()}
+    previous_labels.add(normalize_button_text(await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)))
+    if normalize_button_text(text) in previous_labels:
+        if form["step"] > 0:
+            form["step"] -= 1
+            form["awaiting_images"] = False
+            await ask_apartment_step(message, context)
+        else:
+            await message.reply_text(await localized("در اولین مرحله هستید.", language), reply_markup=main_keyboard(language))
         return True
 
     # Branches that temporarily collect information without advancing the main step.
@@ -1066,7 +1077,17 @@ async def ask_office_step(message, context):
         rows.append([await localized("❌ لغو ثبت", form["language"])])
         keyboard = form_keyboard(rows, form["language"])
     else:
-        keyboard = form_keyboard([[await localized("❌ لغو ثبت", form["language"])]], form["language"])
+        keyboard = form_keyboard([], form["language"])
+    if key != "contact":
+        # Rebuild rows is difficult with an already built keyboard, so use a consistent compact keyboard.
+        if options:
+            rows = [[await localized(opt, form["language"]) for opt in options[0][i:i+5]] for i in range(0, len(options[0]), 5)]
+        elif key == "images":
+            rows = [[await localized("📷 پایان تصاویر", form["language"])]]
+        else:
+            rows = []
+        rows.extend([[await localized(PREV_STEP_LABELS.get(form["language"], PREV_STEP_LABELS["fa"]), form["language"])], [await localized("❌ لغو ثبت", form["language"])]])
+        keyboard = form_keyboard(rows, form["language"])
     await message.reply_text(await localized(prompt, form["language"]), reply_markup=keyboard)
 
 
@@ -1095,6 +1116,15 @@ async def process_office_rent(update, context):
     if normalize_button_text(text) in cancel_labels:
         context.user_data.pop("form", None)
         await message.reply_text(await localized("ثبت آگهی لغو شد.", language), reply_markup=main_keyboard(language))
+        return True
+    previous_labels = {normalize_button_text(x) for x in PREV_STEP_LABELS.values()}
+    previous_labels.add(normalize_button_text(await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)))
+    if normalize_button_text(text) in previous_labels:
+        if form["step"] > 0:
+            form["step"] -= 1
+            await ask_office_step(message, context)
+        else:
+            await message.reply_text(await localized("در اولین مرحله هستید.", language), reply_markup=main_keyboard(language))
         return True
 
     if message.contact:
@@ -1416,6 +1446,64 @@ async def begin_form(update, context, kind, language, category=None, menu_mode=N
     context.user_data["form"] = {"kind": form_kind, "language": language, "step": 0, "data": {"property_type": category, "menu_mode": menu_mode, "source_language": language}, "mode": "complete", "fields": fields, "field_index": 0, "images": [], "awaiting_images": False}
     await ask_complete_form_step(update.message, context)
 
+# Choice-first UI for all structured fields. Only geographic names, exact address,
+# and genuinely descriptive fields remain free-text; monetary fields accept digits only.
+PREV_STEP_LABELS = {
+    "fa": "⬅️ مرحله قبل", "en": "⬅️ Previous Step", "az": "⬅️ Əvvəlki addım",
+    "tr": "⬅️ Önceki adım", "ar": "⬅️ الخطوة السابقة", "zh": "⬅️ 上一步", "ru": "⬅️ Предыдущий шаг",
+}
+
+def _field_choice_options(key, prompt):
+    k = (key or "").lower()
+    p = (prompt or "").lower()
+    if any(x in k for x in ("negotiable", "negotiation", "renewal", "furnished", "pets", "permit_status", "deed_status", "delivery_status", "occupancy", "elevator", "lobby", "balcony", "terrace", "pool", "parking_available", "images_choice", "installments")) or any(x in p for x in ("بله یا خیر", "قابل مذاکره", "آسانسور", "استخر", "سونا", "جکوزی", "بالکن", "تراس", "مبله", "تمدید قرارداد", "حیوان خانگی", "پروانه ساخت", "وضعیت سند", "وضعیت تخلیه", "اقساطی")):
+        if any(x in k for x in ("deed_status",)) or "وضعیت سند" in p:
+            return ["شش‌دانگ", "تک‌برگ", "مشاع", "قولنامه‌ای", "در دست اقدام", "فاقد سند", "سایر"]
+        if "permit_status" in k or "پروانه ساخت" in p:
+            return ["دارد", "در حال اخذ", "ندارد", "نیاز ندارد", "نامشخص"]
+        if "occupancy" in k or "تخلیه" in p:
+            return ["تخلیه", "مالک ساکن است", "مستأجر دارد", "در حال تخلیه", "نامشخص"]
+        if "furnished" in k or "مبله" in p:
+            return ["مبله", "نیمه‌مبله", "غیرمبله"]
+        if "pets" in k or "حیوان خانگی" in p:
+            return ["مجاز است", "مجاز نیست", "با توافق"]
+        if "renewal" in k:
+            return ["بله", "خیر", "با توافق"]
+        if "installments" in k or "اقساطی" in p:
+            return ["بله", "خیر", "با توافق"]
+        return ["بله", "خیر"]
+    if k in {"area", "land_area", "existing_built_area", "completed_area", "remaining_area", "total_built_area", "min_area", "max_area"} or any(x in p for x in ("متراژ ملک", "متراژ زمین", "متراژ زیربنا", "حداقل متراژ", "حداکثر متراژ")):
+        return ["تا ۵۰ متر", "۵۱ تا ۷۵ متر", "۷۶ تا ۱۰۰ متر", "۱۰۱ تا ۱۵۰ متر", "۱۵۱ تا ۲۰۰ متر", "۲۰۱ تا ۳۰۰ متر", "۳۰۱ تا ۵۰۰ متر", "۵۰۱ تا ۱۰۰۰ متر", "بیش از ۱۰۰۰ متر", "ورود دقیق متراژ"]
+    if any(x in k for x in ("rooms", "bedrooms", "master_rooms", "parking", "parking_spaces", "storage", "balcony_count", "total_units", "total_floors", "units_per_floor", "completed_projects", "partners_needed", "unit_count_to_add")) or any(x in p for x in ("تعداد اتاق", "تعداد پارکینگ", "تعداد جای پارک", "تعداد انباری", "تعداد بالکن", "تعداد طبقات", "تعداد واحد", "تعداد پروژه", "تعداد شرکا")):
+        return [str(i) for i in range(0, 11)] + ["+10"]
+    if k in {"floor", "unit_floor"} or "طبقه واحد" in p:
+        return [str(i) for i in range(-5, 0)] + [str(i) for i in range(0, 31)] + ["+30"]
+    if "progress" in k or "درصد پیشرفت" in p:
+        return ["۰٪", "۱۰٪", "۲۰٪", "۳۰٪", "۴۰٪", "۵۰٪", "۶۰٪", "۷۰٪", "۸۰٪", "۹۰٪", "۱۰۰٪"]
+    if "stage" in k or "مرحله فعلی ساخت" in p:
+        return ["پیش از شروع", "گودبرداری", "فونداسیون", "اسکلت", "سفت‌کاری", "نازک‌کاری", "تأسیسات", "پایان کار", "آماده تحویل"]
+    if "payment_type" in k or "روش پرداخت" in p:
+        return ["نقدی", "اقساطی", "نقدی یا اقساطی", "تهاتر", "توافقی"]
+    if "purpose" in k or "هدف خرید" in p:
+        return ["سکونت", "کسب‌وکار", "سرمایه‌گذاری", "مصرفی و سرمایه‌گذاری"]
+    if "contract_term" in k or "مدت قرارداد" in p:
+        return ["یک‌ساله", "دو‌ساله", "بلندمدت", "توافقی"]
+    if "start_date" in k or "زمان تحویل" in p or "زمان تقریبی" in p:
+        return ["فوری", "تا یک ماه", "۱ تا ۳ ماه", "۳ تا ۶ ماه", "بیش از ۶ ماه", "توافقی"]
+    if "type" in k and any(x in k for x in ("property", "investment", "building")):
+        return ["آپارتمان", "ویلا", "خانه مستقل", "زمین", "باغ", "واحد تجاری", "واحد اداری", "ساختمان تجاری", "ساختمان اداری", "کارخانه", "کارگاه", "سوله یا انبار", "مختلط", "سایر"]
+    if "amenit" in k or "امکانات" in p:
+        return ["آسانسور", "پارکینگ", "انباری", "بالکن یا تراس", "استخر", "سونا و جکوزی", "حیاط و فضای سبز", "روف‌گاردن", "لابی", "نگهبانی", "سیستم هوشمند", "سایر امکانات", "ندارد", "پایان انتخاب امکانات"]
+    if "viewing" in k or "زمان‌های مناسب برای بازدید" in p:
+        return ["همه‌روزه با هماهنگی", "روزهای کاری", "آخر هفته", "صبح‌ها", "بعدازظهرها", "فقط با هماهنگی قبلی"]
+    if "building_age" in k or "سن بنا" in p:
+        return ["نوساز", "۱ تا ۵ سال", "۶ تا ۱۰ سال", "۱۱ تا ۲۰ سال", "بیش از ۲۰ سال", "فرقی ندارد"]
+    if "images_choice" in k:
+        return ["بله", "خیر"]
+    return None
+
+NUMERIC_ONLY_KEYS = {"area", "land_area", "existing_built_area", "completed_area", "remaining_area", "total_built_area", "total_price", "price_per_meter", "deposit", "rent", "deposit_min", "deposit_max", "rent_min", "rent_max", "budget_min", "budget_max", "project_value", "investment_amount", "minimum_investment", "funded_amount", "capital_needed", "completion_cost", "cash_component", "municipal_district", "progress_percent", "max_floors", "density_floors", "construction_year", "plaque", "building_number", "unit_number", "unit_count_to_add", "max_area", "min_area", "land_area_range"}
+
 async def ask_complete_form_step(message, context):
     form = context.user_data.get("form")
     if not form: return
@@ -1440,9 +1528,17 @@ async def ask_complete_form_step(message, context):
         rows = [[contact_button], ["❌ لغو ثبت"]]
         await message.reply_text("📝 " + await localized(prompt, lang), reply_markup=ReplyKeyboardMarkup(number_keyboard_rows(with_language_button(rows, lang)), resize_keyboard=True, is_persistent=True))
         return
-    rows = [["❌ لغو ثبت"]]
-    if idx == len(fields)-1: rows.insert(0, ["✅ پایان و ارسال به ناظر"])
-    await message.reply_text(f"📝 {idx+1}/{len(fields)} — " + await localized(prompt, lang), reply_markup=form_keyboard(rows, lang))
+    choices = _field_choice_options(key, prompt)
+    if choices:
+        rows = []
+        shown_choices = [await localized(x, lang) for x in choices]
+        rows.extend([shown_choices[i:i+3] for i in range(0, len(shown_choices), 3)])
+    else:
+        rows = []
+    rows.append([await localized(PREV_STEP_LABELS.get(lang, PREV_STEP_LABELS["fa"]), lang)])
+    rows.append([await localized("❌ لغو ثبت", lang)])
+    # Do not display a frightening total-step counter; show only the current question.
+    await message.reply_text("📝 " + await localized(prompt, lang), reply_markup=form_keyboard(rows, lang))
 
 async def submit_complete_form(update, context):
     form = context.user_data.get("form")
@@ -2090,6 +2186,17 @@ async def process_standard_form(update, context):
         context.user_data.pop("form", None)
         await update.message.reply_text("ثبت لغو شد.", reply_markup=main_keyboard(language))
         return True
+    previous_labels = {normalize_button_text(x) for x in PREV_STEP_LABELS.values()}
+    previous_labels.add(normalize_button_text(await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)))
+    if normalize_button_text(text) in previous_labels:
+        if form["step"] > 0:
+            form["step"] -= 1
+            form["awaiting_images"] = False
+            form["awaiting_video"] = False
+            await ask_complete_form_step(update.message, context)
+        else:
+            await update.message.reply_text(await localized("در اولین مرحله هستید.", language), reply_markup=main_keyboard(language))
+        return True
     if normalize_button_text(text) == normalize_button_text("📷 پایان تصاویر"):
         if not form.get("images"):
             await update.message.reply_text("برای آگهی حداقل یک تصویر الزامی است.")
@@ -2113,6 +2220,54 @@ async def process_standard_form(update, context):
         await update.message.reply_text("برای ارسال نهایی دکمه «پایان و ارسال به ناظر» را بزنید.", reply_markup=form_keyboard([["✅ پایان و ارسال به ناظر"]], language))
         return True
     key, prompt = fields[idx]
+    if form.get("_awaiting_exact_area"):
+        exact_key = form.pop("_awaiting_exact_area")
+        normalized_area = text.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")).replace(",", "").replace("٬", "").replace(" ", "")
+        if not normalized_area.isdigit():
+            form["_awaiting_exact_area"] = exact_key
+            await update.message.reply_text(await localized("متراژ دقیق باید فقط عدد باشد.", language))
+            return True
+        form["data"][exact_key] = normalized_area
+        form["step"] += 1
+        await ask_complete_form_step(update.message, context)
+        return True
+    choices = _field_choice_options(key, prompt)
+    if choices:
+        matched = None
+        for option in choices:
+            shown = normalize_button_text(await localized(option, language))
+            if normalize_button_text(text) in {shown, normalize_button_text(option)}:
+                matched = option
+                break
+        if matched is None:
+            await update.message.reply_text(await localized("لطفاً یکی از گزینه‌های دکمه‌ای را انتخاب کنید.", language), reply_markup=form_keyboard([[await localized(x, language) for x in choices[:3]], [await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)], ["❌ لغو ثبت"]], language))
+            return True
+        if matched == "ورود دقیق متراژ":
+            form["_awaiting_exact_area"] = key
+            await update.message.reply_text(await localized("متراژ دقیق را فقط با عدد وارد کنید.", language), reply_markup=form_keyboard([[await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)], ["❌ لغو ثبت"]], language))
+            return True
+        if matched == "پایان انتخاب امکانات":
+            form["data"][key] = form.get("_amenity_selections", [])
+        elif "امکانات" in prompt or "amenit" in key.lower():
+            selected = form.setdefault("_amenity_selections", [])
+            if matched not in selected:
+                selected.append(matched)
+            await update.message.reply_text(await localized("امکانات دیگری انتخاب کنید یا «پایان انتخاب امکانات» را بزنید.", language), reply_markup=form_keyboard([[await localized(x, language) for x in choices[:3]], [await localized("پایان انتخاب امکانات", language)], [await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)], ["❌ لغو ثبت"]], language))
+            return True
+        else:
+            form["data"][key] = matched
+        form["step"] += 1
+        await ask_complete_form_step(update.message, context)
+        return True
+    if key in NUMERIC_ONLY_KEYS:
+        normalized = text.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")).replace(",", "").replace("٬", "").replace(" ", "")
+        if not normalized.isdigit():
+            await update.message.reply_text(await localized("فقط عدد وارد کنید؛ حروف و واحد پول ننویسید.", language))
+            return True
+        form["data"][key] = normalized
+        form["step"] += 1
+        await ask_complete_form_step(update.message, context)
+        return True
     if key == "images":
         await update.message.reply_text("لطفاً تصاویر ملک را ارسال کنید؛ حداقل یک و حداکثر ۵ تصویر. سپس «📷 پایان تصاویر» را بزنید.")
         return True
