@@ -134,7 +134,7 @@ WELCOME = {
 }
 
 MENU = {
-    "fa": [["🏠 خرید ملک", "🔑 اجاره ملک"], ["📝 درخواست خرید", "📨 درخواست اجاره"], ["💼 سرمایه‌گذاری ملکی", "🏗 مشارکت در ساخت"], ["⭐ علاقه‌مندی‌ها", "📋 آگهی‌ها و درخواست‌های من"], ["🆘 پشتیبانی"]],
+    "fa": [["🏠 خرید ملک", "🔑 اجاره ملک"], ["📝 درخواست خرید", "📨 درخواست اجاره"], ["💼 سرمایه‌گذاری ملکی", "🏗 مشارکت در ساخت"], ["🏢 پیش‌فروش‌ها", "⭐ علاقه‌مندی‌ها"], ["📋 آگهی‌ها و درخواست‌های من", "🆘 پشتیبانی"]],
     "en": [["🏠 Buy Property", "🔑 Rent Property"], ["📝 Buy Request", "📨 Rental Request"], ["💼 Property Investment", "🏗 Joint Construction"], ["⭐ Favorites", "📋 My Listings & Requests"], ["🆘 Support"]],
     "az": [["🏠 Əmlak al", "🔑 Əmlak kirayələ"], ["📝 Alış sorğusu", "📨 İcarə sorğusu"], ["💼 Əmlaka investisiya", "🏗 Birgə tikinti"], ["⭐ Seçilmişlər", "📋 Elanlarım və sorğularım"], ["🆘 Dəstək"]],
     "tr": [["🏠 Gayrimenkul satın al", "🔑 Gayrimenkul kirala"], ["📝 Satın alma talebi", "📨 Kiralama talebi"], ["💼 Gayrimenkul yatırımı", "🏗 Kat karşılığı inşaat"], ["⭐ Favoriler", "📋 İlanlarım ve taleplerim"], ["🆘 Destek"]],
@@ -151,15 +151,16 @@ SUBMENUS = {
     "rent_req": ["🏢 آپارتمان مسکونی", "🏡 ویلا و خانه مستقل", "🏬 مغازه و ملک تجاری", "🏢 دفتر کار و ملک اداری", "🏭 ملک صنعتی، کارخانه و کارگاه", "🏗 سوله و انبار", "💎 ملک لوکس"],
     "investment": ["🏠 خرید ملک برای اجاره‌دادن", "📈 خرید برای افزایش قیمت و فروش", "🏬 سرمایه‌گذاری در املاک تجاری", "💎 املاک لوکس و خاص", "🏗 پروژه‌های ساختمانی و در حال ساخت", "🏙 پروژه‌ها و سرمایه‌گذاری‌های بزرگ", "🤝 جذب شریک یا سرمایه‌گذار برای پروژه", "🌳 سرمایه‌گذاری در زمین و باغ"],
     "construction": ["🧑‍💼 مالک زمین/ملک دنبال سازنده", "🏗 سازنده دنبال زمین/ملک", "💰 سرمایه‌گذار دنبال پروژه مشارکتی", "🤝 دنبال شریک برای پروژه ساختمانی", "📋 معرفی پروژه‌های آماده مشارکت", "🧭 مشاوره و ارزیابی شرایط مشارکت", "🏙 پروژه‌های بزرگ و چندواحدی"],
+    "presale": ["🏢 پیش‌فروش آپارتمان", "🏡 پیش‌فروش ویلا", "🏬 پیش‌فروش واحد تجاری", "🏢 پیش‌فروش واحد اداری", "🏙 پیش‌فروش ساختمان تجاری", "🏢 پیش‌فروش ساختمان اداری"],
     "favorites": ["⭐ مشاهده آگهی‌های ذخیره‌شده", "🔔 آگهی‌های جدید مشابه موارد ذخیره‌شده", "⚖️ مقایسه ملک‌های ذخیره‌شده", "🗑 حذف آگهی از ذخیره‌شده‌ها", "💲 پیگیری تغییر قیمت"],
 }
 
 MAIN_ACTIONS = {
     "🏠 خرید ملک":"buy", "🔑 اجاره ملک":"rent", "📝 درخواست خرید":"buy_req", "📨 درخواست اجاره":"rent_req",
-    "💼 سرمایه‌گذاری ملکی":"investment", "🏗 مشارکت در ساخت":"construction", "⭐ علاقه‌مندی‌ها":"favorites",
+    "💼 سرمایه‌گذاری ملکی":"investment", "🏗 مشارکت در ساخت":"construction", "🏢 پیش‌فروش‌ها":"presale", "🏢 Presales":"presale", "🏢 Предпродажа":"presale", "🏢 预售房源":"presale", "🏢 البيع على الخارطة":"presale", "🏢 Ön satış":"presale", "🏢 Ön satışlar":"presale", "⭐ علاقه‌مندی‌ها":"favorites",
     "📋 آگهی‌ها و درخواست‌های من":"my_items", "🆘 پشتیبانی":"support",
 }
-KIND_FOR_MENU = {"buy":"sell_ad", "rent":"rent_ad", "buy_req":"buy_req", "rent_req":"rent_req", "investment":"builder", "construction":"builder"}
+KIND_FOR_MENU = {"buy":"sell_ad", "rent":"rent_ad", "buy_req":"buy_req", "rent_req":"rent_req", "investment":"builder", "construction":"builder", "presale":"builder"}
 
 FIELDS = ["city", "property_type", "area", "rooms", "price", "details", "contact"]
 
@@ -1066,63 +1067,180 @@ RENT_REQUEST_FIELDS = ["حداکثر مبلغ اجاره ماهانه", "حدا�
 
 
 def build_form_fields(kind, category, menu_mode):
-    """Minimal mobile-first forms. No user-entered ad title; the selected menu/category identifies the submission."""
-    is_listing = menu_mode in {"buy", "rent"}
+    """Build category-aware, approved real-estate forms. Private fields stay admin-only."""
     fields = []
+    cat = (category or "").strip()
+    residential = any(x in cat for x in ("آپارتمان", "ویلا", "خانه مستقل", "پنت‌هاوس", "باغ‌ویلا", "مسکونی"))
+    office = any(x in cat for x in ("اداری", "دفتر کار", "دفتر", "office"))
+    commercial = any(x in cat for x in ("تجاری", "مغازه", "واحد تجاری"))
+    industrial = any(x in cat for x in ("صنعتی", "کارخانه", "کارگاه", "سوله", "انبار"))
+    land = any(x in cat for x in ("زمین", "باغ", "کشاورزی"))
+    old = "کلنگی" in cat
+    portfolio = any(x in cat for x in ("مستغلات", "ساختمان", "سبد", "پرتفوی"))
 
-    # Listing ads: ask only for information needed to identify and assess the property.
-    # Exact street address, legal-document status, payment terms and other details are not required here.
+    def add(key, prompt):
+        fields.append((key, prompt))
+
+    # Buy/rent listing forms: no title field; category itself is the listing type.
     if menu_mode in {"buy", "rent"}:
-        fields = [
-            ("location_summary", "شهر و محله ملک را بنویسید (نشانی دقیق لازم نیست)"),
-            ("total_price", "قیمت کل به تومان" if menu_mode == "buy" else "مبلغ رهن و اجاره ماهانه؛ اگر یکی ندارد، بنویسید صفر"),
-            ("area", "متراژ ملک به مترمربع"),
-        ]
-        if category in ROOM_TYPES:
-            fields.append(("rooms", "تعداد اتاق یا خواب (اگر مشخص نیست، بنویسید نامشخص)"))
-        fields.append(("description", "فقط نکات مهم ملک و امکانات اصلی را کوتاه بنویسید (اختیاری؛ در صورت نداشتن بنویسید ندارد)"))
-        fields.append(("images", "تصاویر ملک (حداکثر ۵ تصویر؛ پس از ارسال، دکمه پایان تصاویر را بزنید)"))
+        add("province", "استان ملک")
+        add("city", "شهر ملک")
+        add("district", "منطقه یا محله (بدون نشانی دقیق)")
+        add("area", "متراژ ملک به مترمربع")
+        if menu_mode == "buy":
+            add("total_price", "قیمت کل به تومان")
+            add("price_per_meter", "قیمت هر مترمربع به تومان؛ در صورت نامشخص بودن بنویسید نامشخص")
+            add("negotiable", "قیمت قابل مذاکره است؟ بله یا خیر")
+        else:
+            add("deposit", "مبلغ ودیعه/رهن به تومان؛ بدون ودیعه عدد صفر")
+            add("rent", "اجاره ماهانه به تومان؛ بدون اجاره عدد صفر")
+            add("deposit_negotiable", "ودیعه قابل مذاکره است؟ بله یا خیر")
+            add("rent_negotiable", "اجاره ماهانه قابل مذاکره است؟ بله یا خیر")
+        if residential:
+            add("rooms", "تعداد اتاق خواب")
+            add("master_rooms", "تعداد اتاق مستر؛ اگر ندارد صفر")
+            add("floor", "طبقه واحد؛ همکف صفر و زیرزمین عدد منفی")
+            add("total_floors", "تعداد کل طبقات ساختمان")
+            add("total_units", "تعداد کل واحدهای ساختمان")
+            add("storage", "انباری دارد؟ بله یا خیر")
+            add("balcony", "بالکن یا تراس دارد؟ بله یا خیر")
+            add("parking", "تعداد پارکینگ")
+            add("construction_year", "سال ساخت")
+            add("amenities", "امکانات ملک (با ویرگول جدا کنید؛ اگر ندارد بنویسید ندارد)")
+        elif office or commercial:
+            add("floor", "طبقه واحد؛ همکف صفر و زیرزمین عدد منفی")
+            add("total_floors", "تعداد کل طبقات ساختمان")
+            add("parking", "تعداد پارکینگ")
+            add("amenities", "امکانات، برِ خیابان، ویترین، انبار، برق و سایر مشخصات")
+        elif industrial:
+            for prompt in INDUSTRIAL_FIELDS:
+                add("industrial_" + str(len(fields)), prompt)
+        elif land:
+            for prompt in LAND_FIELDS:
+                add("land_" + str(len(fields)), prompt)
+        elif old:
+            for prompt in OLD_BUILDING_FIELDS:
+                add("old_" + str(len(fields)), prompt)
+        elif portfolio:
+            add("building_type", "نوع ساختمان: مسکونی، تجاری، اداری یا مختلط")
+            add("total_floors", "تعداد طبقات")
+            add("total_units", "تعداد کل واحدها")
+            add("occupancy", "وضعیت اشغال یا تخلیه")
+        add("construction_year", "سال ساخت یا سن بنا؛ اگر کاربرد ندارد بنویسید نامشخص")
+        add("deed_status", "وضعیت سند")
+        add("delivery_status", "وضعیت تخلیه و تحویل")
+        add("description", "توضیحات تکمیلی و ویژگی‌های مهم ملک")
+        add("exact_address", "نشانی کامل ملک (محرمانه؛ فقط برای مدیر اصلی)")
+        add("map_location", "لینک یا موقعیت نقشه (محرمانه؛ فقط برای مدیر اصلی)")
+        add("images", "تصاویر ملک؛ ۱ تا ۵ تصویر و سپس پایان تصاویر")
+        add("viewing_time", "زمان‌های مناسب برای بازدید")
+        add("contact", "شماره تماس خود را فقط با دکمه اشتراک‌گذاری تلگرام ارسال کنید؛ فقط مدیر اصلی می‌بیند")
+        return fields
 
-    # Purchase/rental requests: category is already selected in the menu, so do not ask it again.
-    elif menu_mode == "buy_req":
-        fields = [
-            ("location_summary", "شهر و محله‌های موردنظر"),
+    # Requests: no property photos and no collection of the registrant's public contact details.
+    if menu_mode == "buy_req":
+        for key, prompt in [
+            ("province", "استان‌های موردنظر"), ("city", "شهرها و محله‌های موردنظر"),
+            ("min_area", "حداقل متراژ به مترمربع"), ("max_area", "حداکثر متراژ به مترمربع"),
+            ("budget_min", "حداقل بودجه خرید به تومان؛ اگر محدودیتی ندارید صفر"),
             ("budget_max", "حداکثر بودجه خرید به تومان"),
-            ("requirements_summary", "متراژ و ۲ یا ۳ شرط ضروری را در یک پیام بنویسید (اختیاری)"),
-            ("transaction_timing", "زمان تقریبی خرید (مثلاً فوری یا تا سه ماه آینده؛ اختیاری)"),
-        ]
-    elif menu_mode == "rent_req":
-        fields = [
-            ("location_summary", "شهر و محله‌های موردنظر"),
-            ("budget_max", "حداکثر رهن و اجاره ماهانه به تومان"),
-            ("requirements_summary", "متراژ و ۲ یا ۳ شرط ضروری را در یک پیام بنویسید (اختیاری)"),
-            ("transaction_timing", "زمان شروع اجاره (اختیاری)"),
-        ]
+            ("purchase_purpose", "هدف خرید: سکونت، کسب‌وکار یا سرمایه‌گذاری"),
+            ("payment_type", "روش پرداخت: نقدی، اقساطی یا هر دو"),
+            ("building_age", "حداکثر سن بنا یا سال ساخت موردنظر"),
+            ("amenities", "امکانات ضروری موردنظر"), ("requirements_summary", "شرایط و توضیحات تکمیلی"),
+            ("transaction_timing", "زمان تقریبی خرید"),
+        ]: add(key, prompt)
+        return fields
 
-    # Investment and construction opportunities: one concise project summary instead of long questionnaires.
-    elif menu_mode == "investment":
-        fields = [
-            ("location_summary", "شهر و موقعیت کلی پروژه"),
-            ("investment_amount", "مبلغ سرمایه موردنیاز یا ارزش پروژه (اگر مشخص است)"),
-            ("description", "خلاصه پروژه، شرایط اصلی و سهم پیشنهادی را در یک پیام بنویسید"),
-        ]
-    elif menu_mode == "construction":
-        fields = [
-            ("location_summary", "شهر و موقعیت کلی ملک یا زمین"),
-            ("area", "متراژ زمین (اگر مشخص است)"),
-            ("description", "خلاصه شرایط مشارکت، سهم پیشنهادی و وضعیت پروژه را در یک پیام بنویسید"),
-        ]
-    else:
-        fields = [
-            ("location_summary", "شهر و منطقه"),
-            ("description", "توضیحات ضروری را کوتاه بنویسید"),
-        ]
+    if menu_mode == "rent_req":
+        for key, prompt in [
+            ("province", "استان‌های موردنظر"), ("city", "شهرها و محله‌های موردنظر"),
+            ("min_area", "حداقل متراژ به مترمربع"), ("max_area", "حداکثر متراژ به مترمربع"),
+            ("deposit_min", "حداقل ودیعه به تومان"), ("deposit_max", "حداکثر ودیعه به تومان"),
+            ("rent_min", "حداقل اجاره ماهانه به تومان"), ("rent_max", "حداکثر اجاره ماهانه به تومان"),
+            ("negotiation", "امکان تبدیل ودیعه به اجاره یا مذاکره بر سر مبلغ"),
+            ("start_date", "تاریخ شروع اجاره"), ("furnished", "مبله یا غیرمبله"),
+            ("contract_term", "مدت قرارداد؛ بلندمدت"), ("renewal", "امکان تمدید قرارداد"),
+            ("occupants", "مناسب خانواده، مجرد یا هر دو"), ("pets", "شرایط نگهداری حیوان خانگی"),
+            ("amenities", "امکانات ضروری موردنظر"), ("requirements_summary", "شرایط و توضیحات تکمیلی"),
+        ]: add(key, prompt)
+        return fields
 
-    # Contact sharing and final reviewer submission stay in the existing workflow.
-    # No separate 'ad title' or registrant-type question is imposed on users.
-    fields.append(("contact", "شماره تماس را با دکمه اشتراک‌گذاری شماره تلگرام ارسال کنید"))
+    # Participation in construction has three distinct pathways selected by a submenu.
+    if menu_mode == "construction_owner":
+        for key, prompt in [
+            ("property_type", "نوع ملک یا زمین"), ("province", "استان"), ("city", "شهر"),
+            ("land_area", "متراژ زمین به مترمربع"), ("existing_built_area", "متراژ زیربنای موجود"),
+            ("dimensions_frontage", "ابعاد زمین و عرض بر"), ("deed_status", "وضعیت سند"),
+            ("permit_status", "وضعیت پروانه ساخت"), ("density_floors", "تراکم و تعداد طبقات مجاز"),
+            ("occupancy", "وضعیت تخلیه یا سکونت ملک"), ("cash_component", "مبلغ بلاعوض موردنظر"),
+            ("owner_share", "درصد مشارکت پیشنهادی مالک"), ("images", "تصاویر ملک یا زمین؛ ۱ تا ۵ تصویر"),
+            ("exact_address", "آدرس کامل محرمانه برای مدیر اصلی"),
+            ("description", "توضیحات و شرایط مالک"),
+            ("contact", "شماره تماس را با دکمه اشتراک‌گذاری تلگرام ارسال کنید؛ فقط مدیر اصلی می‌بیند"),
+        ]: add(key, prompt)
+        return fields
+    if menu_mode == "construction_builder":
+        for key, prompt in [
+            ("builder_name", "نام شخص یا شرکت سازنده"), ("province_city_scope", "استان و شهرهای مورد فعالیت"),
+            ("experience", "سابقه ساخت‌وساز"), ("completed_projects", "تعداد پروژه‌های اجراشده"),
+            ("acceptable_projects", "نوع پروژه‌های قابل قبول"), ("land_area_range", "حداقل و حداکثر متراژ زمین موردنظر"),
+            ("max_floors", "حداکثر تعداد طبقات قابل ساخت"), ("proposed_share", "درصد مشارکت پیشنهادی"),
+            ("cash_component", "امکان پرداخت بلاعوض و سقف مبلغ"), ("description", "توضیحات سازنده"),
+            ("images", "تصاویر پروژه‌های قبلی؛ ۱ تا ۵ تصویر (در صورت وجود)"),
+            ("contact", "شماره تماس را با دکمه اشتراک‌گذاری تلگرام ارسال کنید؛ فقط مدیر اصلی می‌بیند"),
+        ]: add(key, prompt)
+        return fields
+    if menu_mode == "construction_partner":
+        for key, prompt in [
+            ("property_type", "نوع ملک یا پروژه"), ("province", "استان"), ("city", "شهر"),
+            ("land_area", "متراژ زمین"), ("completed_area", "متراژ زیربنای اجراشده"),
+            ("remaining_area", "متراژ زیربنای باقی‌مانده"), ("floors_units", "تعداد طبقات و واحدها"),
+            ("construction_stage", "مرحله فعلی ساخت"), ("progress_percent", "درصد پیشرفت پروژه"),
+            ("deed_status", "وضعیت سند"), ("permit_status", "وضعیت پروانه و مجوزها"),
+            ("capital_needed", "میزان سرمایه موردنیاز برای تکمیل"), ("completion_cost", "برآورد هزینه تکمیل پروژه"),
+            ("completion_time", "زمان تقریبی لازم برای تکمیل"), ("description", "توضیحات پروژه"),
+            ("images", "تصاویر فعلی پروژه؛ ۱ تا ۵ تصویر"),
+            ("exact_address", "آدرس کامل محرمانه برای مدیر اصلی"),
+            ("contact", "شماره تماس را با دکمه اشتراک‌گذاری تلگرام ارسال کنید؛ فقط مدیر اصلی می‌بیند"),
+        ]: add(key, prompt)
+        return fields
+
+    # Presale project-level and per-unit information are supported in a single structured submission.
+    if menu_mode == "presale":
+        for key, prompt in [
+            ("project_name", "نام پروژه"), ("builder_name", "نام سازنده یا شرکت سازنده"),
+            ("property_type", "نوع ملک: آپارتمان، ویلا، واحد تجاری، واحد اداری، ساختمان تجاری یا ساختمان اداری"),
+            ("province", "استان"), ("city", "شهر"), ("land_area", "متراژ زمین پروژه"),
+            ("total_built_area", "زیربنای کل پروژه"), ("total_floors", "تعداد کل طبقات"),
+            ("total_units", "تعداد کل واحدها"), ("deed_status", "وضعیت سند زمین"),
+            ("permit_status", "وضعیت پروانه ساخت"), ("exact_address", "آدرس محرمانه پروژه؛ فقط مدیر اصلی"),
+            ("project_images", "تصاویر کلی پروژه؛ ۱ تا ۵ تصویر"), ("project_description", "توضیحات کلی پروژه"),
+            ("unit_count_to_add", "چند واحد می‌خواهید به این پروژه اضافه کنید؟ عدد وارد کنید"),
+            ("contact", "شماره تماس سازنده را با دکمه اشتراک‌گذاری تلگرام ارسال کنید؛ فقط مدیر اصلی می‌بیند"),
+        ]: add(key, prompt)
+        return fields
+
+    # Investment / other forms remain structured without asking for a standalone ad title.
+    if menu_mode == "investment":
+        for key, prompt in [
+            ("province", "استان"), ("city", "شهر و موقعیت کلی پروژه"),
+            ("investment_type", "نوع سرمایه‌گذاری: خرید، ساخت، مشارکت یا تکمیل پروژه"),
+            ("project_value", "ارزش کل پروژه"), ("investment_amount", "مبلغ سرمایه موردنیاز"),
+            ("minimum_investment", "حداقل مبلغ ورود سرمایه‌گذار"), ("funded_amount", "میزان سرمایه تأمین‌شده تاکنون"),
+            ("proposed_share", "درصد سهم یا بازده پیشنهادی"), ("duration", "مدت سرمایه‌گذاری"),
+            ("permit_status", "وضعیت مجوزها"), ("deed_status", "وضعیت سند و مالکیت"),
+            ("exit_method", "روش خروج و تسویه سرمایه‌گذار"), ("guarantees", "تضمین‌ها و وثایق"),
+            ("remaining_cost", "هزینه‌های باقی‌مانده پروژه"), ("description", "توضیحات و ریسک‌های پروژه"),
+            ("exact_address", "نشانی کامل محرمانه برای مدیر اصلی"),
+        ]: add(key, prompt)
+        add("contact", "شماره تماس را با دکمه اشتراک‌گذاری تلگرام ارسال کنید؛ فقط مدیر اصلی می‌بیند")
+        return fields
+
+    # Fallback form for any legacy kind.
+    for key, prompt in [("province", "استان"), ("city", "شهر و منطقه"), ("description", "توضیحات ضروری")]: add(key, prompt)
+    add("contact", "شماره تماس را با دکمه اشتراک‌گذاری تلگرام ارسال کنید؛ فقط مدیر اصلی می‌بیند")
     return fields
-
 async def begin_form(update, context, kind, language, category=None, menu_mode=None):
     context.user_data["awaiting_support"] = False
     context.user_data.pop("rent_menu", None)
@@ -1130,7 +1248,7 @@ async def begin_form(update, context, kind, language, category=None, menu_mode=N
     menu_mode = menu_mode or context.user_data.pop("selected_menu_mode", "")
     if not menu_mode:
         menu_mode = {"sell_ad":"buy", "rent_ad":"rent", "buy_req":"buy_req", "rent_req":"rent_req", "builder":"investment"}.get(kind, "buy")
-    form_kind = {"buy":"sell_ad", "rent":"rent_ad", "buy_req":"buy_req", "rent_req":"rent_req", "investment":"builder", "construction":"builder"}.get(menu_mode, kind)
+    form_kind = {"buy":"sell_ad", "rent":"rent_ad", "buy_req":"buy_req", "rent_req":"rent_req", "investment":"builder", "construction":"builder", "construction_owner":"builder", "construction_builder":"builder", "construction_partner":"builder", "presale":"builder"}.get(menu_mode, kind)
     fields = build_form_fields(form_kind, category, menu_mode)
     # A request to buy/rent is a request, not a property listing: never ask its author for property photos.
     if menu_mode in {"buy_req", "rent_req"}:
@@ -1749,7 +1867,20 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await update.message.reply_text(await localized("بخش علاقه‌مندی‌ها در حال آماده‌سازی است.", user_language), reply_markup=main_keyboard(user_language))
                 return
             kind = KIND_FOR_MENU.get(menu_mode, "builder")
-            await begin_form(update, context, kind, user_language, category=selected, menu_mode=menu_mode)
+            selected_norm = normalize_button_text(selected)
+            effective_mode = menu_mode
+            if menu_mode == "construction":
+                if "مالک" in selected:
+                    effective_mode = "construction_owner"
+                elif "سازنده" in selected:
+                    effective_mode = "construction_builder"
+                elif "شریک" in selected or "نیمه" in selected or "پروژه" in selected:
+                    effective_mode = "construction_partner"
+                else:
+                    effective_mode = "construction_partner"
+            elif menu_mode == "presale":
+                effective_mode = "presale"
+            await begin_form(update, context, kind, user_language, category=selected, menu_mode=effective_mode)
             return
         await update.message.reply_text(await localized("لطفاً یکی از گزینه‌های همین فهرست را انتخاب کنید یا به منوی اصلی برگردید.", user_language), reply_markup=submenu_keyboard([await localized(x, user_language) for x in options], language=user_language))
         return
@@ -1834,6 +1965,31 @@ async def process_standard_form(update, context):
         else:
             form["data"]["video_link"] = text
         form["awaiting_video"] = False
+        form["step"] += 1
+        await ask_complete_form_step(update.message, context)
+        return True
+    if key == "unit_count_to_add":
+        normalized_count = text.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
+        if not normalized_count.isdigit() or not (1 <= int(normalized_count) <= 100):
+            await update.message.reply_text("لطفاً تعداد واحدها را به‌صورت عددی بین ۱ تا ۱۰۰ وارد کنید.")
+            return True
+        count = int(normalized_count)
+        form["data"][key] = count
+        unit_fields = [
+            ("area", "متراژ واحد به مترمربع"), ("floor", "طبقه واحد"),
+            ("parking", "تعداد پارکینگ"), ("bedrooms", "تعداد اتاق خواب"),
+            ("storage", "تعداد انباری"), ("balcony", "تعداد بالکن"),
+            ("construction_stage", "مرحله فعلی ساخت"), ("progress_percent", "درصد پیشرفت پروژه"),
+            ("handover_date", "زمان تحویل"), ("total_price", "قیمت کل واحد به تومان"),
+            ("price_per_meter", "قیمت هر مترمربع به تومان"), ("payment_terms", "شرایط و مراحل پرداخت"),
+            ("installments", "امکان پرداخت اقساطی و شرایط آن"), ("amenities", "امتیازات و امکانات پروژه"),
+        ]
+        repeated = []
+        for unit_no in range(1, count + 1):
+            for unit_key, unit_prompt in unit_fields:
+                repeated.append((f"unit_{unit_no}_{unit_key}", f"🏢 واحد {unit_no} — {unit_prompt}"))
+        insert_at = form["step"] + 1
+        form["fields"][insert_at:insert_at] = repeated
         form["step"] += 1
         await ask_complete_form_step(update.message, context)
         return True
