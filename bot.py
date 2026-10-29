@@ -374,9 +374,56 @@ def _strip_button_number(value):
 
 
 def _button_key(value):
-    # Emoji and number are presentation only; keep the text as a stable identity.
+    """Return a language-independent identity for the logical button.
+
+    For UI strings translated by localized(), use the original Persian source
+    text as the identity. Main-menu labels are maintained as parallel rows in
+    MENU, so their translations also resolve to the same identity even though
+    they are written explicitly rather than translated at runtime.
+    """
     value = _strip_button_number(value)
-    return re.sub(r"\s+", " ", value).strip().casefold()
+    visible = re.sub(r"\s+", " ", value).strip()
+
+    # Resolve explicit translations of the main menu by semantic action, not
+    # by row/column position (layouts may differ between languages).
+    main_menu_aliases = {
+        "🏠 خرید ملک": "menu:buy", "🏠 Buy Property": "menu:buy", "🏠 Əmlak al": "menu:buy", "🏠 Gayrimenkul satın al": "menu:buy", "🏠 شراء عقار": "menu:buy", "🏠 购买房产": "menu:buy", "🏠 Купить недвижимость": "menu:buy",
+        "🔑 اجاره ملک": "menu:rent", "🔑 Rent Property": "menu:rent", "🔑 Əmlak kirayələ": "menu:rent", "🔑 Gayrimenkul kirala": "menu:rent", "🔑 استئجار عقار": "menu:rent", "🔑 租赁房产": "menu:rent", "🔑 Арендовать недвижимость": "menu:rent",
+        "📝 درخواست خرید": "menu:buy_request", "📝 Buy Request": "menu:buy_request", "📝 Alış sorğusu": "menu:buy_request", "📝 Satın alma talebi": "menu:buy_request", "📝 طلب شراء": "menu:buy_request", "📝 求购需求": "menu:buy_request", "📝 Запрос на покупку": "menu:buy_request",
+        "📨 درخواست اجاره": "menu:rent_request", "📨 Rental Request": "menu:rent_request", "📨 İcarə sorğusu": "menu:rent_request", "📨 Kiralama talebi": "menu:rent_request", "📨 طلب إيجار": "menu:rent_request", "📨 求租需求": "menu:rent_request", "📨 Запрос на аренду": "menu:rent_request",
+        "💼 سرمایه‌گذاری ملکی": "menu:investment", "💼 Property Investment": "menu:investment", "💼 Əmlaka investisiya": "menu:investment", "💼 Gayrimenkul yatırımı": "menu:investment", "💼 الاستثمار العقاري": "menu:investment", "💼 房地产投资": "menu:investment", "💼 Инвестиции в недвижимость": "menu:investment",
+        "🏗 مشارکت در ساخت": "menu:construction", "🏗 Joint Construction": "menu:construction", "🏗 Birgə tikinti": "menu:construction", "🏗 Kat karşılığı inşaat": "menu:construction", "🏗 شراكة بناء": "menu:construction", "🏗 合作建设": "menu:construction", "🏗 Совместное строительство": "menu:construction",
+        "🏢 پیش‌فروش‌ها": "menu:presale", "🏢 Presales": "menu:presale", "🏢 Предпродажа": "menu:presale", "🏢 预售房源": "menu:presale", "🏢 البيع على الخارطة": "menu:presale", "🏢 Ön satış": "menu:presale", "🏢 Ön satışlar": "menu:presale",
+        "⭐ علاقه‌مندی‌ها": "menu:favorites", "⭐ Favorites": "menu:favorites", "⭐ Seçilmişlər": "menu:favorites", "⭐ Favoriler": "menu:favorites", "⭐ المفضلة": "menu:favorites", "⭐ 收藏": "menu:favorites", "⭐ Избранное": "menu:favorites",
+        "📋 آگهی‌ها و درخواست‌های من": "menu:my_items", "📋 My Listings & Requests": "menu:my_items", "📋 Elanlarım və sorğularım": "menu:my_items", "📋 İlanlarım ve taleplerim": "menu:my_items", "📋 إعلاناتي وطلباتي": "menu:my_items", "📋 我的房源与需求": "menu:my_items", "📋 Мои объявления и запросы": "menu:my_items",
+        "🆘 پشتیبانی": "menu:support", "🆘 Support": "menu:support", "🆘 Dəstək": "menu:support", "🆘 Destek": "menu:support", "🆘 الدعم": "menu:support", "🆘 客服": "menu:support", "🆘 Поддержка": "menu:support",
+    }
+    if visible.casefold() in {k.casefold() for k in main_menu_aliases}:
+        for alias, canonical in main_menu_aliases.items():
+            if alias.casefold() == visible.casefold():
+                return canonical
+
+    # Resolve all explicitly translated language-change buttons to one key.
+    try:
+        if visible.casefold() in {str(x).casefold() for x in LANGUAGE_BUTTONS.values()}:
+            return "system:change_language"
+    except NameError:
+        pass
+
+    # Translation cache maps (source, target language, source language) to the
+    # translated label. Reuse the source string so all language variants share
+    # one persistent number.
+    try:
+        for (source_text, target_lang, source_lang), translated_text in _TRANSLATION_CACHE.items():
+            if str(translated_text).strip().casefold() == visible.casefold():
+                visible = str(source_text).strip()
+                break
+    except NameError:
+        pass
+
+    # Emoji and spacing are presentation only; strip them from the identity.
+    normalized = normalize_button_text(visible) if "normalize_button_text" in globals() else visible
+    return re.sub(r"\s+", " ", normalized).strip().casefold()
 
 
 def _load_button_numbers():
@@ -666,24 +713,38 @@ BOOL_BUTTONS = {"دارد", "ندارد"}
 CONTACT_BUTTONS = {"📱 اشتراک‌گذاری شماره تلگرام", "📱 Share Telegram phone number"}
 CANCEL_FORM_BUTTONS = {"❌ لغو ثبت"}
 
+# انتخاب‌های عددی برای جلوگیری از ورود دستی اعداد در فرم‌ها.
+# گزینه‌ها در همه زبان‌ها از یک مقدار پایه استفاده می‌کنند تا شماره دکمه‌ها یکسان بماند.
+def count_options(max_value=6):
+    return [str(i) for i in range(max_value + 1)] + ["+10"]
+
+def floor_options():
+    return [str(i) for i in range(-5, 0)] + ["0"] + [str(i) for i in range(1, 31)] + ["+30"]
+
+def numeric_choice_rows(options, language):
+    # Compact rows make long numeric menus easier to scan on mobile.
+    return [[options[i:i+5] for i in range(0, len(options), 5)]]
+
 APARTMENT_STEPS = [
     ("listing_role", "ثبت‌کننده ملک هستید یا مشاور املاک / واسطه؟", ["👤 مالک", "🏢 مشاور املاک / واسطه"]),
     ("area", "متراژ آپارتمان را فقط با عدد وارد کنید:"),
-    ("rooms", "تعداد اتاق خواب را وارد کنید:"),
-    ("master_rooms", "تعداد اتاق مستر را وارد کنید:"),
+    ("rooms", "تعداد اتاق خواب را انتخاب کنید:", count_options(6)),
+    ("master_rooms", "تعداد اتاق مستر را انتخاب کنید:", count_options(6)),
     ("terrace", "آپارتمان تراس دارد؟", ["✅ دارد", "❌ ندارد"]),
     ("lobby", "ساختمان لابی دارد؟", ["✅ دارد", "❌ ندارد"]),
     ("caretaker", "ساختمان سرایدار مقیم دارد؟", ["✅ دارد", "❌ ندارد"]),
     ("elevator", "ساختمان آسانسور دارد؟", ["✅ دارد", "❌ ندارد"]),
-    ("parking", "آپارتمان پارکینگ دارد؟", ["✅ دارد", "❌ ندارد"]),
+    ("parking", "تعداد پارکینگ را انتخاب کنید:", count_options(6)),
     ("shared_pool", "ساختمان امکانات آبی مشترک دارد؟", ["✅ دارد", "❌ ندارد"]),
     ("roof_garden", "ساختمان روف‌گاردن دارد؟", ["✅ دارد", "❌ ندارد"]),
-    ("floor", "طبقه واحد را وارد کنید (زیرزمین با عدد منفی و همکف با ۰):"),
+    ("floor", "طبقه واحد را انتخاب کنید (اعداد منفی زیرزمین و ۰ همکف است):", floor_options()),
     ("construction_year", "سال ساخت را فقط با عدد وارد کنید:"),
     ("furnished", "وضعیت مبله بودن آپارتمان را انتخاب کنید:", ["مبله", "غیرمبله"]),
     ("pets", "وضعیت نگهداری حیوان خانگی را انتخاب کنید:", ["مجاز است", "مجاز نیست"]),
-    ("total_units", "تعداد کل واحدهای ساختمان را وارد کنید:"),
-    ("total_floors", "تعداد کل طبقات ساختمان را وارد کنید:"),
+    ("total_units", "تعداد کل واحدهای ساختمان را انتخاب کنید:", count_options(10)),
+    ("total_floors", "تعداد کل طبقات ساختمان را انتخاب کنید:", count_options(30)),
+    ("units_per_floor", "تعداد واحد در هر طبقه را انتخاب کنید:", count_options(10)),
+    ("storage", "تعداد انباری را انتخاب کنید:", count_options(6)),
     ("city", "نام شهر را وارد کنید:"),
     ("municipal_district", "شماره منطقه شهرداری را فقط با عدد وارد کنید:"),
     ("street", "نام خیابان اصلی را وارد کنید:"),
@@ -697,8 +758,8 @@ APARTMENT_STEPS = [
     ("contact", "برای تأیید شماره تلفن، دکمه اشتراک‌گذاری شماره تماس خودتان را بزنید."),
 ]
 
-APARTMENT_NUMERIC_FIELDS = {"area", "rooms", "master_rooms", "construction_year", "total_units", "total_floors", "municipal_district", "building_number", "unit_number", "deposit", "rent"}
-APARTMENT_BOOL_FIELDS = {"terrace", "lobby", "caretaker", "elevator", "parking", "shared_pool", "roof_garden"}
+APARTMENT_NUMERIC_FIELDS = {"area", "rooms", "master_rooms", "construction_year", "total_units", "total_floors", "units_per_floor", "storage", "parking", "municipal_district", "building_number", "unit_number", "deposit", "rent"}
+APARTMENT_BOOL_FIELDS = {"terrace", "lobby", "caretaker", "elevator", "shared_pool", "roof_garden"}
 
 async def begin_apartment_rent_form(update, context, language):
     context.user_data["form"] = {"kind": "rent_apartment_ad", "language": language, "step": 0, "data": {}, "mode": "apartment_rent", "images": []}
@@ -715,7 +776,10 @@ async def ask_apartment_step(message, context):
     elif key == "images_choice":
         rows = [[await localized("بله", language), await localized("خیر", language)], [await localized("❌ لغو ثبت", language)]]
     elif options:
-        rows = [[await localized(opt, language) for opt in options[0]], [await localized("❌ لغو ثبت", language)]]
+        rows = []
+        for option_row in (options[0][i:i+5] for i in range(0, len(options[0]), 5)):
+            rows.append([await localized(opt, language) for opt in option_row])
+        rows.append([await localized("❌ لغو ثبت", language)])
     else:
         rows = [[await localized("❌ لغو ثبت", language)]]
     await message.reply_text(await localized(prompt, language), reply_markup=form_keyboard(rows, language))
@@ -824,6 +888,32 @@ async def process_apartment_rent(update, context):
             return True
         await message.reply_text(await localized("لطفاً بله یا خیر را انتخاب کنید.", language)); return True
 
+    # All predefined choice fields (including numeric counts and floors) accept
+    # button selections only; typed values are rejected.
+    step_options = APARTMENT_STEPS[form["step"]][2:]
+    if step_options and key in {"rooms", "master_rooms", "parking", "floor", "total_units", "total_floors", "units_per_floor", "storage"}:
+        allowed = step_options[0]
+        matched = None
+        for opt in allowed:
+            if normalize_button_text(text) in {normalize_button_text(opt), normalize_button_text(await localized(opt, language))}:
+                matched = opt
+                break
+        if matched is None:
+            await message.reply_text(await localized("لطفاً فقط یکی از دکمه‌های نمایش‌داده‌شده را انتخاب کنید.", language))
+            return True
+        value = normalize_button_text(matched)
+        if key == "parking":
+            form["data"]["parking_spaces"] = value
+            form["data"]["parking"] = "دارد" if value not in {"0", "ندارد"} else "ندارد"
+        else:
+            form["data"][key] = value
+        form["step"] += 1
+        if form["step"] >= len(APARTMENT_STEPS):
+            await finish_apartment_rent(update, context)
+        else:
+            await ask_apartment_step(message, context)
+        return True
+
     if key == "listing_role":
         allowed = APARTMENT_STEPS[form["step"]][2]
         matched = None
@@ -853,12 +943,6 @@ async def process_apartment_rent(update, context):
             await message.reply_text(await localized("لطفاً یکی از گزینه‌های نمایش‌داده‌شده را انتخاب کنید.", language)); return True
         form["data"][key] = normalize_button_text(matched)
         form["step"] += 1
-        if key == "parking" and matched.startswith("❌"):
-            form["data"]["parking_spaces"] = "0"
-        elif key == "parking" and matched.startswith("✅"):
-            form["dynamic_parking_count"] = True
-            await message.reply_text(await localized("تعداد جای پارک را فقط با عدد وارد کنید:", language), reply_markup=form_keyboard([[await localized("❌ لغو ثبت", language)]], language))
-            return True
     elif key in APARTMENT_NUMERIC_FIELDS or key == "floor":
         normalized = text.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
         if key == "floor":
@@ -934,8 +1018,8 @@ OFFICE_STEPS = [
     ("office_document_type", "نوع سند/موقعیت اداری را انتخاب کنید:", ["📄 سند اداری", "📍 موقعیت اداری"]),
     ("office_property_type", "نوع ملک را انتخاب کنید:", ["🏢 آپارتمان", "🏛 مستغلات"]),
     ("area", "متراژ ملک را فقط با عدد وارد کنید:"),
-    ("parking", "تعداد پارکینگ را فقط با عدد وارد کنید:"),
-    ("rooms", "تعداد اتاق را فقط با عدد وارد کنید:"),
+    ("parking", "تعداد پارکینگ را انتخاب کنید:", count_options(6)),
+    ("rooms", "تعداد اتاق را انتخاب کنید:", count_options(6)),
     ("elevator", "آسانسور دارد؟", ["✅ دارد", "❌ ندارد"]),
     ("lobby", "لابی دارد؟", ["✅ دارد", "❌ ندارد"]),
     ("city", "شهر را فقط با حروف وارد کنید:"),
@@ -976,8 +1060,11 @@ async def ask_office_step(message, context):
     elif key == "images":
         keyboard = form_keyboard([[await localized("📷 پایان تصاویر", form["language"])], [await localized("❌ لغو ثبت", form["language"])]], form["language"])
     elif options:
-        localized_options = [await localized(option, form["language"]) for option in options[0]]
-        keyboard = submenu_keyboard(localized_options, await localized("❌ لغو ثبت", form["language"]), form["language"])
+        rows = []
+        for option_row in (options[0][i:i+5] for i in range(0, len(options[0]), 5)):
+            rows.append([await localized(option, form["language"]) for option in option_row])
+        rows.append([await localized("❌ لغو ثبت", form["language"])])
+        keyboard = form_keyboard(rows, form["language"])
     else:
         keyboard = form_keyboard([[await localized("❌ لغو ثبت", form["language"])]], form["language"])
     await message.reply_text(await localized(prompt, form["language"]), reply_markup=keyboard)
@@ -1048,7 +1135,7 @@ async def process_office_rent(update, context):
         await message.reply_text(await localized("لطفاً پاسخ را به‌صورت متن یا با دکمه مناسب ارسال کنید.", language))
         return True
 
-    if key in {"office_document_type", "office_property_type", "elevator", "lobby"}:
+    if key in {"office_document_type", "office_property_type", "elevator", "lobby", "parking", "rooms"}:
         allowed = OFFICE_STEPS[form["step"]][2]
         normalized_text = normalize_button_text(text)
         matched = None
@@ -1061,7 +1148,7 @@ async def process_office_rent(update, context):
             await message.reply_text(await localized("لطفاً یکی از گزینه‌های نمایش‌داده‌شده را انتخاب کنید.", language))
             return True
         form["data"][key] = normalize_button_text(matched)
-    elif key in {"area", "parking", "rooms", "municipal_district", "plaque", "deposit", "rent"}:
+    elif key in {"area", "municipal_district", "plaque", "deposit", "rent"}:
         if not digits_only(text):
             await message.reply_text(await localized("ورودی این مرحله باید فقط عدد باشد. لطفاً دوباره وارد کنید.", language))
             return True
