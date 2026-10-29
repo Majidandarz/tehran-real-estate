@@ -1291,8 +1291,6 @@ def build_form_fields(kind, category, menu_mode):
             add("floor", "طبقه واحد؛ همکف صفر و زیرزمین عدد منفی")
             add("total_floors", "تعداد کل طبقات ساختمان")
             add("total_units", "تعداد کل واحدهای ساختمان")
-            add("storage", "انباری دارد؟ بله یا خیر")
-            add("balcony", "بالکن یا تراس دارد؟ بله یا خیر")
             add("amenities", "امکانات ملک را انتخاب کنید؛ در پایان «پایان انتخاب امکانات» را بزنید")
             add("parking", "تعداد پارکینگ")
             add("construction_year", "سال ساخت")
@@ -2246,7 +2244,7 @@ async def process_standard_form(update, context):
                 matched = option
                 break
         if matched is None:
-            await update.message.reply_text(await localized("لطفاً یکی از گزینه‌های دکمه‌ای را انتخاب کنید.", language), reply_markup=form_keyboard([[await localized(x, language) for x in choices[:3]], [await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)], ["❌ لغو ثبت"]], language))
+            await update.message.reply_text(await localized("لطفاً یکی از گزینه‌های دکمه‌ای را انتخاب کنید.", language), reply_markup=form_keyboard([[await localized(x, language) for x in choices[i:i+3]] for i in range(0, len(choices), 3)] + [[await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)], ["❌ لغو ثبت"]], language))
             return True
         if matched == "ورود دقیق متراژ":
             form["_awaiting_exact_area"] = key
@@ -2282,7 +2280,7 @@ async def process_standard_form(update, context):
             selected = form.setdefault("_amenity_selections", [])
             if matched not in selected:
                 selected.append(matched)
-            await update.message.reply_text(await localized("امکانات دیگری انتخاب کنید یا «پایان انتخاب امکانات» را بزنید.", language), reply_markup=form_keyboard([[await localized(x, language) for x in choices[:3]], [await localized("پایان انتخاب امکانات", language)], [await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)], ["❌ لغو ثبت"]], language))
+            await update.message.reply_text(await localized("امکانات دیگری انتخاب کنید یا «پایان انتخاب امکانات» را بزنید.", language), reply_markup=form_keyboard([[await localized(x, language) for x in choices[i:i+3]] for i in range(0, len(choices), 3)] + [[await localized("پایان انتخاب امکانات", language)], [await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)], ["❌ لغو ثبت"]], language))
             return True
         else:
             form["data"][key] = matched
