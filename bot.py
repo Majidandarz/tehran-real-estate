@@ -135,13 +135,13 @@ WELCOME = {
 }
 
 MENU = {
-    "fa": [["🏠 خرید ملک", "🔑 اجاره ملک"], ["📝 درخواست خرید", "📨 درخواست اجاره"], ["💼 سرمایه‌گذاری ملکی", "🏗 مشارکت در ساخت"], ["🏢 پیش‌فروش‌ها", "⭐ علاقه‌مندی‌ها"], ["📋 آگهی‌ها و درخواست‌های من", "🆘 پشتیبانی"]],
-    "en": [["🏠 Buy Property", "🔑 Rent Property"], ["📝 Buy Request", "📨 Rental Request"], ["💼 Property Investment", "🏗 Joint Construction"], ["⭐ Favorites", "📋 My Listings & Requests"], ["🆘 Support"]],
-    "az": [["🏠 Əmlak al", "🔑 Əmlak kirayələ"], ["📝 Alış sorğusu", "📨 İcarə sorğusu"], ["💼 Əmlaka investisiya", "🏗 Birgə tikinti"], ["⭐ Seçilmişlər", "📋 Elanlarım və sorğularım"], ["🆘 Dəstək"]],
-    "tr": [["🏠 Gayrimenkul satın al", "🔑 Gayrimenkul kirala"], ["📝 Satın alma talebi", "📨 Kiralama talebi"], ["💼 Gayrimenkul yatırımı", "🏗 Kat karşılığı inşaat"], ["⭐ Favoriler", "📋 İlanlarım ve taleplerim"], ["🆘 Destek"]],
-    "ar": [["🏠 شراء عقار", "🔑 استئجار عقار"], ["📝 طلب شراء", "📨 طلب إيجار"], ["💼 الاستثمار العقاري", "🏗 شراكة بناء"], ["⭐ المفضلة", "📋 إعلاناتي وطلباتي"], ["🆘 الدعم"]],
-    "zh": [["🏠 购买房产", "🔑 租赁房产"], ["📝 求购需求", "📨 求租需求"], ["💼 房地产投资", "🏗 合作建设"], ["⭐ 收藏", "📋 我的房源与需求"], ["🆘 客服"]],
-    "ru": [["🏠 Купить недвижимость", "🔑 Арендовать недвижимость"], ["📝 Запрос на покупку", "📨 Запрос на аренду"], ["💼 Инвестиции в недвижимость", "🏗 Совместное строительство"], ["⭐ Избранное", "📋 Мои объявления и запросы"], ["🆘 Поддержка"]],
+    "fa": [["🏠 خرید ملک", "🔑 اجاره ملک"], ["📝 درخواست خرید", "📨 درخواست اجاره"], ["💼 سرمایه‌گذاری ملکی", "🏗 مشارکت در ساخت"], ["🏢 پیش‌فروش‌ها", "🆘 پشتیبانی"]],
+    "en": [["🏠 Buy Property", "🔑 Rent Property"], ["📝 Buy Request", "📨 Rental Request"], ["💼 Property Investment", "🏗 Joint Construction"], ["🏢 Presales", "🆘 Support"]],
+    "az": [["🏠 Əmlak al", "🔑 Əmlak kirayələ"], ["📝 Alış sorğusu", "📨 İcarə sorğusu"], ["💼 Əmlaka investisiya", "🏗 Birgə tikinti"], ["🏢 Ön satışlar", "🆘 Dəstək"]],
+    "tr": [["🏠 Gayrimenkul satın al", "🔑 Gayrimenkul kirala"], ["📝 Satın alma talebi", "📨 Kiralama talebi"], ["💼 Gayrimenkul yatırımı", "🏗 Kat karşılığı inşaat"], ["🏢 Ön satış", "🆘 Destek"]],
+    "ar": [["🏠 شراء عقار", "🔑 استئجار عقار"], ["📝 طلب شراء", "📨 طلب إيجار"], ["💼 الاستثمار العقاري", "🏗 شراكة بناء"], ["🏢 البيع على الخارطة", "🆘 الدعم"]],
+    "zh": [["🏠 购买房产", "🔑 租赁房产"], ["📝 求购需求", "📨 求租需求"], ["💼 房地产投资", "🏗 合作建设"], ["🏢 预售房源", "🆘 客服"]],
+    "ru": [["🏠 Купить недвижимость", "🔑 Арендовать недвижимость"], ["📝 Запрос на покупку", "📨 Запрос на аренду"], ["💼 Инвестиции в недвижимость", "🏗 Совместное строительство"], ["🏢 Предпродажа", "🆘 Поддержка"]],
 }
 
 # Полный каталог категорий. Кнопки переводятся на язык пользователя при показе.
@@ -153,13 +153,12 @@ SUBMENUS = {
     "investment": ["🏠 خرید ملک برای اجاره‌دادن", "📈 خرید برای افزایش قیمت و فروش", "🏬 سرمایه‌گذاری در املاک تجاری", "💎 املاک لوکس و خاص", "🏗 پروژه‌های ساختمانی و در حال ساخت", "🏙 پروژه‌ها و سرمایه‌گذاری‌های بزرگ", "🤝 جذب شریک یا سرمایه‌گذار برای پروژه", "🌳 سرمایه‌گذاری در زمین و باغ"],
     "construction": ["🧑‍💼 مالک زمین/ملک دنبال سازنده", "🏗 سازنده دنبال زمین/ملک", "💰 سرمایه‌گذار دنبال پروژه مشارکتی", "🤝 دنبال شریک برای پروژه ساختمانی", "📋 معرفی پروژه‌های آماده مشارکت", "🧭 مشاوره و ارزیابی شرایط مشارکت", "🏙 پروژه‌های بزرگ و چندواحدی"],
     "presale": ["🏢 پیش‌فروش آپارتمان", "🏡 پیش‌فروش ویلا", "🏬 پیش‌فروش واحد تجاری", "🏢 پیش‌فروش واحد اداری", "🏙 پیش‌فروش ساختمان تجاری", "🏢 پیش‌فروش ساختمان اداری"],
-    "favorites": ["⭐ مشاهده آگهی‌های ذخیره‌شده", "🔔 آگهی‌های جدید مشابه موارد ذخیره‌شده", "⚖️ مقایسه ملک‌های ذخیره‌شده", "🗑 حذف آگهی از ذخیره‌شده‌ها", "💲 پیگیری تغییر قیمت"],
 }
 
 MAIN_ACTIONS = {
     "🏠 خرید ملک":"buy", "🔑 اجاره ملک":"rent", "📝 درخواست خرید":"buy_req", "📨 درخواست اجاره":"rent_req",
-    "💼 سرمایه‌گذاری ملکی":"investment", "🏗 مشارکت در ساخت":"construction", "🏢 پیش‌فروش‌ها":"presale", "🏢 Presales":"presale", "🏢 Предпродажа":"presale", "🏢 预售房源":"presale", "🏢 البيع على الخارطة":"presale", "🏢 Ön satış":"presale", "🏢 Ön satışlar":"presale", "⭐ علاقه‌مندی‌ها":"favorites",
-    "📋 آگهی‌ها و درخواست‌های من":"my_items", "🆘 پشتیبانی":"support",
+    "💼 سرمایه‌گذاری ملکی":"investment", "🏗 مشارکت در ساخت":"construction", "🏢 پیش‌فروش‌ها":"presale", "🏢 Presales":"presale", "🏢 Предпродажа":"presale", "🏢 预售房源":"presale", "🏢 البيع على الخارطة":"presale", "🏢 Ön satış":"presale", "🏢 Ön satışlar":"presale",
+    "🆘 پشتیبانی":"support",
 }
 KIND_FOR_MENU = {"buy":"sell_ad", "rent":"rent_ad", "buy_req":"buy_req", "rent_req":"rent_req", "investment":"builder", "construction":"builder", "presale":"builder"}
 
@@ -394,8 +393,6 @@ def _button_key(value):
         "💼 سرمایه‌گذاری ملکی": "menu:investment", "💼 Property Investment": "menu:investment", "💼 Əmlaka investisiya": "menu:investment", "💼 Gayrimenkul yatırımı": "menu:investment", "💼 الاستثمار العقاري": "menu:investment", "💼 房地产投资": "menu:investment", "💼 Инвестиции в недвижимость": "menu:investment",
         "🏗 مشارکت در ساخت": "menu:construction", "🏗 Joint Construction": "menu:construction", "🏗 Birgə tikinti": "menu:construction", "🏗 Kat karşılığı inşaat": "menu:construction", "🏗 شراكة بناء": "menu:construction", "🏗 合作建设": "menu:construction", "🏗 Совместное строительство": "menu:construction",
         "🏢 پیش‌فروش‌ها": "menu:presale", "🏢 Presales": "menu:presale", "🏢 Предпродажа": "menu:presale", "🏢 预售房源": "menu:presale", "🏢 البيع على الخارطة": "menu:presale", "🏢 Ön satış": "menu:presale", "🏢 Ön satışlar": "menu:presale",
-        "⭐ علاقه‌مندی‌ها": "menu:favorites", "⭐ Favorites": "menu:favorites", "⭐ Seçilmişlər": "menu:favorites", "⭐ Favoriler": "menu:favorites", "⭐ المفضلة": "menu:favorites", "⭐ 收藏": "menu:favorites", "⭐ Избранное": "menu:favorites",
-        "📋 آگهی‌ها و درخواست‌های من": "menu:my_items", "📋 My Listings & Requests": "menu:my_items", "📋 Elanlarım və sorğularım": "menu:my_items", "📋 İlanlarım ve taleplerim": "menu:my_items", "📋 إعلاناتي وطلباتي": "menu:my_items", "📋 我的房源与需求": "menu:my_items", "📋 Мои объявления и запросы": "menu:my_items",
         "🆘 پشتیبانی": "menu:support", "🆘 Support": "menu:support", "🆘 Dəstək": "menu:support", "🆘 Destek": "menu:support", "🆘 الدعم": "menu:support", "🆘 客服": "menu:support", "🆘 Поддержка": "menu:support",
     }
     if visible.casefold() in {k.casefold() for k in main_menu_aliases}:
@@ -718,8 +715,22 @@ CANCEL_FORM_BUTTONS = {"❌ لغو ثبت"}
 def count_options(max_value=6):
     return [str(i) for i in range(max_value + 1)] + ["+10"]
 
+def room_options():
+    return ["1", "2", "3", "4", "+5"]
+
+def master_room_options(selected_rooms):
+    """Master-bedroom choices cannot exceed the selected bedroom count."""
+    value = normalize_button_text(str(selected_rooms or ""))
+    if value == "+5":
+        return ["1", "2", "3", "4", "+5"]
+    try:
+        count = int(value)
+    except (TypeError, ValueError):
+        return ["1", "2", "3", "4", "+5"]
+    return [str(i) for i in range(1, max(1, min(count, 4)) + 1)]
+
 def floor_options():
-    return [str(i) for i in range(-5, 0)] + ["0"] + [str(i) for i in range(1, 31)] + ["+30"]
+    return ["0", "2", "3", "4", "5", "6", "+7"]
 
 def numeric_choice_rows(options, language):
     # Compact rows make long numeric menus easier to scan on mobile.
@@ -728,9 +739,8 @@ def numeric_choice_rows(options, language):
 APARTMENT_STEPS = [
     ("listing_role", "ثبت‌کننده ملک هستید یا مشاور املاک / واسطه؟", ["👤 مالک", "🏢 مشاور املاک / واسطه"]),
     ("area", "متراژ آپارتمان را فقط با عدد وارد کنید:"),
-    ("rooms", "تعداد اتاق خواب را انتخاب کنید:", count_options(6)),
+    ("rooms", "تعداد اتاق خواب را انتخاب کنید:", room_options()),
     ("master_rooms", "تعداد اتاق مستر را انتخاب کنید:", count_options(6)),
-    ("terrace", "آپارتمان تراس دارد؟", ["✅ دارد", "❌ ندارد"]),
     ("lobby", "ساختمان لابی دارد؟", ["✅ دارد", "❌ ندارد"]),
     ("caretaker", "ساختمان سرایدار مقیم دارد؟", ["✅ دارد", "❌ ندارد"]),
     ("elevator", "ساختمان آسانسور دارد؟", ["✅ دارد", "❌ ندارد"]),
@@ -738,11 +748,10 @@ APARTMENT_STEPS = [
     ("shared_pool", "ساختمان امکانات آبی مشترک دارد؟", ["✅ دارد", "❌ ندارد"]),
     ("roof_garden", "ساختمان روف‌گاردن دارد؟", ["✅ دارد", "❌ ندارد"]),
     ("floor", "طبقه واحد را انتخاب کنید (اعداد منفی زیرزمین و ۰ همکف است):", floor_options()),
-    ("construction_year", "سال ساخت را فقط با عدد وارد کنید:"),
+    ("building_age", "سن بنا را انتخاب کنید:", ["نوساز تا ۵ سال", "۵ تا ۱۵ سال", "۱۵ تا ۲۰ سال", "بیشتر از ۲۰ سال"]),
     ("furnished", "وضعیت مبله بودن آپارتمان را انتخاب کنید:", ["مبله", "غیرمبله"]),
     ("pets", "وضعیت نگهداری حیوان خانگی را انتخاب کنید:", ["مجاز است", "مجاز نیست"]),
-    ("total_units", "تعداد کل واحدهای ساختمان را انتخاب کنید:", count_options(10)),
-    ("total_floors", "تعداد کل طبقات ساختمان را انتخاب کنید:", count_options(30)),
+    ("total_floors", "تعداد کل طبقات ساختمان را انتخاب کنید:", ["1", "2", "3", "4", "5", "6", "+7"]),
     ("units_per_floor", "تعداد واحد در هر طبقه را انتخاب کنید:", count_options(10)),
     ("storage", "تعداد انباری را انتخاب کنید:", count_options(6)),
     ("city", "نام شهر را وارد کنید:"),
@@ -758,7 +767,7 @@ APARTMENT_STEPS = [
     ("contact", "برای تأیید شماره تلفن، دکمه اشتراک‌گذاری شماره تماس خودتان را بزنید."),
 ]
 
-APARTMENT_NUMERIC_FIELDS = {"area", "rooms", "master_rooms", "construction_year", "total_units", "total_floors", "units_per_floor", "storage", "parking", "municipal_district", "building_number", "unit_number", "deposit", "rent"}
+APARTMENT_NUMERIC_FIELDS = {"area", "rooms", "master_rooms", "total_floors", "units_per_floor", "storage", "parking", "municipal_district", "building_number", "unit_number", "deposit", "rent"}
 APARTMENT_BOOL_FIELDS = {"terrace", "lobby", "caretaker", "elevator", "shared_pool", "roof_garden"}
 
 async def begin_apartment_rent_form(update, context, language):
@@ -770,6 +779,8 @@ async def ask_apartment_step(message, context):
     if not form or form.get("mode") != "apartment_rent":
         return
     key, prompt, *options = APARTMENT_STEPS[form["step"]]
+    if key == "master_rooms":
+        options = [master_room_options(form.get("data", {}).get("rooms"))]
     language = form["language"]
     if key == "contact":
         rows = [[KeyboardButton(await localized("📱 اشتراک‌گذاری شماره تلگرام", language), request_contact=True)], [await localized("❌ لغو ثبت", language)]]
@@ -902,7 +913,9 @@ async def process_apartment_rent(update, context):
     # All predefined choice fields (including numeric counts and floors) accept
     # button selections only; typed values are rejected.
     step_options = APARTMENT_STEPS[form["step"]][2:]
-    if step_options and key in {"rooms", "master_rooms", "parking", "floor", "total_units", "total_floors", "units_per_floor", "storage"}:
+    if key == "master_rooms":
+        step_options = [master_room_options(form.get("data", {}).get("rooms"))]
+    if step_options and key in {"rooms", "master_rooms", "parking", "floor", "total_floors", "units_per_floor", "storage"}:
         allowed = step_options[0]
         matched = None
         for opt in allowed:
@@ -1030,7 +1043,7 @@ OFFICE_STEPS = [
     ("office_property_type", "نوع ملک را انتخاب کنید:", ["🏢 آپارتمان", "🏛 مستغلات"]),
     ("area", "متراژ ملک را فقط با عدد وارد کنید:"),
     ("parking", "تعداد پارکینگ را انتخاب کنید:", count_options(6)),
-    ("rooms", "تعداد اتاق را انتخاب کنید:", count_options(6)),
+    ("rooms", "تعداد اتاق را انتخاب کنید:", room_options()),
     ("elevator", "آسانسور دارد؟", ["✅ دارد", "❌ ندارد"]),
     ("lobby", "لابی دارد؟", ["✅ دارد", "❌ ندارد"]),
     ("city", "شهر را فقط با حروف وارد کنید:"),
@@ -1234,7 +1247,6 @@ async def finish_office_rent(update, context):
 COMMON_LISTING_FIELDS = [
     ("title", "عنوان آگهی"), ("description", "توضیحات کامل ملک"),
     ("province", "استان"), ("city", "شهر"), ("district", "منطقه"),
-    ("exact_address", "نشانی دقیق ملک (فقط برای مدیریت؛ در آگهی عمومی نمایش داده نمی‌شود)"),
     ("total_price", "قیمت کل (تومان)"), ("price_per_meter", "قیمت هر متر (در صورت اطلاع)"),
     ("negotiable", "قیمت قابل مذاکره است؟ (بله/خیر)"), ("payment_terms", "شرایط پرداخت"),
     ("delivery_status", "وضعیت تخلیه و تحویل"), ("viewing_time", "زمان مناسب بازدید"),
@@ -1283,19 +1295,14 @@ def build_form_fields(kind, category, menu_mode):
         else:
             add("deposit", "مبلغ ودیعه/رهن به تومان؛ بدون ودیعه عدد صفر")
             add("rent", "اجاره ماهانه به تومان؛ بدون اجاره عدد صفر")
-            add("deposit_negotiable", "ودیعه قابل مذاکره است؟ بله یا خیر")
-            add("rent_negotiable", "اجاره ماهانه قابل مذاکره است؟ بله یا خیر")
         if residential:
             add("rooms", "تعداد اتاق خواب")
             add("master_rooms", "تعداد اتاق مستر؛ اگر ندارد صفر")
             add("floor", "طبقه واحد؛ همکف صفر و زیرزمین عدد منفی")
             add("total_floors", "تعداد کل طبقات ساختمان")
-            add("total_units", "تعداد کل واحدهای ساختمان")
-            add("storage", "انباری دارد؟ بله یا خیر")
-            add("balcony", "بالکن یا تراس دارد؟ بله یا خیر")
             add("amenities", "امکانات ملک را انتخاب کنید؛ در پایان «پایان انتخاب امکانات» را بزنید")
             add("parking", "تعداد پارکینگ")
-            add("construction_year", "سال ساخت")
+            add("building_age", "سن بنا")
         elif office or commercial:
             add("floor", "طبقه واحد؛ همکف صفر و زیرزمین عدد منفی")
             add("total_floors", "تعداد کل طبقات ساختمان")
@@ -1313,14 +1320,12 @@ def build_form_fields(kind, category, menu_mode):
         elif portfolio:
             add("building_type", "نوع ساختمان: مسکونی، تجاری، اداری یا مختلط")
             add("total_floors", "تعداد طبقات")
-            add("total_units", "تعداد کل واحدها")
             add("occupancy", "وضعیت اشغال یا تخلیه")
-        add("construction_year", "سال ساخت یا سن بنا؛ اگر کاربرد ندارد بنویسید نامشخص")
-        add("deed_status", "وضعیت سند")
+        add("building_age", "سن بنا")
+        if menu_mode != "rent":
+            add("deed_status", "وضعیت سند")
         add("delivery_status", "وضعیت تخلیه و تحویل")
         add("description", "توضیحات تکمیلی و ویژگی‌های مهم ملک")
-        if not any(existing_key == "exact_address" for existing_key, _ in fields):
-            add("exact_address", "نشانی کامل ملک (محرمانه؛ فقط برای مدیر اصلی)")
         add("images_choice", "📷 آیا تمایل به ارسال تصویر دارید؟")
         add("images", "تصاویر ملک؛ حداکثر ۵ تصویر؛ پس از ارسال پایان تصاویر را انتخاب کنید")
         add("viewing_time", "زمان‌های مناسب برای بازدید")
@@ -1365,7 +1370,6 @@ def build_form_fields(kind, category, menu_mode):
             ("permit_status", "وضعیت پروانه ساخت"), ("density_floors", "تراکم و تعداد طبقات مجاز"),
             ("occupancy", "وضعیت تخلیه یا سکونت ملک"), ("cash_component", "مبلغ بلاعوض موردنظر"),
             ("owner_share", "درصد مشارکت پیشنهادی مالک"), ("images", "تصاویر ملک یا زمین؛ ۱ تا ۵ تصویر"),
-            ("exact_address", "آدرس کامل محرمانه برای مدیر اصلی"),
             ("description", "توضیحات و شرایط مالک"),
             ("contact", "شماره تماس را با دکمه اشتراک‌گذاری تلگرام ارسال کنید؛ فقط مدیر اصلی می‌بیند"),
         ]: add(key, prompt)
@@ -1391,7 +1395,6 @@ def build_form_fields(kind, category, menu_mode):
             ("capital_needed", "میزان سرمایه موردنیاز برای تکمیل"), ("completion_cost", "برآورد هزینه تکمیل پروژه"),
             ("completion_time", "زمان تقریبی لازم برای تکمیل"), ("description", "توضیحات پروژه"),
             ("images", "تصاویر فعلی پروژه؛ ۱ تا ۵ تصویر"),
-            ("exact_address", "آدرس کامل محرمانه برای مدیر اصلی"),
             ("contact", "شماره تماس را با دکمه اشتراک‌گذاری تلگرام ارسال کنید؛ فقط مدیر اصلی می‌بیند"),
         ]: add(key, prompt)
         return fields
@@ -1403,8 +1406,7 @@ def build_form_fields(kind, category, menu_mode):
             ("property_type", "نوع ملک: آپارتمان، ویلا، واحد تجاری، واحد اداری، ساختمان تجاری یا ساختمان اداری"),
             ("province", "استان"), ("city", "شهر"), ("land_area", "متراژ زمین پروژه"),
             ("total_built_area", "زیربنای کل پروژه"), ("total_floors", "تعداد کل طبقات"),
-            ("total_units", "تعداد کل واحدها"), ("deed_status", "وضعیت سند زمین"),
-            ("permit_status", "وضعیت پروانه ساخت"), ("exact_address", "آدرس محرمانه پروژه؛ فقط مدیر اصلی"),
+            ("deed_status", "وضعیت سند زمین"),
             ("project_images", "تصاویر کلی پروژه؛ ۱ تا ۵ تصویر"), ("project_description", "توضیحات کلی پروژه"),
             ("unit_count_to_add", "چند واحد می‌خواهید به این پروژه اضافه کنید؟ عدد وارد کنید"),
             ("contact", "شماره تماس سازنده را با دکمه اشتراک‌گذاری تلگرام ارسال کنید؛ فقط مدیر اصلی می‌بیند"),
@@ -1422,7 +1424,6 @@ def build_form_fields(kind, category, menu_mode):
             ("permit_status", "وضعیت مجوزها"), ("deed_status", "وضعیت سند و مالکیت"),
             ("exit_method", "روش خروج و تسویه سرمایه‌گذار"), ("guarantees", "تضمین‌ها و وثایق"),
             ("remaining_cost", "هزینه‌های باقی‌مانده پروژه"), ("description", "توضیحات و ریسک‌های پروژه"),
-            ("exact_address", "نشانی کامل محرمانه برای مدیر اصلی"),
         ]: add(key, prompt)
         add("contact", "شماره تماس را با دکمه اشتراک‌گذاری تلگرام ارسال کنید؛ فقط مدیر اصلی می‌بیند")
         return fields
@@ -1453,7 +1454,7 @@ PREV_STEP_LABELS = {
     "tr": "⬅️ Önceki adım", "ar": "⬅️ الخطوة السابقة", "zh": "⬅️ 上一步", "ru": "⬅️ Предыдущий шаг",
 }
 
-def _field_choice_options(key, prompt):
+def _field_choice_options(key, prompt, selected_rooms=None):
     k = (key or "").lower()
     p = (prompt or "").lower()
     if any(x in k for x in ("negotiable", "negotiation", "renewal", "furnished", "pets", "permit_status", "deed_status", "delivery_status", "occupancy", "elevator", "lobby", "balcony", "terrace", "pool", "parking_available", "images_choice", "installments")) or any(x in p for x in ("بله یا خیر", "قابل مذاکره", "آسانسور", "استخر", "سونا", "جکوزی", "بالکن", "تراس", "مبله", "تمدید قرارداد", "حیوان خانگی", "پروانه ساخت", "وضعیت سند", "وضعیت تخلیه", "اقساطی")):
@@ -1472,14 +1473,19 @@ def _field_choice_options(key, prompt):
         if "installments" in k or "اقساطی" in p:
             return ["بله", "خیر", "با توافق"]
         return ["بله", "خیر"]
-    if k in {"area", "land_area", "existing_built_area", "completed_area", "remaining_area", "total_built_area", "min_area", "max_area"} or any(x in p for x in ("متراژ ملک", "متراژ زمین", "متراژ زیربنا", "حداقل متراژ", "حداکثر متراژ")):
-        return ["تا ۵۰ متر", "۵۱ تا ۷۵ متر", "۷۶ تا ۱۰۰ متر", "۱۰۱ تا ۱۵۰ متر", "۱۵۱ تا ۲۰۰ متر", "۲۰۱ تا ۳۰۰ متر", "۳۰۱ تا ۵۰۰ متر", "۵۰۱ تا ۱۰۰۰ متر", "بیش از ۱۰۰۰ متر", "ورود دقیق متراژ"]
+    # Area fields are always free numeric input; never show range buttons.
     if "parking" in k or "تعداد پارکینگ" in p or "تعداد جای پارک" in p:
         return ["1", "2", "3", "4", "+5"]
-    if any(x in k for x in ("rooms", "bedrooms", "master_rooms", "storage", "balcony_count", "total_units", "total_floors", "units_per_floor", "completed_projects", "partners_needed", "unit_count_to_add")) or any(x in p for x in ("تعداد اتاق", "تعداد انباری", "تعداد بالکن", "تعداد طبقات", "تعداد واحد", "تعداد پروژه", "تعداد شرکا")):
+    if k in {"rooms", "bedrooms"} or "تعداد اتاق" in p:
+        return ["1", "2", "3", "4", "+5"]
+    if "master_rooms" in k or "تعداد اتاق مستر" in p:
+        return master_room_options(selected_rooms)
+    if "total_floors" in k or "تعداد کل طبقات" in p:
+        return ["1", "2", "3", "4", "5", "6", "+7"]
+    if any(x in k for x in ("storage", "balcony_count", "total_floors", "units_per_floor", "completed_projects", "partners_needed", "unit_count_to_add")) or any(x in p for x in ("تعداد انباری", "تعداد بالکن", "تعداد طبقات", "تعداد واحد", "تعداد پروژه", "تعداد شرکا")):
         return [str(i) for i in range(0, 11)] + ["+10"]
     if k in {"floor", "unit_floor"} or "طبقه واحد" in p:
-        return [str(i) for i in range(-5, 0)] + [str(i) for i in range(0, 31)] + ["+30"]
+        return ["0", "2", "3", "4", "5", "6", "+7"]
     if "progress" in k or "درصد پیشرفت" in p:
         return ["۰٪", "۱۰٪", "۲۰٪", "۳۰٪", "۴۰٪", "۵۰٪", "۶۰٪", "۷۰٪", "۸۰٪", "۹۰٪", "۱۰۰٪"]
     if "stage" in k or "مرحله فعلی ساخت" in p:
@@ -1499,12 +1505,12 @@ def _field_choice_options(key, prompt):
     if "viewing" in k or "زمان‌های مناسب برای بازدید" in p:
         return ["همه‌روزه با هماهنگی", "روزهای کاری", "آخر هفته", "صبح‌ها", "بعدازظهرها", "فقط با هماهنگی قبلی"]
     if "building_age" in k or "سن بنا" in p:
-        return ["نوساز", "۱ تا ۵ سال", "۶ تا ۱۰ سال", "۱۱ تا ۲۰ سال", "بیش از ۲۰ سال", "فرقی ندارد"]
+        return ["نوساز تا ۵ سال", "۵ تا ۱۵ سال", "۱۵ تا ۲۰ سال", "بیشتر از ۲۰ سال"]
     if "images_choice" in k:
         return ["بله", "خیر"]
     return None
 
-NUMERIC_ONLY_KEYS = {"area", "land_area", "existing_built_area", "completed_area", "remaining_area", "total_built_area", "total_price", "price_per_meter", "deposit", "rent", "deposit_min", "deposit_max", "rent_min", "rent_max", "budget_min", "budget_max", "project_value", "investment_amount", "minimum_investment", "funded_amount", "capital_needed", "completion_cost", "cash_component", "municipal_district", "progress_percent", "max_floors", "density_floors", "construction_year", "plaque", "building_number", "unit_number", "unit_count_to_add", "max_area", "min_area", "land_area_range"}
+NUMERIC_ONLY_KEYS = {"area", "land_area", "existing_built_area", "completed_area", "remaining_area", "total_built_area", "total_price", "price_per_meter", "deposit", "rent", "deposit_min", "deposit_max", "rent_min", "rent_max", "budget_min", "budget_max", "project_value", "investment_amount", "minimum_investment", "funded_amount", "capital_needed", "completion_cost", "cash_component", "municipal_district", "progress_percent", "max_floors", "density_floors", "plaque", "building_number", "unit_number", "unit_count_to_add", "max_area", "min_area", "land_area_range"}
 
 async def ask_complete_form_step(message, context):
     form = context.user_data.get("form")
@@ -1544,7 +1550,7 @@ async def ask_complete_form_step(message, context):
             ),
         )
         return
-    choices = _field_choice_options(key, prompt)
+    choices = _field_choice_options(key, prompt, form.get("data", {}).get("rooms"))
     if choices:
         rows = []
         shown_choices = [await localized(x, lang) for x in choices]
@@ -1602,7 +1608,7 @@ async def render_submission(data, kind, language, source_language, admin_view=Fa
     translated = await translate_submission_data(data, source_language, language)
     lines = [f"🏡 <b>{escape(KINDS.get(kind, KINDS['rent_ad']).get(language, KINDS.get(kind, KINDS['rent_ad'])['fa']))}</b>", ""]
     if kind == "rent_apartment_ad" and not admin_view:
-        labels = {"area":"متراژ", "rooms":"تعداد اتاق خواب", "master_rooms":"تعداد اتاق مستر", "terrace":"تراس", "lobby":"لابی", "caretaker":"سرایدار مقیم", "elevator":"آسانسور", "parking":"پارکینگ", "parking_spaces":"تعداد جای پارک", "shared_pool":"امکانات آبی مشترک", "roof_garden":"روف‌گاردن", "floor":"طبقه", "construction_year":"سال ساخت", "furnished":"مبله بودن", "pets":"حیوان خانگی", "total_units":"تعداد واحدهای ساختمان", "total_floors":"تعداد طبقات ساختمان", "city":"شهر", "municipal_district":"منطقه شهرداری", "street":"خیابان اصلی", "deposit":"رهن (تومان)", "rent":"اجاره ماهانه (تومان)", "details":"توضیحات", "listing_role":"نوع ثبت‌کننده", "publication_date":"تاریخ انتشار"}
+        labels = {"area":"متراژ", "rooms":"تعداد اتاق خواب", "master_rooms":"تعداد اتاق مستر", "terrace":"تراس", "lobby":"لابی", "caretaker":"سرایدار مقیم", "elevator":"آسانسور", "parking":"پارکینگ", "parking_spaces":"تعداد جای پارک", "shared_pool":"امکانات آبی مشترک", "roof_garden":"روف‌گاردن", "floor":"طبقه", "building_age":"سن بنا", "furnished":"مبله بودن", "pets":"حیوان خانگی", "total_floors":"تعداد طبقات ساختمان", "city":"شهر", "municipal_district":"منطقه شهرداری", "street":"خیابان اصلی", "deposit":"رهن (تومان)", "rent":"اجاره ماهانه (تومان)", "details":"توضیحات", "listing_role":"نوع ثبت‌کننده", "publication_date":"تاریخ انتشار"}
         for key, label in labels.items():
             value = str(data.get(key, "")).strip()
             if key == "listing_role": value = "مالک" if value == "owner" else "مشاور املاک / واسطه"
@@ -1613,7 +1619,7 @@ async def render_submission(data, kind, language, source_language, admin_view=Fa
     if kind == "rent_apartment_ad":
         labels = {
             "listing_role": "نوع ثبت‌کننده", "agent_name": "نام مشاور (فقط مدیر اصلی)", "agency_name": "دفتر املاک (فقط مدیر اصلی)",
-            "area": "متراژ", "rooms": "تعداد اتاق خواب", "master_rooms": "تعداد اتاق مستر", "terrace": "تراس", "lobby": "لابی", "caretaker": "سرایدار مقیم", "elevator": "آسانسور", "parking": "پارکینگ", "parking_spaces": "تعداد جای پارک", "shared_pool": "امکانات آبی مشترک", "roof_garden": "روف‌گاردن", "floor": "طبقه", "construction_year": "سال ساخت", "furnished": "وضعیت مبله", "pets": "حیوان خانگی", "total_units": "تعداد کل واحدها", "total_floors": "تعداد کل طبقات", "city": "شهر", "municipal_district": "منطقه شهرداری", "street": "خیابان اصلی", "alley": "کوچه (فقط مدیر اصلی)", "building_number": "پلاک (فقط مدیر اصلی)", "unit_number": "شماره واحد (فقط مدیر اصلی)", "deposit": "مبلغ رهن (تومان)", "rent": "اجاره ماهانه (تومان)", "details": "توضیحات", "contact": "شماره تماس (فقط مدیر اصلی)", "telegram_user_id": "شناسه تلگرام (فقط مدیر اصلی)", "telegram_username": "نام کاربری تلگرام (فقط مدیر اصلی)", "possible_duplicate_of": "احتمال تکراری بودن با آگهی", "publication_date": "تاریخ ثبت"
+            "area": "متراژ", "rooms": "تعداد اتاق خواب", "master_rooms": "تعداد اتاق مستر", "terrace": "تراس", "lobby": "لابی", "caretaker": "سرایدار مقیم", "elevator": "آسانسور", "parking": "پارکینگ", "parking_spaces": "تعداد جای پارک", "shared_pool": "امکانات آبی مشترک", "roof_garden": "روف‌گاردن", "floor": "طبقه", "building_age": "سن بنا", "furnished": "وضعیت مبله", "pets": "حیوان خانگی", "total_floors": "تعداد کل طبقات", "city": "شهر", "municipal_district": "منطقه شهرداری", "street": "خیابان اصلی", "alley": "کوچه (فقط مدیر اصلی)", "building_number": "پلاک (فقط مدیر اصلی)", "unit_number": "شماره واحد (فقط مدیر اصلی)", "deposit": "مبلغ رهن (تومان)", "rent": "اجاره ماهانه (تومان)", "details": "توضیحات", "contact": "شماره تماس (فقط مدیر اصلی)", "telegram_user_id": "شناسه تلگرام (فقط مدیر اصلی)", "telegram_username": "نام کاربری تلگرام (فقط مدیر اصلی)", "possible_duplicate_of": "احتمال تکراری بودن با آگهی", "publication_date": "تاریخ ثبت"
         }
         for key, label in labels.items():
             value = str(translated.get(key, "")).strip()
@@ -1934,16 +1940,6 @@ SUPPORT_BUTTONS = {
     "🆘 پشتیبانی", "🆘 Support", "🆘 Dəstək", "🆘 Destek",
     "🆘 الدعم", "🆘 客服支持", "🆘 Поддержка",
 }
-MY_LISTINGS_BUTTONS = {
-    "📋 آگهی‌های من", "📋 My Listings", "📋 Elanlarım",
-    "📋 İlanlarım", "📋 إعلاناتي", "📋 我的房源", "📋 Мои объявления",
-}
-MY_REQUESTS_BUTTONS = {
-    "📨 درخواست‌های من", "📨 My Requests", "📨 Sorğularım",
-    "📨 Taleplerim", "📨 طلباتي", "📨 我的需求", "📨 Мои запросы",
-}
-
-
 async def show_user_submissions(update, user_id, only_requests=False):
     sql = "SELECT id, kind, status, created_at FROM submissions WHERE user_id=?"
     if only_requests:
@@ -2020,18 +2016,6 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(language_prompt(), reply_markup=language_keyboard())
         return
 
-    if text in MY_LISTINGS_BUTTONS:
-        context.user_data.pop("form", None)
-        context.user_data.pop("awaiting_support", None)
-        await show_user_submissions(update, user.id)
-        return
-
-    if text in MY_REQUESTS_BUTTONS:
-        context.user_data.pop("form", None)
-        context.user_data.pop("awaiting_support", None)
-        await show_user_submissions(update, user.id, only_requests=True)
-        return
-
     if text in SUPPORT_BUTTONS:
         context.user_data.pop("form", None)
         context.user_data["awaiting_support"] = True
@@ -2104,17 +2088,11 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
             action = menu_action
             break
     if action:
-        if action == "my_items":
-            await show_user_submissions(update, user.id)
-            return
         if action == "support":
             context.user_data["awaiting_support"] = True
             await update.message.reply_text(await localized("پیام خود را برای پشتیبانی ارسال کنید:", user_language), reply_markup=main_keyboard(user_language))
             return
-        if action == "favorites":
-            context.user_data["menu_mode"] = "favorites"
-        else:
-            context.user_data["menu_mode"] = action
+        context.user_data["menu_mode"] = action
         options = SUBMENUS.get(action, [])
         translated_options = [await localized(option, user_language) for option in options]
         prompt = "نوع ملک یا موضوع موردنظر را انتخاب کنید:"
@@ -2132,12 +2110,6 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 break
         if selected:
             context.user_data.pop("menu_mode", None)
-            if menu_mode == "favorites":
-                await update.message.reply_text(await localized("امکانات ذخیره‌سازی هنوز در این نسخه فعال نیستند.", user_language), reply_markup=main_keyboard(user_language))
-                return
-            if menu_mode == "favorites":
-                await update.message.reply_text(await localized("بخش علاقه‌مندی‌ها در حال آماده‌سازی است.", user_language), reply_markup=main_keyboard(user_language))
-                return
             kind = KIND_FOR_MENU.get(menu_mode, "builder")
             selected_norm = normalize_button_text(selected)
             effective_mode = menu_mode
@@ -2260,7 +2232,7 @@ async def process_standard_form(update, context):
         form["step"] += 1
         await ask_complete_form_step(update.message, context)
         return True
-    choices = _field_choice_options(key, prompt)
+    choices = _field_choice_options(key, prompt, form.get("data", {}).get("rooms"))
     if choices:
         matched = None
         for option in choices:
@@ -2269,7 +2241,17 @@ async def process_standard_form(update, context):
                 matched = option
                 break
         if matched is None:
-            await update.message.reply_text(await localized("لطفاً یکی از گزینه‌های دکمه‌ای را انتخاب کنید.", language), reply_markup=form_keyboard([[await localized(x, language) for x in choices[:3]], [await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)], ["❌ لغو ثبت"]], language))
+            if "امکانات" in prompt or "amenit" in key.lower():
+                amenity_rows = []
+                shown_choices = [await localized(x, language) for x in choices if x != "پایان انتخاب امکانات"]
+                amenity_rows.extend([shown_choices[i:i+3] for i in range(0, len(shown_choices), 3)])
+                amenity_rows.append([await localized("پایان انتخاب امکانات", language)])
+                amenity_rows.append([await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)])
+                amenity_rows.append(["❌ لغو ثبت"])
+            else:
+                amenity_rows = [[await localized(x, language) for x in choices[i:i+3]] for i in range(0, len(choices), 3)]
+                amenity_rows.extend([[await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)], ["❌ لغو ثبت"]])
+            await update.message.reply_text(await localized("لطفاً یکی از گزینه‌های دکمه‌ای را انتخاب کنید.", language), reply_markup=form_keyboard(amenity_rows, language))
             return True
         if matched == "ورود دقیق متراژ":
             form["_awaiting_exact_area"] = key
@@ -2305,14 +2287,23 @@ async def process_standard_form(update, context):
             selected = form.setdefault("_amenity_selections", [])
             if matched not in selected:
                 selected.append(matched)
-            await update.message.reply_text(await localized("امکانات دیگری انتخاب کنید یا «پایان انتخاب امکانات» را بزنید.", language), reply_markup=form_keyboard([[await localized(x, language) for x in choices[:3]], [await localized("پایان انتخاب امکانات", language)], [await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)], ["❌ لغو ثبت"]], language))
+            # Keep the complete amenities menu visible after every selection.
+            # Do not truncate it to the first three options; the user may select
+            # several amenities before explicitly finishing.
+            amenity_rows = []
+            shown_choices = [await localized(x, language) for x in choices if x != "پایان انتخاب امکانات"]
+            amenity_rows.extend([shown_choices[i:i+3] for i in range(0, len(shown_choices), 3)])
+            amenity_rows.append([await localized("پایان انتخاب امکانات", language)])
+            amenity_rows.append([await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)])
+            amenity_rows.append(["❌ لغو ثبت"])
+            await update.message.reply_text(await localized("امکانات دیگری انتخاب کنید یا «پایان انتخاب امکانات» را بزنید.", language), reply_markup=form_keyboard(amenity_rows, language))
             return True
         else:
             form["data"][key] = matched
         form["step"] += 1
         await ask_complete_form_step(update.message, context)
         return True
-    if key in NUMERIC_ONLY_KEYS:
+    if key in NUMERIC_ONLY_KEYS or key.endswith("_area") or key.endswith("_land_area"):
         normalized = text.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")).replace(",", "").replace("٬", "").replace(" ", "")
         if not normalized.isdigit():
             await update.message.reply_text(await localized("فقط عدد وارد کنید؛ حروف و واحد پول ننویسید.", language))
