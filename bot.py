@@ -217,9 +217,14 @@ def init_db():
                 kind TEXT NOT NULL,
                 data TEXT NOT NULL,
                 status TEXT NOT NULL DEFAULT 'pending',
+                admin_notified INTEGER NOT NULL DEFAULT 0,
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        # Safe migration for databases created by earlier bot versions.
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(submissions)").fetchall()}
+        if "admin_notified" not in columns:
+            conn.execute("ALTER TABLE submissions ADD COLUMN admin_notified INTEGER NOT NULL DEFAULT 0")
         conn.execute("""
             CREATE TABLE IF NOT EXISTS publications (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -274,6 +279,21 @@ def get_submission(submission_id):
     with connect_db() as conn:
         row = conn.execute("SELECT * FROM submissions WHERE id=?", (submission_id,)).fetchone()
         return dict(row) if row else None
+
+
+def listing_code(submission_id):
+    """Stable, unique public-facing code derived from the AUTOINCREMENT ID."""
+    return f"MRE-{int(submission_id):06d}"
+
+
+def claim_admin_notification(submission_id):
+    """Atomically prevent duplicate admin review messages for one submission."""
+    with connect_db() as conn:
+        cursor = conn.execute(
+            "UPDATE submissions SET admin_notified=1 WHERE id=? AND admin_notified=0",
+            (submission_id,),
+        )
+        return cursor.rowcount == 1
 
 
 def set_submission_status(submission_id, status):
@@ -722,12 +742,12 @@ def master_room_options(selected_rooms):
     """Master-bedroom choices cannot exceed the selected bedroom count."""
     value = normalize_button_text(str(selected_rooms or ""))
     if value == "+5":
-        return ["1", "2", "3", "4", "+5"]
+        return ["0", "1", "2", "3", "4", "+5"]
     try:
         count = int(value)
     except (TypeError, ValueError):
-        return ["1", "2", "3", "4", "+5"]
-    return [str(i) for i in range(1, max(1, min(count, 4)) + 1)]
+        return ["0", "1", "2", "3", "4", "+5"]
+    return ["0"] + [str(i) for i in range(1, max(1, min(count, 4)) + 1)]
 
 def floor_options():
     return ["0", "2", "3", "4", "5", "6", "+7"]
@@ -1006,9 +1026,9 @@ async def finish_apartment_rent(update, context):
     submission_id = create_submission(update.effective_user.id, form["language"], form["kind"], data)
     language = form["language"]
     context.user_data.pop("form", None)
-    await update.message.reply_text(await localized(f"آگهی شما با شناسه {submission_id} ثبت شد و پس از بررسی مدیر اصلی منتشر می‌شود.", language), reply_markup=main_keyboard(language))
+    await update.message.reply_text(await localized(f"آگهی شما با شناسه {listing_code(submission_id)} ثبت شد و پس از بررسی مدیر اصلی منتشر می‌شود.", language), reply_markup=main_keyboard(language))
     if duplicate:
-        try: await context.bot.send_message(chat_id=ADMIN_ID, text=f"⚠️ احتمال آگهی تکراری: #{submission_id} شبیه آگهی #{data['possible_duplicate_of']} است.")
+        try: await context.bot.send_message(chat_id=ADMIN_ID, text=f"⚠️ احتمال آگهی تکراری: {listing_code(submission_id)} شبیه آگهی {listing_code(data['possible_duplicate_of'])} است.")
         except Exception: logger.exception("Could not alert admin about possible duplicate")
     await send_admin_review(context, submission_id)
 
@@ -1230,13 +1250,13 @@ async def finish_office_rent(update, context):
     language = form["language"]
     context.user_data.pop("form", None)
     confirmations = {
-        "fa": f"✅ آگهی اجاره اداری شما با کد پیگیری {submission_id} ثبت شد و برای بررسی مدیر ارسال می‌شود.",
-        "en": f"✅ Your office rental listing #{submission_id} was submitted for admin review.",
-        "az": f"✅ Ofis icarə elanınız #{submission_id} nömrəsi ilə yoxlanışa göndərildi.",
+        "fa": f"✅ آگهی اجاره اداری شما با کد پیگیری {listing_code(submission_id)} ثبت شد و برای بررسی مدیر ارسال می‌شود.",
+        "en": f"✅ Your office rental listing #{listing_code(submission_id)} was submitted for admin review.",
+        "az": f"✅ Ofis icarə elanınız #{listing_code(submission_id)} nömrəsi ilə yoxlanışa göndərildi.",
         "tr": f"✅ Ofis kiralama ilanınız #{submission_id} numarasıyla incelemeye gönderildi.",
-        "ar": f"✅ تم إرسال إعلان المكتب للإيجار رقم {submission_id} للمراجعة.",
-        "zh": f"✅ 您的办公出租房源 #{submission_id} 已提交审核。",
-        "ru": f"✅ Объявление об аренде офиса #{submission_id} отправлено на проверку.",
+        "ar": f"✅ تم إرسال إعلان المكتب للإيجار رقم {listing_code(submission_id)} للمراجعة.",
+        "zh": f"✅ 您的办公出租房源 #{listing_code(submission_id)} 已提交审核。",
+        "ru": f"✅ Объявление об аренде офиса #{listing_code(submission_id)} отправлено на проверку.",
     }
     await update.message.reply_text(confirmations.get(language, confirmations["fa"]), reply_markup=main_keyboard(language))
     await send_admin_review(context, submission_id)
@@ -1588,10 +1608,10 @@ async def submit_complete_form(update, context):
     submission_id = create_submission(update.effective_user.id, form["language"], form["kind"], data)
     context.user_data.pop("form", None)
     messages = {
-        "fa": f"✅ فرم شما با کد پیگیری {submission_id} برای بررسی و تأیید به ناظر ارسال شد. تا تأیید مدیریت، منتشر نمی‌شود.",
-        "en": f"✅ Form #{submission_id} was sent to the reviewer. It will not be published before admin approval.",
-        "az": f"✅ Forma #{submission_id} yoxlanış üçün göndərildi.", "tr": f"✅ Form #{submission_id} incelemeye gönderildi.",
-        "ar": f"✅ تم إرسال النموذج رقم {submission_id} للمراجعة.", "zh": f"✅ 表单 #{submission_id} 已提交审核。", "ru": f"✅ Форма #{submission_id} отправлена на проверку."
+        "fa": f"✅ فرم شما با کد پیگیری {listing_code(submission_id)} برای بررسی و تأیید به ناظر ارسال شد. تا تأیید مدیریت، منتشر نمی‌شود.",
+        "en": f"✅ Form #{listing_code(submission_id)} was sent to the reviewer. It will not be published before admin approval.",
+        "az": f"✅ Forma #{listing_code(submission_id)} yoxlanış üçün göndərildi.", "tr": f"✅ Form #{submission_id} incelemeye gönderildi.",
+        "ar": f"✅ تم إرسال النموذج رقم {listing_code(submission_id)} للمراجعة.", "zh": f"✅ 表单 #{listing_code(submission_id)} 已提交审核。", "ru": f"✅ Форма #{listing_code(submission_id)} отправлена на проверку."
     }
     await update.message.reply_text(messages.get(form["language"], messages["fa"]), reply_markup=main_keyboard(form["language"]))
     await send_admin_review(context, submission_id)
@@ -1616,7 +1636,7 @@ async def render_submission(data, kind, language, source_language, admin_view=Fa
             value = str(data.get(key, "")).strip()
             if key == "listing_role": value = "مالک" if value == "owner" else "مشاور املاک / واسطه"
             if value: lines.append(f"<b>{escape(label)}:</b> {escape(value)}")
-        lines.append(f"<b>شناسه آگهی:</b> {submission_id if 'submission_id' in locals() else ''}")
+        lines.append("<b>شناسه آگهی:</b> در سربرگ پرونده درج شده است")
         lines.append(f"<b>تعداد تصاویر:</b> {len(data.get('images', []))}")
         return "\n".join(lines)
     if kind == "rent_apartment_ad":
@@ -1696,53 +1716,55 @@ async def render_submission(data, kind, language, source_language, admin_view=Fa
 
 
 async def send_admin_review(context, submission_id):
+    """Send one Persian admin review message per submission, plus its media."""
     submission = get_submission(submission_id)
     if not submission:
         return
+    # Claim before sending: duplicate form callbacks/retries cannot send a second review.
+    if not claim_admin_notification(submission_id):
+        logger.info("Admin review already sent/claimed for listing %s", listing_code(submission_id))
+        return
+
     data = json.loads(submission["data"])
     user = get_user(submission["user_id"]) or {}
     source_language = submission["language"]
-    for language in CHANNELS:
-        try:
-            body = await render_submission(data, submission["kind"], language, source_language, admin_view=True)
-            header = (
-                f"📥 <b>ثبت جدید #{submission_id}</b>\n"
-                f"👤 {escape(user.get('full_name', ''))}\n"
-                f"🆔 <code>{submission['user_id']}</code>\n"
-                f"🌐 زبان ثبت‌کننده: {escape(LANG_LABELS[source_language])}\n"
-                f"📌 وضعیت: در انتظار بررسی\n\n"
-            )
-            await context.bot.send_message(
-                chat_id=ADMIN_ID, text=header + body, parse_mode="HTML",
-                reply_markup=review_keyboard(submission_id) if language == "fa" else None,
-            )
-        except Exception as exc:
-            logger.exception("Admin review translation/send failed for %s", language)
-            try:
-                await context.bot.send_message(
-                    chat_id=ADMIN_ID,
-                    text=f"⚠️ ارسال نسخه {LANG_LABELS[language]} برای ثبت #{submission_id} ناموفق بود.\n{str(exc)[:500]}",
-                )
-            except Exception:
-                logger.exception("Could not report admin review failure")
+    code = listing_code(submission_id)
+    try:
+        body = await render_submission(data, submission["kind"], "fa", source_language, admin_view=True)
+        header = (
+            f"📥 <b>آگهی جدید | {code}</b>\n"
+            f"👤 {escape(user.get('full_name', ''))}\n"
+            f"🆔 <code>{submission['user_id']}</code>\n"
+            f"🌐 زبان ثبت‌کننده: {escape(LANG_LABELS.get(source_language, source_language))}\n"
+            f"📌 وضعیت: در انتظار بررسی\n\n"
+        )
+        await context.bot.send_message(
+            chat_id=ADMIN_ID, text=header + body, parse_mode="HTML",
+            reply_markup=review_keyboard(submission_id),
+        )
+    except Exception:
+        logger.exception("Persian admin review send failed for %s", code)
+        # Keep the claim to avoid duplicate deliveries if Telegram accepted the message
+        # but the client timed out before receiving the response.
+        return
 
-    # ارسال تصاویر واقعی ملک برای مدیر، علاوه بر متن بررسی
+    # Send attached media once, associated with the same unique listing code.
     image_ids = data.get("images", [])
     if image_ids:
         try:
             if len(image_ids) == 1:
-                await context.bot.send_photo(chat_id=ADMIN_ID, photo=image_ids[0], caption=f"تصویر پرونده #{submission_id}")
+                await context.bot.send_photo(chat_id=ADMIN_ID, photo=image_ids[0], caption=f"تصویر آگهی {code}")
             else:
                 from telegram import InputMediaPhoto
                 media = [InputMediaPhoto(media=file_id) for file_id in image_ids[:5]]
                 await context.bot.send_media_group(chat_id=ADMIN_ID, media=media)
         except Exception:
-            logger.exception("Could not send submission photos to admin")
+            logger.exception("Could not send submission photos to admin for %s", code)
     for video_id in data.get("videos", []):
         try:
-            await context.bot.send_video(chat_id=ADMIN_ID, video=video_id, caption=f"ویدئوی پرونده #{submission_id}")
+            await context.bot.send_video(chat_id=ADMIN_ID, video=video_id, caption=f"ویدئوی آگهی {code}")
         except Exception:
-            logger.exception("Could not send submission video to admin")
+            logger.exception("Could not send submission video to admin for %s", code)
 
 
 # ==================== CHANNEL PUBLICATION ====================
@@ -1793,7 +1815,7 @@ async def publish_submission(context, submission, language):
     data = sanitize_publication_data(json.loads(submission["data"]))
     message_text = await render_submission(data, submission["kind"], language, submission["language"])
     if submission["kind"] == "rent_apartment_ad":
-        message_text = message_text.replace("<b>شناسه آگهی:</b> ", f"<b>شناسه آگهی:</b> {submission_id} ")
+        message_text = message_text.replace("<b>شناسه آگهی:</b> ", f"<b>شناسه آگهی:</b> {listing_code(submission_id)} ")
     message = await context.bot.send_message(
         chat_id=channel, text=message_text, parse_mode="HTML", disable_web_page_preview=True,
     )
