@@ -1321,7 +1321,10 @@ def build_form_fields(kind, category, menu_mode):
             add("building_type", "نوع ساختمان: مسکونی، تجاری، اداری یا مختلط")
             add("total_floors", "تعداد طبقات")
             add("occupancy", "وضعیت اشغال یا تخلیه")
-        add("building_age", "سن بنا")
+        # سن بنا ممکن است قبلاً برای دسته‌های مسکونی یا ساختمان قدیمی اضافه شده باشد؛
+        # فقط در صورت نبودن این فیلد، یک‌بار آن را اضافه کن.
+        if not any(key == "building_age" or "سن بنا" in str(prompt) for key, prompt in fields):
+            add("building_age", "سن بنا")
         if menu_mode != "rent":
             add("deed_status", "وضعیت سند")
         add("delivery_status", "وضعیت تخلیه و تحویل")
