@@ -1291,6 +1291,8 @@ def build_form_fields(kind, category, menu_mode):
             add("floor", "طبقه واحد؛ همکف صفر و زیرزمین عدد منفی")
             add("total_floors", "تعداد کل طبقات ساختمان")
             add("total_units", "تعداد کل واحدهای ساختمان")
+            add("storage", "انباری دارد؟ بله یا خیر")
+            add("balcony", "بالکن یا تراس دارد؟ بله یا خیر")
             add("amenities", "امکانات ملک را انتخاب کنید؛ در پایان «پایان انتخاب امکانات» را بزنید")
             add("parking", "تعداد پارکینگ")
             add("construction_year", "سال ساخت")
@@ -1528,9 +1530,19 @@ async def ask_complete_form_step(message, context):
         await message.reply_text("ویدئوی ملک را ارسال کنید؛ اگر ویدئویی ندارید، «ندارد» را بنویسید. پس از ارسال، «پایان ویدئوها» را بزنید.", reply_markup=form_keyboard([["🎬 پایان ویدئوها"], ["❌ لغو ثبت"]], lang))
         return
     if key == "contact":
-        contact_button = KeyboardButton(await localized("📱 اشتراک‌گذاری شماره تماس", lang), request_contact=True)
-        rows = [[contact_button], ["❌ لغو ثبت"]]
-        await message.reply_text("📝 " + await localized(prompt, lang), reply_markup=ReplyKeyboardMarkup(number_keyboard_rows(with_language_button(rows, lang)), resize_keyboard=True, is_persistent=True))
+        # Telegram only offers request_contact in a private chat. Keep this as a real
+        # contact-request button and do not wrap it in the generic text-button builder.
+        contact_button = KeyboardButton(
+            await localized("📱 اشتراک‌گذاری شماره تماس", lang),
+            request_contact=True,
+        )
+        rows = [[contact_button], [await localized("❌ لغو ثبت", lang)]]
+        await message.reply_text(
+            "📝 " + await localized(prompt, lang),
+            reply_markup=ReplyKeyboardMarkup(
+                rows, resize_keyboard=True, one_time_keyboard=False, is_persistent=True
+            ),
+        )
         return
     choices = _field_choice_options(key, prompt)
     if choices:
@@ -2164,13 +2176,26 @@ async def process_standard_form(update, context):
     text = _strip_button_number((update.message.text or "").strip())
     if update.message.contact:
         contact = update.message.contact
+        # Accept only the Telegram contact belonging to the current user.
         if not update.effective_user or not contact.user_id or contact.user_id != update.effective_user.id:
-            await update.message.reply_text("لطفاً شماره تماس متعلق به حساب تلگرام خودتان را با دکمه اشتراک‌گذاری ارسال کنید.")
+            button = KeyboardButton("📱 اشتراک‌گذاری شماره تماس", request_contact=True)
+            await update.message.reply_text(
+                "لطفاً فقط با دکمهٔ اشتراک‌گذاری شماره تماسِ حساب تلگرام خودتان را ارسال کنید.",
+                reply_markup=ReplyKeyboardMarkup([[button], ["❌ لغو ثبت"]], resize_keyboard=True, is_persistent=True),
+            )
+            return True
+        fields = form.get("fields", [])
+        idx = form.get("step", 0)
+        if idx >= len(fields) or fields[idx][0] != "contact":
+            # Do not let an unexpected contact message corrupt another form step.
             return True
         form["data"]["contact"] = contact.phone_number
         form["data"]["contact_user_id"] = contact.user_id
         form["step"] += 1
-        await update.message.reply_text("شماره تماس ثبت شد. برای ارسال نهایی، دکمه «پایان و ارسال به ناظر» را بزنید.", reply_markup=form_keyboard([["✅ پایان و ارسال به ناظر"], ["❌ لغو ثبت"]], language))
+        form["awaiting_contact"] = False
+        await update.message.reply_text("شماره تماس تلگرام شما ثبت شد.")
+        # Continue the actual form instead of jumping to the final-submit screen.
+        await ask_complete_form_step(update.message, context)
         return True
     if update.message.photo and form.get("awaiting_images"):
         if len(form["images"]) >= 5:
@@ -2244,7 +2269,7 @@ async def process_standard_form(update, context):
                 matched = option
                 break
         if matched is None:
-            await update.message.reply_text(await localized("لطفاً یکی از گزینه‌های دکمه‌ای را انتخاب کنید.", language), reply_markup=form_keyboard([[await localized(x, language) for x in choices[i:i+3]] for i in range(0, len(choices), 3)] + [[await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)], ["❌ لغو ثبت"]], language))
+            await update.message.reply_text(await localized("لطفاً یکی از گزینه‌های دکمه‌ای را انتخاب کنید.", language), reply_markup=form_keyboard([[await localized(x, language) for x in choices[:3]], [await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)], ["❌ لغو ثبت"]], language))
             return True
         if matched == "ورود دقیق متراژ":
             form["_awaiting_exact_area"] = key
@@ -2280,7 +2305,7 @@ async def process_standard_form(update, context):
             selected = form.setdefault("_amenity_selections", [])
             if matched not in selected:
                 selected.append(matched)
-            await update.message.reply_text(await localized("امکانات دیگری انتخاب کنید یا «پایان انتخاب امکانات» را بزنید.", language), reply_markup=form_keyboard([[await localized(x, language) for x in choices[i:i+3]] for i in range(0, len(choices), 3)] + [[await localized("پایان انتخاب امکانات", language)], [await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)], ["❌ لغو ثبت"]], language))
+            await update.message.reply_text(await localized("امکانات دیگری انتخاب کنید یا «پایان انتخاب امکانات» را بزنید.", language), reply_markup=form_keyboard([[await localized(x, language) for x in choices[:3]], [await localized("پایان انتخاب امکانات", language)], [await localized(PREV_STEP_LABELS.get(language, PREV_STEP_LABELS["fa"]), language)], ["❌ لغو ثبت"]], language))
             return True
         else:
             form["data"][key] = matched
@@ -2300,7 +2325,11 @@ async def process_standard_form(update, context):
         await update.message.reply_text("لطفاً تصاویر ملک را ارسال کنید؛ حداقل یک و حداکثر ۵ تصویر. سپس «📷 پایان تصاویر» را بزنید.")
         return True
     if key == "contact":
-        await update.message.reply_text("شماره تماس باید با دکمه اشتراک‌گذاری شماره تلگرام ارسال شود؛ واردکردن دستی پذیرفته نیست.")
+        button = KeyboardButton("📱 اشتراک‌گذاری شماره تماس", request_contact=True)
+        await update.message.reply_text(
+            "شماره تماس باید با دکمهٔ اشتراک‌گذاری شماره تلگرام ارسال شود؛ واردکردن دستی پذیرفته نیست.",
+            reply_markup=ReplyKeyboardMarkup([[button], ["❌ لغو ثبت"]], resize_keyboard=True, is_persistent=True),
+        )
         return True
     if key == "video_note":
         if text.casefold() in {"ندارد", "no", "none", "нет", "لا يوجد", "没有"}:
